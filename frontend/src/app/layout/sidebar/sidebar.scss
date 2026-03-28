@@ -1,0 +1,43 @@
+@use '../../../styles/variables' as *;
+
+.sidebar {
+  color: $ui-dark;
+}
+
+.sidebar-eyebrow,
+.sidebar-label {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: $ui-muted;
+}
+
+.sidebar-title {
+  font-weight: 800;
+  font-size: 1.5rem;
+}
+
+.nav-item-link {
+  padding: 0.85rem 1rem;
+  border-radius: $radius-md;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(50, 133, 117, 0.14);
+    transform: translateX(3px);
+  }
+}
+
+.info-card {
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.45);
+  border: 1px solid $border-soft;
+  border-radius: $radius-lg;
+
+  p {
+    color: $text-secondary;
+  }
+}
