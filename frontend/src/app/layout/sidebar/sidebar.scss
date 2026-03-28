@@ -1,7 +1,8 @@
 @use '../../../styles/variables' as *;
 
 .sidebar {
-  color: $ui-dark;
+  background: linear-gradient(180deg, $bg-sidebar 0%, $bg-sidebar-dark 100%);
+  color: $text-on-sidebar;
 }
 
 .sidebar-eyebrow,
@@ -10,12 +11,13 @@
   letter-spacing: 0.08em;
   font-size: 0.8rem;
   font-weight: 700;
-  color: $ui-muted;
+  color: $text-on-sidebar-muted;
 }
 
 .sidebar-title {
   font-weight: 800;
   font-size: 1.5rem;
+  color: $text-on-sidebar;
 }
 
 .nav-item-link {
@@ -23,21 +25,29 @@
   border-radius: $radius-md;
   margin-bottom: 0.5rem;
   font-weight: 600;
+  color: $text-on-sidebar;
   transition: all 0.2s ease;
 
   &:hover {
-    background: rgba(50, 133, 117, 0.14);
+    background: rgba(255, 255, 255, 0.08);
     transform: translateX(3px);
   }
 }
 
+.nav-item-link.active {
+  background: rgba(255, 255, 255, 0.12);
+  border-left: 3px solid $sidebar-accent;
+  padding-left: calc(1rem - 3px);
+}
+
 .info-card {
   padding: 1rem;
-  background: rgba(255, 255, 255, 0.45);
-  border: 1px solid $border-soft;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid $sidebar-border;
   border-radius: $radius-lg;
+  color: $text-on-sidebar;
 
   p {
-    color: $text-secondary;
+    color: $text-on-sidebar-muted;
   }
 }

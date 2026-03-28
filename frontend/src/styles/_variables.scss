@@ -1,8 +1,8 @@
-/* Brand */
+// /* Brand */
 $color-primary: #328575;
 $color-primary-dark: #3b5047;
 
-/* Accent */
+// /* Accent */
 $color-accent-primary: #f8a652;
 $color-accent-secondary: #f3c157;
 $color-accent-dark: #997328;
@@ -20,7 +20,15 @@ $text-on-color: #ffffff;
 /* Semantic aliases */
 $bg-page: #f8f7ef;
 $bg-panel: #ffffffcc;
-$bg-sidebar: #efe0b2;
+$bg-sidebar: #2f6f63;
+$bg-sidebar-dark: #274e47;
+$bg-sidebar-hover: #3b8a7c;
+
+$text-on-sidebar: #f4f7f6;
+$text-on-sidebar-muted: rgba(244, 247, 246, 0.72);
+
+$sidebar-accent: #f8a652;
+$sidebar-border: rgba(255, 255, 255, 0.08);
 $ui-primary: $color-primary;
 $ui-dark: $color-primary-dark;
 $ui-accent: $color-accent-primary;
