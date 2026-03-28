@@ -2,6 +2,16 @@
 
 This is not a final readme but a reminder what this project is all about.
 
+## Running the project
+
+To run this project you need to have docker installed and run:
+
+```Bash
+docker compose up --build
+```
+
+in the repository.
+
 ## Short description
 
 This project aims to build a pipeline for retrieving and extracting selected information from open-access research papers available online. The main focus is on identifying and extracting Risk of bias information and the Methods section from full-text articles hosted in repositories such as PubMed Central, arXiv, and medRxiv. The system should download articles from identifiers such as DOI or repository IDs, parse them into a structured machine-readable form, and detect the relevant content using document structure, pattern matching, and, where useful, NLP methods.

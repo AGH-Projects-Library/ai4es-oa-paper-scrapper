@@ -1,9 +1,23 @@
 services:
-  web:
-    build: .
-    container_name: paper_extractor_web
+  backend:
+    build: ./backend
+    container_name: oa_paper_scrapper_backend
+    working_dir: /app
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
-      - .:/app
+      - ./backend:/app
     ports:
       - "8000:8000"
+
+  frontend:
+    build: ./frontend
+    container_name: oa_paper_scrapper_frontend
+    working_dir: /app
+    command: npx ng serve frontend --host 0.0.0.0 --port 4200 --allowed-hosts
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "4200:4200"
+    depends_on:
+      - backend
