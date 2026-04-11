@@ -1,0 +1,194 @@
+<div class="stepper-shell">
+  <div class="stepper-header">
+    <p class="stepper-kicker">Guided workflow</p>
+    <h2 class="stepper-title">Resolve DOI and choose sections</h2>
+    <p class="stepper-description">
+      Enter one DOI, review the detected paper, and choose the sections you want to work with.
+    </p>
+  </div>
+
+  <mat-stepper #stepper linear class="custom-stepper">
+    <!-- STEP 1 -->
+    <mat-step [stepControl]="doiForm" label="Choose DOI">
+      <div class="step-content">
+        <mat-card class="step-card">
+          <h3 class="card-title">Choose a DOI</h3>
+          <p class="card-description">
+            Paste a single DOI to resolve the paper and load its available sections.
+          </p>
+
+          <form [formGroup]="doiForm" class="step-form">
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>DOI</mat-label>
+              <input
+                matInput
+                formControlName="doi"
+                placeholder="e.g. 10.48550/arXiv.2408.01234"
+                (keydown.enter)="lookupPaper(stepper)"
+              />
+              <mat-hint>Example format: 10.1000/xyz123</mat-hint>
+
+              @if (doiControl.hasError('required') && doiControl.touched) {
+                <mat-error>Please enter a DOI.</mat-error>
+              }
+
+              @if (doiControl.hasError('pattern') && doiControl.touched) {
+                <mat-error>This doesn’t look like a valid DOI.</mat-error>
+              }
+            </mat-form-field>
+
+            @if (lookupState() === 'not_found' || lookupState() === 'service_error') {
+              <div class="message-card error-card">
+                <div class="message-card__icon">
+                  <mat-icon>error</mat-icon>
+                </div>
+                <div>
+                  <h4>We couldn’t continue</h4>
+                  <p>{{ lookupErrorMessage() }}</p>
+                </div>
+              </div>
+            }
+
+            <div class="step-actions">
+              <button
+                mat-flat-button
+                class="primary-btn"
+                type="button"
+                (click)="lookupPaper(stepper)"
+                [disabled]="lookupState() === 'loading'"
+              >
+                @if (lookupState() === 'loading') {
+                  Finding paper...
+                } @else {
+                  Find paper
+                }
+              </button>
+            </div>
+          </form>
+        </mat-card>
+      </div>
+    </mat-step>
+
+    <!-- STEP 2 -->
+    <mat-step [stepControl]="sectionForm" label="Choose sections">
+      <div class="step-content">
+        <mat-card class="step-card">
+          <h3 class="card-title">Paper details and available sections</h3>
+          <p class="card-description">
+            Review the detected paper and choose one or more sections.
+          </p>
+
+          @if (lookupState() === 'loading') {
+            <div class="center-state">
+              <mat-spinner diameter="44"></mat-spinner>
+              <p>Loading paper details…</p>
+            </div>
+          }
+
+          @if (resolvedPaper(); as paper) {
+            <div class="paper-summary">
+              <div class="summary-row">
+                <span class="summary-label">Title</span>
+                <span class="summary-value">{{ paper.title }}</span>
+              </div>
+
+              <div class="summary-row">
+                <span class="summary-label">DOI</span>
+                <span class="summary-value summary-value--mono">{{ paper.doi }}</span>
+              </div>
+            </div>
+
+            <div class="section-picker">
+              <h4 class="section-picker-title">Available sections</h4>
+
+              <div class="section-grid">
+                @for (section of paper.availableSections; track section.id) {
+                  <label class="section-card" [class.selected]="isSectionSelected(section.id)">
+                    <mat-checkbox
+                      [checked]="isSectionSelected(section.id)"
+                      (change)="toggleSection(section.id, $event.checked)"
+                    >
+                      {{ section.name }}
+                    </mat-checkbox>
+                  </label>
+                }
+              </div>
+
+              @if (selectedSectionsControl.hasError('required') && selectedSectionsControl.touched) {
+                <div class="message-card warning-card">
+                  <div class="message-card__icon">
+                    <mat-icon>warning</mat-icon>
+                  </div>
+                  <div>
+                    <h4>Select at least one section</h4>
+                    <p>Choose one or more sections to continue.</p>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          <div class="step-actions">
+            <button mat-stroked-button type="button" matStepperPrevious>
+              Back
+            </button>
+
+            <button
+              mat-flat-button
+              class="primary-btn"
+              type="button"
+              (click)="goToSummary(stepper)"
+            >
+              Continue
+            </button>
+          </div>
+        </mat-card>
+      </div>
+    </mat-step>
+
+    <!-- STEP 3 -->
+    <mat-step label="Summary">
+      <div class="step-content">
+        <mat-card class="step-card">
+          <h3 class="card-title">Selected sections</h3>
+          <p class="card-description">
+            These are the sections currently selected for the resolved paper.
+          </p>
+
+          @if (resolvedPaper(); as paper) {
+            <div class="result-summary">
+              <h4>{{ paper.title }}</h4>
+              <p class="result-meta">
+                {{ paper.doi }}
+              </p>
+            </div>
+          }
+
+          <div class="results-list">
+            @for (section of getSelectedSectionObjects(); track section.id) {
+              <div class="result-card">
+                <h4>{{ section.name }}</h4>
+                <p>Selected section ID: <span class="summary-value--mono">{{ section.id }}</span></p>
+              </div>
+            }
+          </div>
+
+          <div class="step-actions">
+            <button mat-stroked-button type="button" matStepperPrevious>
+              Back
+            </button>
+
+            <button
+              mat-flat-button
+              class="primary-btn"
+              type="button"
+              (click)="resetFlow(stepper)"
+            >
+              Start again
+            </button>
+          </div>
+        </mat-card>
+      </div>
+    </mat-step>
+  </mat-stepper>
+</div>

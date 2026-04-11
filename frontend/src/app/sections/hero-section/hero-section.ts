@@ -1,10 +1,10 @@
 import { Component } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { SearchForm } from '../search-form/search-form';
+import { PaperSectionsStepper } from '../paper-sections-stepper/paper-sections-stepper';
 
 @Component({
   selector: 'app-hero-section',
-  imports: [MatButtonModule, SearchForm],
+  imports: [MatButtonModule, PaperSectionsStepper],
   templateUrl: './hero-section.html',
   styleUrl: './hero-section.scss',
 })
