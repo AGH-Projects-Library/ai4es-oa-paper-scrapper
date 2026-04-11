@@ -1,0 +1,233 @@
+<div class="stepper-shell">
+  <div class="stepper-header">
+    <p class="stepper-kicker">Guided workflow</p>
+    <h2 class="stepper-title">Extract paper sections</h2>
+    <p class="stepper-description">
+      Enter one DOI, review the detected paper and available sections, then view the selected section content.
+    </p>
+  </div>
+
+  <mat-stepper #stepper linear class="custom-stepper">
+    <mat-step [stepControl]="doiForm" label="Choose DOI">
+      <div class="step-content">
+        <mat-card class="step-card">
+          <h3 class="card-title">Choose a DOI</h3>
+          <p class="card-description">
+            Paste a single DOI to find the paper and load its available sections.
+          </p>
+
+          <form [formGroup]="doiForm" class="step-form">
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>DOI</mat-label>
+              <input
+                matInput
+                formControlName="doi"
+                placeholder="e.g. 10.1000/xyz123"
+                (keydown.enter)="lookupPaper(stepper)"
+              />
+              <mat-hint>Example format: 10.1000/xyz123</mat-hint>
+
+              @if (doiControl.hasError('required') && doiControl.touched) {
+                <mat-error>Please enter a DOI.</mat-error>
+              }
+
+              @if (doiControl.hasError('pattern') && doiControl.touched) {
+                <mat-error>This doesn’t look like a valid DOI.</mat-error>
+              }
+            </mat-form-field>
+
+            <div class="helper-box">
+              <mat-icon>info</mat-icon>
+              <span>
+                For testing: use <strong>10.0000/notfound</strong> for a not-found case,
+                <strong>10.0000/error</strong> for a service error,
+                or <strong>10.0000/sectionerror</strong> for a section-loading error.
+              </span>
+            </div>
+
+            @if (lookupState() === 'not_found' || lookupState() === 'service_error') {
+              <div class="message-card error-card">
+                <div class="message-card__icon">
+                  <mat-icon>error</mat-icon>
+                </div>
+                <div>
+                  <h4>We couldn’t continue</h4>
+                  <p>{{ lookupErrorMessage() }}</p>
+                </div>
+              </div>
+            }
+
+            <div class="step-actions">
+              <button
+                mat-flat-button
+                class="primary-btn"
+                type="button"
+                (click)="lookupPaper(stepper)"
+                [disabled]="lookupState() === 'loading'"
+              >
+                @if (lookupState() === 'loading') {
+                  Finding paper...
+                } @else {
+                  Find paper
+                }
+              </button>
+            </div>
+          </form>
+        </mat-card>
+      </div>
+    </mat-step>
+
+    <mat-step [stepControl]="sectionForm" label="Choose sections">
+      <div class="step-content">
+        <mat-card class="step-card">
+          <h3 class="card-title">Paper details and available sections</h3>
+          <p class="card-description">
+            Review the detected paper and choose the sections you want to retrieve.
+          </p>
+
+          @if (lookupState() === 'loading') {
+            <div class="center-state">
+              <mat-spinner diameter="44"></mat-spinner>
+              <p>Loading paper details…</p>
+            </div>
+          }
+
+          @if (resolvedPaper(); as paper) {
+            <div class="paper-summary">
+              <div class="summary-row">
+                <span class="summary-label">Title</span>
+                <span class="summary-value">{{ paper.title }}</span>
+              </div>
+
+              <div class="summary-row">
+                <span class="summary-label">Authors</span>
+                <span class="summary-value">
+                  @if (paper.authors.length) {
+                    {{ paper.authors.join(', ') }}
+                  } @else {
+                    Unavailable
+                  }
+                </span>
+              </div>
+
+              <div class="summary-row">
+                <span class="summary-label">Source</span>
+                <span class="summary-value">{{ paper.source }}</span>
+              </div>
+
+              <div class="summary-row">
+                <span class="summary-label">Year</span>
+                <span class="summary-value">{{ paper.year ?? 'Unavailable' }}</span>
+              </div>
+
+              <div class="summary-row">
+                <span class="summary-label">DOI</span>
+                <span class="summary-value summary-value--mono">{{ paper.doi }}</span>
+              </div>
+            </div>
+
+            <div class="section-picker">
+              <h4 class="section-picker-title">Available sections</h4>
+
+              <div class="section-grid">
+                @for (section of paper.availableSections; track section.id) {
+                  <label class="section-card" [class.selected]="isSectionSelected(section.id)">
+                    <mat-checkbox
+                      [checked]="isSectionSelected(section.id)"
+                      (change)="toggleSection(section.id, $event.checked)"
+                    >
+                      {{ section.name }}
+                    </mat-checkbox>
+                  </label>
+                }
+              </div>
+
+              @if (selectedSectionsControl.hasError('required') && selectedSectionsControl.touched) {
+                <div class="message-card warning-card">
+                  <div class="message-card__icon">
+                    <mat-icon>warning</mat-icon>
+                  </div>
+                  <div>
+                    <h4>Select at least one section</h4>
+                    <p>Choose one or more sections to continue.</p>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          <div class="step-actions">
+            <button mat-stroked-button type="button" matStepperPrevious>
+              Back
+            </button>
+
+            <button
+              mat-flat-button
+              class="primary-btn"
+              type="button"
+              (click)="fetchSelectedSections(stepper)"
+            >
+              Show sections
+            </button>
+          </div>
+        </mat-card>
+      </div>
+    </mat-step>
+
+    <mat-step label="View sections">
+      <div class="step-content">
+        <mat-card class="step-card">
+          <h3 class="card-title">Selected section content</h3>
+          <p class="card-description">
+            Review the extracted content for the sections you selected.
+          </p>
+
+          @if (resultState() === 'loading') {
+            <div class="center-state">
+              <mat-spinner diameter="48"></mat-spinner>
+              <p>Loading selected sections…</p>
+            </div>
+          }
+
+          @if (resultState() === 'error') {
+            <div class="message-card error-card">
+              <div class="message-card__icon">
+                <mat-icon>error</mat-icon>
+              </div>
+              <div>
+                <h4>We couldn’t load the sections</h4>
+                <p>{{ resultErrorMessage() }}</p>
+              </div>
+            </div>
+          }
+
+          @if (resultState() === 'success' && sectionResults().length) {
+            <div class="results-list">
+              @for (item of sectionResults(); track item.id) {
+                <div class="result-card">
+                  <h4>{{ item.name }}</h4>
+                  <p>{{ item.content }}</p>
+                </div>
+              }
+            </div>
+          }
+
+          <div class="step-actions">
+            <button mat-stroked-button type="button" matStepperPrevious>
+              Back
+            </button>
+
+            <button
+              mat-flat-button
+              class="primary-btn"
+              type="button"
+              (click)="resetFlow(stepper)"
+            >
+              Start again
+            </button>
+          </div>
+        </mat-card>
+      </div>
+    </mat-step>
+  </mat-stepper>
+</div>
