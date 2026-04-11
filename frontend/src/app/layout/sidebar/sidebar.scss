@@ -39,15 +39,3 @@
   border-left: 3px solid $sidebar-accent;
   padding-left: calc(1rem - 3px);
 }
-
-.info-card {
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid $sidebar-border;
-  border-radius: $radius-lg;
-  color: $text-on-sidebar;
-
-  p {
-    color: $text-on-sidebar-muted;
-  }
-}
