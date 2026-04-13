@@ -1,0 +1,4 @@
+Django>=5.0,<6.0
+requests
+bs4
+django-cors-headers

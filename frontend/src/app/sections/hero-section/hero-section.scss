@@ -1,0 +1,68 @@
+@use '../../../styles/variables' as *;
+
+.hero {
+  padding: 2rem;
+}
+
+.top-banner {
+  margin-bottom: 1.5rem;
+}
+
+.logo-placeholder {
+  width: 120px;
+  border-radius: 18px;
+  background: white;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  color: $ui-dark;
+  overflow: hidden;
+}
+
+.logo-image-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 8px;
+  display: block;
+}
+
+.university-label {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: $ui-muted;
+}
+
+.university-name {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: $ui-dark;
+}
+
+.login-btn {
+  background: $ui-dark !important;
+  color: $text-on-dark !important;
+  border-radius: 999px;
+  padding-inline: 1.2rem;
+}
+
+.separator {
+  height: 2px;
+  background: linear-gradient(to right, $ui-dark, transparent);
+  margin: 1.5rem 0 2rem;
+}
+
+.project-title {
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  line-height: 1.05;
+  font-weight: 500;
+  color: $ui-dark;
+  margin-bottom: 1rem;
+}
+
+.project-subtitle {
+  color: $text-secondary;
+  font-size: 1.05rem;
+}
