@@ -370,7 +370,7 @@ def resolve_doi_to_paper(doi: str) -> dict:
     if not result:
         return {
             "status": "not_found",
-            "message": "We couldn’t find a paper for this DOI.",
+            "message": "We couldn't find a paper for this DOI.",
         }
 
     md_path = result.get("md")

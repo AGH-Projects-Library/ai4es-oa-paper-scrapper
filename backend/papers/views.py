@@ -11,7 +11,6 @@ from .services.resolve_doi_sections import resolve_doi_to_paper
 
 @csrf_exempt
 def resolve_doi_view(request):
-    # 1. Only allow POST
     if request.method != "POST":
         return JsonResponse(
             {
@@ -23,7 +22,6 @@ def resolve_doi_view(request):
             status=405,
         )
 
-    # 2. Parse JSON body
     try:
         body = json.loads(request.body)
     except json.JSONDecodeError:
@@ -37,7 +35,6 @@ def resolve_doi_view(request):
             status=400,
         )
 
-    # 3. Validate DOI
     doi = (body.get("doi") or "").strip()
 
     if not doi:
@@ -51,15 +48,12 @@ def resolve_doi_view(request):
             status=400,
         )
 
-    # 4. Call service
     try:
         result = resolve_doi_to_paper(doi)
 
-        # If not found, still return 200 because the request itself was valid
         if result.get("status") == "not_found":
             return JsonResponse(result, status=200)
 
-        # On success, do NOT expose section_map in endpoint 1
         if result.get("status") == "success":
             return JsonResponse(
                 {
@@ -69,7 +63,6 @@ def resolve_doi_view(request):
                 status=200,
             )
 
-        # Fallback if service returns something unexpected
         return JsonResponse(
             {
                 "error": {
