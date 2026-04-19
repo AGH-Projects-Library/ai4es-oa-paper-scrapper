@@ -1,6 +1,5 @@
 from django.shortcuts import render
-from django.conf.urls import url
-from rest_framework_swagger.views import get_swagger_view
+
 # Create your views here.
 import json
 
@@ -9,15 +8,20 @@ from django.views.decorators.csrf import csrf_exempt
 
 from .services.resolve_doi import resolve_doi_to_paper
 
-schema_view = get_swagger_view(title='Pastebin API')
-
-urlpatterns = [
-    url(r'^$', schema_view)
-]
 
 @csrf_exempt
 def resolve_doi_view(request):
-    # 2. Parse JSON body
+    if request.method != "POST":
+        return JsonResponse(
+            {
+                "error": {
+                    "code": "METHOD_NOT_ALLOWED",
+                    "message": "Use POST for this endpoint.",
+                }
+            },
+            status=405,
+        )
+
     try:
         body = json.loads(request.body)
     except json.JSONDecodeError:
@@ -31,7 +35,6 @@ def resolve_doi_view(request):
             status=400,
         )
 
-    # 3. Validate DOI
     doi = (body.get("doi") or "").strip()
 
     if not doi:
@@ -45,15 +48,12 @@ def resolve_doi_view(request):
             status=400,
         )
 
-    # 4. Call service
     try:
         result = resolve_doi_to_paper(doi)
 
-        # If not found, still return 200 because the request itself was valid
         if result.get("status") == "not_found":
             return JsonResponse(result, status=200)
 
-        # On success, do NOT expose section_map in endpoint 1
         if result.get("status") == "success":
             return JsonResponse(
                 {
@@ -63,7 +63,6 @@ def resolve_doi_view(request):
                 status=200,
             )
 
-        # Fallback if service returns something unexpected
         return JsonResponse(
             {
                 "error": {
@@ -85,3 +84,25 @@ def resolve_doi_view(request):
             },
             status=500,
         )
+    
+def get_section_content_view(request, section_id):
+    doi = request.GET.get("doi")
+    if not doi:
+        return JsonResponse({"error": "DOI is required in query params"}, status=400)
+
+    result = resolve_doi_to_paper(doi)
+
+    if result["status"] == "success":
+        section_map = result.get("section_map", {})
+        content = section_map.get(section_id)
+        
+        if content:
+            return JsonResponse({
+                "section": section_id,
+                "content": content
+            })
+        else:
+            return JsonResponse({"error": "Section not found"}, status=404)
+            
+    return JsonResponse({"error": "Could not resolve paper"}, status=500)
+
