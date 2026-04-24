@@ -6,7 +6,7 @@ import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
-from .services.resolve_doi_sections import resolve_doi_to_paper
+from .services.resolve_doi import resolve_doi_to_paper
 
 
 @csrf_exempt
@@ -84,3 +84,25 @@ def resolve_doi_view(request):
             },
             status=500,
         )
+    
+def get_section_content_view(request, section_id):
+    doi = request.GET.get("doi")
+    if not doi:
+        return JsonResponse({"error": "DOI is required in query params"}, status=400)
+
+    result = resolve_doi_to_paper(doi)
+
+    if result["status"] == "success":
+        section_map = result.get("section_map", {})
+        content = section_map.get(section_id)
+        
+        if content:
+            return JsonResponse({
+                "section": section_id,
+                "content": content
+            })
+        else:
+            return JsonResponse({"error": "Section not found"}, status=404)
+            
+    return JsonResponse({"error": "Could not resolve paper"}, status=500)
+

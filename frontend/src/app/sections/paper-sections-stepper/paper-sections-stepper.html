@@ -1,20 +1,19 @@
 <div class="stepper-shell">
   <div class="stepper-header">
     <p class="stepper-kicker">Guided workflow</p>
-    <h2 class="stepper-title">Resolve DOI and choose sections</h2>
+    <h2 class="stepper-title">Extract paper sections</h2>
     <p class="stepper-description">
-      Enter one DOI, review the detected paper, and choose the sections you want to work with.
+      Enter one DOI, review the detected paper and available sections, then view the selected section content.
     </p>
   </div>
 
   <mat-stepper #stepper linear class="custom-stepper">
-    <!-- STEP 1 -->
     <mat-step [stepControl]="doiForm" label="Choose DOI">
       <div class="step-content">
         <mat-card class="step-card">
           <h3 class="card-title">Choose a DOI</h3>
           <p class="card-description">
-            Paste a single DOI to resolve the paper and load its available sections.
+            Paste a single DOI to find the paper and load its available sections.
           </p>
 
           <form [formGroup]="doiForm" class="step-form">
@@ -23,7 +22,7 @@
               <input
                 matInput
                 formControlName="doi"
-                placeholder="e.g. 10.48550/arXiv.2408.01234"
+                placeholder="e.g. 10.1000/xyz123"
                 (keydown.enter)="lookupPaper(stepper)"
               />
               <mat-hint>Example format: 10.1000/xyz123</mat-hint>
@@ -33,9 +32,18 @@
               }
 
               @if (doiControl.hasError('pattern') && doiControl.touched) {
-                <mat-error>This doesn't look like a valid DOI.</mat-error>
+                <mat-error>This doesn’t look like a valid DOI.</mat-error>
               }
             </mat-form-field>
+
+            <div class="helper-box">
+              <mat-icon>info</mat-icon>
+              <span>
+                For testing: use <strong>10.0000/notfound</strong> for a not-found case,
+                <strong>10.0000/error</strong> for a service error,
+                or <strong>10.0000/sectionerror</strong> for a section-loading error.
+              </span>
+            </div>
 
             @if (lookupState() === 'not_found' || lookupState() === 'service_error') {
               <div class="message-card error-card">
@@ -43,7 +51,7 @@
                   <mat-icon>error</mat-icon>
                 </div>
                 <div>
-                  <h4>We couldn't continue</h4>
+                  <h4>We couldn’t continue</h4>
                   <p>{{ lookupErrorMessage() }}</p>
                 </div>
               </div>
@@ -69,13 +77,12 @@
       </div>
     </mat-step>
 
-    <!-- STEP 2 -->
     <mat-step [stepControl]="sectionForm" label="Choose sections">
       <div class="step-content">
         <mat-card class="step-card">
           <h3 class="card-title">Paper details and available sections</h3>
           <p class="card-description">
-            Review the detected paper and choose one or more sections.
+            Review the detected paper and choose the sections you want to retrieve.
           </p>
 
           @if (lookupState() === 'loading') {
@@ -90,6 +97,27 @@
               <div class="summary-row">
                 <span class="summary-label">Title</span>
                 <span class="summary-value">{{ paper.title }}</span>
+              </div>
+
+              <div class="summary-row">
+                <span class="summary-label">Authors</span>
+                <span class="summary-value">
+                  @if (paper.authors.length) {
+                    {{ paper.authors.join(', ') }}
+                  } @else {
+                    Unavailable
+                  }
+                </span>
+              </div>
+
+              <div class="summary-row">
+                <span class="summary-label">Source</span>
+                <span class="summary-value">{{ paper.source }}</span>
+              </div>
+
+              <div class="summary-row">
+                <span class="summary-label">Year</span>
+                <span class="summary-value">{{ paper.year ?? 'Unavailable' }}</span>
               </div>
 
               <div class="summary-row">
@@ -137,41 +165,52 @@
               mat-flat-button
               class="primary-btn"
               type="button"
-              (click)="goToSummary(stepper)"
+              (click)="fetchSelectedSections(stepper)"
             >
-              Continue
+              Show sections
             </button>
           </div>
         </mat-card>
       </div>
     </mat-step>
 
-    <!-- STEP 3 -->
-    <mat-step label="Summary">
+    <mat-step label="View sections">
       <div class="step-content">
         <mat-card class="step-card">
-          <h3 class="card-title">Selected sections</h3>
+          <h3 class="card-title">Selected section content</h3>
           <p class="card-description">
-            These are the sections currently selected for the resolved paper.
+            Review the extracted content for the sections you selected.
           </p>
 
-          @if (resolvedPaper(); as paper) {
-            <div class="result-summary">
-              <h4>{{ paper.title }}</h4>
-              <p class="result-meta">
-                {{ paper.doi }}
-              </p>
+          @if (resultState() === 'loading') {
+            <div class="center-state">
+              <mat-spinner diameter="48"></mat-spinner>
+              <p>Loading selected sections…</p>
             </div>
           }
 
-          <div class="results-list">
-            @for (section of getSelectedSectionObjects(); track section.id) {
-              <div class="result-card">
-                <h4>{{ section.name }}</h4>
-                <p>Selected section ID: <span class="summary-value--mono">{{ section.id }}</span></p>
+          @if (resultState() === 'error') {
+            <div class="message-card error-card">
+              <div class="message-card__icon">
+                <mat-icon>error</mat-icon>
               </div>
-            }
-          </div>
+              <div>
+                <h4>We couldn’t load the sections</h4>
+                <p>{{ resultErrorMessage() }}</p>
+              </div>
+            </div>
+          }
+
+          @if (resultState() === 'success' && sectionResults().length) {
+            <div class="results-list">
+              @for (item of sectionResults(); track item.id) {
+                <div class="result-card">
+                  <h4>{{ item.name }}</h4>
+                  <p>{{ item.content }}</p>
+                </div>
+              }
+            </div>
+          }
 
           <div class="step-actions">
             <button mat-stroked-button type="button" matStepperPrevious>

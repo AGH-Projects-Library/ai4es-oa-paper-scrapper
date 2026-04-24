@@ -45,7 +45,6 @@
   border: 1px solid $border-soft;
   box-shadow: none;
   background: rgba(255, 255, 255, 0.72);
-  padding: 1rem 1rem;
 }
 
 .card-title {
@@ -70,12 +69,34 @@
   display: flex;
   gap: 0.75rem;
   flex-wrap: wrap;
-  margin-top: 1rem;
+  margin-top: 1.25rem;
 }
 
 .primary-btn {
   background: $ui-primary !important;
   color: $text-on-color !important;
+}
+
+.helper-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  border-radius: $radius-md;
+  background: rgba(50, 133, 117, 0.08);
+  color: $text-secondary;
+
+  mat-icon {
+    color: $ui-primary;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    margin-top: 2px;
+  }
+
+  strong {
+    color: $ui-dark;
+  }
 }
 
 .center-state {
@@ -176,10 +197,15 @@
   font-weight: 800;
 }
 
+.section-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
 .section-card {
   display: block;
-  padding: 0.25rem;
-  margin: 0.25rem;
+  padding: 1rem;
   border: 1px solid $border-soft;
   border-radius: $radius-md;
   background: rgba(255, 255, 255, 0.72);
@@ -195,25 +221,6 @@
 .section-card.selected {
   border-color: rgba(50, 133, 117, 0.42);
   background: rgba(50, 133, 117, 0.08);
-}
-
-.result-summary {
-  padding: 1rem 1.1rem;
-  border-radius: $radius-md;
-  background: rgba(50, 133, 117, 0.06);
-  border: 1px solid rgba(50, 133, 117, 0.16);
-  margin-top: 1rem;
-
-  h4 {
-    margin: 0 0 0.45rem;
-    color: $ui-dark;
-    font-weight: 800;
-  }
-}
-
-.result-meta {
-  margin: 0;
-  color: $text-secondary;
 }
 
 .results-list {
@@ -237,6 +244,7 @@
   p {
     margin: 0;
     color: $text-secondary;
+    line-height: 1.65;
   }
 }
 
