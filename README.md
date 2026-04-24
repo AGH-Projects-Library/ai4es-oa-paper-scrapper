@@ -16,7 +16,7 @@ in the repository.
 
 This project aims to build a pipeline for retrieving and extracting selected information from open-access research papers available online. The main focus is on identifying and extracting Risk of bias information and the Methods section from full-text articles hosted in repositories such as PubMed Central, arXiv, and medRxiv. The system should download articles from identifiers such as DOI or repository IDs, parse them into a structured machine-readable form, and detect the relevant content using document structure, pattern matching, and, where useful, NLP methods.
 
-The extracted results should be suitable for comparison across multiple papers and exportable in a structured format such as CSV. The project may reuse and extend the previous year’s repository. A practical end result could be a browser-based web application that accepts one DOI or a collection of DOIs and returns extracted information for downstream evidence synthesis and literature review workflows.
+The extracted results should be suitable for comparison across multiple papers and exportable in a structured format such as CSV. The project may reuse and extend the previous year's repository. A practical end result could be a browser-based web application that accepts one DOI or a collection of DOIs and returns extracted information for downstream evidence synthesis and literature review workflows.
 ## General idea of the project
 
 As part of ongoing work on using AI for evidence synthesis and knowledge retrieval, this project focuses on the **automated extraction of selected information from open-access research papers** available online, especially from repositories such as PubMed Central, arXiv, and medRxiv.
