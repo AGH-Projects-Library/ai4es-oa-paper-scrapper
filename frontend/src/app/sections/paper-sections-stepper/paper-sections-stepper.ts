@@ -146,7 +146,7 @@ export class PaperSectionsStepper {
       if (normalizedDoi === '10.0000/notfound') {
         this.lookupState.set('not_found');
         this.lookupErrorMessage.set(
-          'We couldn’t find a paper for this DOI. Please check the DOI and try again.'
+          'We couldnt find a paper for this DOI. Please check the DOI and try again.'
         );
         return;
       }
@@ -154,7 +154,7 @@ export class PaperSectionsStepper {
       if (normalizedDoi === '10.0000/error') {
         this.lookupState.set('service_error');
         this.lookupErrorMessage.set(
-          'We couldn’t connect to the lookup service. Please try again.'
+          'We couldnt connect to the lookup service. Please try again.'
         );
         return;
       }
@@ -200,7 +200,7 @@ export class PaperSectionsStepper {
       if (!paper) {
         this.resultState.set('error');
         this.resultErrorMessage.set(
-          'We couldn’t load the selected sections because no paper data is available.'
+          'We couldnt load the selected sections because no paper data is available.'
         );
         return;
       }

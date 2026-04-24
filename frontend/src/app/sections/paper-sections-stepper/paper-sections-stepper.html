@@ -1,6 +1,5 @@
 <div class="stepper-shell">
   <div class="stepper-header">
-    <p class="stepper-kicker">Guided workflow</p>
     <h2 class="stepper-title">Extract paper sections</h2>
     <p class="stepper-description">
       Enter one DOI, review the detected paper and available sections, then view the selected section content.
@@ -10,7 +9,7 @@
   <mat-stepper #stepper linear class="custom-stepper">
     <mat-step [stepControl]="doiForm" label="Choose DOI">
       <div class="step-content">
-        <mat-card class="step-card">
+        <mat-card class="step-card p-4">
           <h3 class="card-title">Choose a DOI</h3>
           <p class="card-description">
             Paste a single DOI to find the paper and load its available sections.
@@ -32,18 +31,9 @@
               }
 
               @if (doiControl.hasError('pattern') && doiControl.touched) {
-                <mat-error>This doesn’t look like a valid DOI.</mat-error>
+                <mat-error>This doesn't look like a valid DOI.</mat-error>
               }
             </mat-form-field>
-
-            <div class="helper-box">
-              <mat-icon>info</mat-icon>
-              <span>
-                For testing: use <strong>10.0000/notfound</strong> for a not-found case,
-                <strong>10.0000/error</strong> for a service error,
-                or <strong>10.0000/sectionerror</strong> for a section-loading error.
-              </span>
-            </div>
 
             @if (lookupState() === 'not_found' || lookupState() === 'service_error') {
               <div class="message-card error-card">
@@ -51,7 +41,7 @@
                   <mat-icon>error</mat-icon>
                 </div>
                 <div>
-                  <h4>We couldn’t continue</h4>
+                  <h4>We couldn't continue</h4>
                   <p>{{ lookupErrorMessage() }}</p>
                 </div>
               </div>
@@ -79,7 +69,7 @@
 
     <mat-step [stepControl]="sectionForm" label="Choose sections">
       <div class="step-content">
-        <mat-card class="step-card">
+        <mat-card class="step-card p-4">
           <h3 class="card-title">Paper details and available sections</h3>
           <p class="card-description">
             Review the detected paper and choose the sections you want to retrieve.
@@ -176,7 +166,7 @@
 
     <mat-step label="View sections">
       <div class="step-content">
-        <mat-card class="step-card">
+        <mat-card class="step-card p-4">
           <h3 class="card-title">Selected section content</h3>
           <p class="card-description">
             Review the extracted content for the sections you selected.
@@ -195,14 +185,14 @@
                 <mat-icon>error</mat-icon>
               </div>
               <div>
-                <h4>We couldn’t load the sections</h4>
+                <h4>We couldn't load the sections</h4>
                 <p>{{ resultErrorMessage() }}</p>
               </div>
             </div>
           }
 
           @if (resultState() === 'success' && sectionResults().length) {
-            <div class="results-list">
+            <div class="results-list p-4">
               @for (item of sectionResults(); track item.id) {
                 <div class="result-card">
                   <h4>{{ item.name }}</h4>
