@@ -8,6 +8,9 @@ import {
   Validators,
 } from '@angular/forms';
 
+import { Doi } from '../../services/doi';
+import { ApiRequestError } from '../../models/api-error.model';
+import { ResolvedPaper } from '../../models/paper.model';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -23,15 +26,6 @@ type ResultState = 'idle' | 'loading' | 'success' | 'error';
 interface PaperSection {
   id: string;
   name: string;
-}
-
-interface ResolvedPaper {
-  doi: string;
-  title: string;
-  authors: string[];
-  source: string;
-  year: number | null;
-  availableSections: PaperSection[];
 }
 
 interface SectionResult {
@@ -76,7 +70,8 @@ export class PaperSectionsStepper {
   readonly resolvedPaper = signal<ResolvedPaper | null>(null);
   readonly sectionResults = signal<SectionResult[]>([]);
 
-  constructor(private fb: FormBuilder) {
+
+  constructor(private fb: FormBuilder, private doi: Doi) {
     this.doiForm = this.fb.nonNullable.group({
       doi: this.fb.nonNullable.control('', [
         Validators.required,
@@ -124,16 +119,13 @@ export class PaperSectionsStepper {
     this.selectedSectionsControl.updateValueAndValidity();
   }
 
-  lookupPaper(stepper: MatStepper): void {
+    lookupPaper(stepper: MatStepper): void {
     this.doiForm.markAllAsTouched();
-
-    if (this.doiForm.invalid) {
-      return;
-    }
-
+    if (this.doiForm.invalid) return;
+  
     const normalizedDoi = this.normalizeDoi(this.doiControl.value);
     this.doiControl.setValue(normalizedDoi);
-
+  
     this.lookupState.set('loading');
     this.lookupErrorMessage.set('');
     this.resultState.set('idle');
@@ -141,106 +133,62 @@ export class PaperSectionsStepper {
     this.resolvedPaper.set(null);
     this.sectionResults.set([]);
     this.sectionForm.reset({ selectedSections: [] });
-
-    setTimeout(() => {
-      if (normalizedDoi === '10.0000/notfound') {
-        this.lookupState.set('not_found');
-        this.lookupErrorMessage.set(
-          'We couldnt find a paper for this DOI. Please check the DOI and try again.'
-        );
-        return;
-      }
-
-      if (normalizedDoi === '10.0000/error') {
+  
+    this.doi.resolveDoi({ doi: normalizedDoi }).subscribe({
+      next: (response) => {
+        if (response.status === 'not_found') {
+          this.lookupState.set('not_found');
+          this.lookupErrorMessage.set(
+            response.message ||
+              "We couldn't find a paper for this DOI. Please check the DOI and try again."
+          );
+          return;
+        }
+  
+        this.resolvedPaper.set(response.paper);
+        this.lookupState.set('success');
+        stepper.next();
+      },
+      error: (err: unknown) => {
+        const msg =
+          err instanceof ApiRequestError
+            ? err.message
+            : "We couldn't connect to the lookup service. Please try again.";
+  
         this.lookupState.set('service_error');
-        this.lookupErrorMessage.set(
-          'We couldnt connect to the lookup service. Please try again.'
-        );
-        return;
-      }
-
-      this.resolvedPaper.set({
-        doi: normalizedDoi,
-        title:
-          'Automated Extraction of Sections from Open-Access Research Papers',
-        authors: ['Natalia Kowalska', 'Alice Smith', 'Jan Nowak'],
-        source: 'PubMed Central',
-        year: 2025,
-        availableSections: [
-          { id: 'abstract', name: 'Abstract' },
-          { id: 'introduction', name: 'Introduction' },
-          { id: 'methods', name: 'Methods' },
-          { id: 'results', name: 'Results' },
-          { id: 'discussion', name: 'Discussion' },
-          { id: 'conclusion', name: 'Conclusion' },
-        ],
-      });
-
-      this.lookupState.set('success');
-      stepper.next();
-    }, 1200);
+        this.lookupErrorMessage.set(msg);
+      },
+    });
   }
 
-  fetchSelectedSections(stepper: MatStepper): void {
+    fetchSelectedSections(stepper: MatStepper): void {
     this.sectionForm.markAllAsTouched();
-
-    if (this.sectionForm.invalid || !this.resolvedPaper()) {
-      return;
-    }
-
+  
+    const paper = this.resolvedPaper();
+    if (this.sectionForm.invalid || !paper) return;
+  
     this.resultState.set('loading');
     this.resultErrorMessage.set('');
     this.sectionResults.set([]);
     stepper.next();
-
-    const paper = this.resolvedPaper();
+  
     const selectedIds = this.selectedSectionsControl.value;
-
-    setTimeout(() => {
-      if (!paper) {
+  
+    this.doi.fetchSections({ doi: paper.doi, sections: selectedIds }).subscribe({
+      next: (response) => {
+        this.sectionResults.set(response.sections);
+        this.resultState.set('success');
+      },
+      error: (err: unknown) => {
+        const msg =
+          err instanceof ApiRequestError
+            ? err.message
+            : "We couldn't load the selected sections. Please try again.";
+  
         this.resultState.set('error');
-        this.resultErrorMessage.set(
-          'We couldnt load the selected sections because no paper data is available.'
-        );
-        return;
-      }
-
-      if (paper.doi === '10.0000/sectionerror') {
-        this.resultState.set('error');
-        this.resultErrorMessage.set(
-          'We found the paper, but section retrieval failed. Please try again.'
-        );
-        return;
-      }
-
-      const sectionLibrary: Record<string, string> = {
-        abstract:
-          'This paper presents a lightweight pipeline for retrieving open-access articles and extracting structured sections from them for downstream research workflows.',
-        introduction:
-          'The introduction motivates automated evidence synthesis and explains the need for reliable access to well-structured paper content across repositories such as PubMed Central and arXiv.',
-        methods:
-          'The methods describe how the paper is fetched from its source, converted into a normalized markdown representation, parsed into title and section blocks, and prepared for interactive viewing.',
-        results:
-          'The results section reports that structured parsing makes it possible to recover major article sections and surface them for selective extraction and review.',
-        discussion:
-          'The discussion highlights practical limitations, including inconsistent section naming, missing metadata, and structural differences between repositories.',
-        conclusion:
-          'The conclusion emphasizes that section-based extraction is a useful step toward browser-based tools for literature review and evidence synthesis.',
-      };
-
-      const results: SectionResult[] = paper.availableSections
-        .filter((section) => selectedIds.includes(section.id))
-        .map((section) => ({
-          id: section.id,
-          name: section.name,
-          content:
-            sectionLibrary[section.id] ??
-            'No content is currently available for this section.',
-        }));
-
-      this.sectionResults.set(results);
-      this.resultState.set('success');
-    }, 1400);
+        this.resultErrorMessage.set(msg);
+      },
+    });
   }
 
   resetFlow(stepper: MatStepper): void {

@@ -1,5 +1,4 @@
 2. Add error handeling
-3. Fix the mock values in the form
 4. Add json/csv downloading
 5. Add multiple dois
 6. Add multiple dois by file

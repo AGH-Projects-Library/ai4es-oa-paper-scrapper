@@ -8,7 +8,7 @@ class ResolvedPaper(models.Model):
     authors = models.CharField(max_length=255)
     source = models.CharField(max_length=100)
     year = models.IntegerField()
-    avaibleSections = models.ArrayField(models.CharField(max_length=100), blank=True, default=list)
+    availableSections = models.JSONField(default=list, blank=True)
 
 
 class Section(models.Model):

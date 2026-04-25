@@ -4,17 +4,33 @@ import { Observable, catchError, throwError } from 'rxjs';
 import { ResolveDoiRequest, ResolveDoiResponse } from '../models/resolve-doi.model';
 import { ApiErrorResponse, ApiRequestError } from '../models/api-error.model';
 
+export interface FetchSectionsRequest {
+  doi: string;
+  sections: string[];
+}
+
+export interface FetchSectionsResponse {
+  status: 'success';
+  sections: Array<{ id: string; name: string; content: string }>;
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class Doi {
   private readonly http = inject(HttpClient);
 
-  private readonly baseUrl = 'http://localhost:8000/api';
+  private readonly baseUrl = 'http://localhost:8000';
 
   resolveDoi(payload: ResolveDoiRequest): Observable<ResolveDoiResponse> {
     return this.http
       .post<ResolveDoiResponse>(`${this.baseUrl}/resolve-doi/`, payload)
+      .pipe(catchError((error) => this.handleHttpError(error)));
+  }
+
+    fetchSections(payload: FetchSectionsRequest): Observable<FetchSectionsResponse> {
+    return this.http
+      .post<FetchSectionsResponse>(`${this.baseUrl}/fetch-sections/`, payload)
       .pipe(catchError((error) => this.handleHttpError(error)));
   }
 

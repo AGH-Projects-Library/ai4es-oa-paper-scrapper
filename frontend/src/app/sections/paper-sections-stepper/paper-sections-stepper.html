@@ -106,8 +106,14 @@
               </div>
 
               <div class="summary-row">
-                <span class="summary-label">Year</span>
-                <span class="summary-value">{{ paper.year ?? 'Unavailable' }}</span>
+                <span class="summary-label">Emails</span>
+                <span class="summary-value">
+                  @if (paper.emails.length) {
+                    {{ paper.emails.join(', ') }}
+                  } @else {
+                    Unavailable
+                  }
+                </span>
               </div>
 
               <div class="summary-row">

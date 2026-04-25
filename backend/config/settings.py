@@ -40,7 +40,6 @@ INSTALLED_APPS = [
     'papers',
     "drf_spectacular",
     'rest_framework',
-    'rest_framework_swagger'
 ]
 
 MIDDLEWARE = [
