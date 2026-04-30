@@ -26,6 +26,17 @@ This notebook contains the final version of the scraper and interactive exporter
 
 The scraper supports both **PMC articles** and **arXiv papers**. It takes DOI or arXiv identifiers as input, processes the corresponding documents, converts them into Markdown, extracts metadata, and allows selected sections to be exported into JSON format.
 
+
+### `article_search.ipynb`
+
+This notebook contains the phrase-based article search module.
+
+It allows users to search for scientific papers using a topic phrase instead of providing exact DOI or arXiv identifiers. This is useful when the user does not know a specific paper identifier and wants to discover relevant open-access articles based on a research topic.
+
+The notebook takes a user-provided phrase, searches for related scientific articles, collects basic metadata and available identifiers, and prepares candidate papers that can later be processed by the existing pipeline.
+
+This module works as an additional entry point to the project. It does not replace the DOI/arXiv-based workflow, but complements it by helping users find relevant papers first.
+
 ## What `to_json.ipynb` does
 
 The notebook performs the following tasks:
@@ -93,3 +104,23 @@ paper_pipeline_data/
 ├── html/
 ├── meta/
 └── exports/
+```
+
+
+## What `article_search.ipynb` does
+
+The notebook performs the following tasks:
+
+1. Accepts a topic phrase from the user.
+
+2. Searches for scientific articles related to the provided phrase.
+
+3. Collects basic metadata about the retrieved articles.
+
+4. Extracts available identifiers, such as DOI or other publication-related identifiers.
+
+5. Returns a list of candidate papers that can be reviewed by the user.
+
+6. Allows the discovered papers to be used as input for the existing DOI/arXiv processing pipeline.
+
+This makes the system more flexible, because users can start from a general research topic rather than a predefined list of paper identifiers.
