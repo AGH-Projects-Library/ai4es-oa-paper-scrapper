@@ -4,9 +4,35 @@ This repository contains notebooks and scripts for processing scientific papers 
 
 The pipeline supports both interactive and batch-based workflows. Users can either manually inspect papers and select sections, or automatically extract predefined section types from a large collection of papers.
 
+## Repository structure
+
+```text
+ai4es-oa-paper-scrapper/
+├── README.md
+├── notebooks/
+│   ├── scraping/
+│   │   ├── markdown_is_all_we_need.ipynb
+│   │   └── to_json.ipynb
+│   │
+│   ├── export/
+│   │   ├── one_zip_many_dois.ipynb
+│   │   └── few_sections_many_dois.ipynb
+│   │
+│   ├── analysis/
+│   │   └── histogram_sections.ipynb
+│   │
+│   └── search/
+│       └── article_search.ipynb
+│
+├── data/
+│   └── dois_test.txt
+│
+└── outputs/
+```
+
 ## Files
 
-### `markdown_is_all_we_need.ipynb`
+### `notebooks/scraping/markdown_is_all_we_need.ipynb`
 
 This notebook is used to process a large number of DOI identifiers in order to obtain Markdown versions of scientific papers.
 
@@ -14,7 +40,7 @@ Its main purpose is to automate the conversion of papers into `.md` files, makin
 
 ---
 
-### `histogram_section.ipynb`
+### `notebooks/analysis/histogram_sections.ipynb`
 
 This notebook is used to generate a histogram of the most frequent section names found across all Markdown files created during the processing stage.
 
@@ -24,7 +50,7 @@ The histogram is generated directly from Markdown headings. Section names are co
 
 ---
 
-### `to_json.ipynb`
+### `notebooks/scraping/to_json.ipynb`
 
 This notebook contains the main interactive scraper and exporter.
 
@@ -34,7 +60,7 @@ This workflow is useful when the user wants to inspect each paper manually and d
 
 ---
 
-### `one_zip_many_dois.ipynb`
+### `notebooks/export/one_zip_many_dois.ipynb`
 
 This notebook extends the interactive export workflow for processing multiple DOI or arXiv identifiers in a single run.
 
@@ -49,7 +75,7 @@ This notebook is useful when the user wants manual control over section selectio
 
 ---
 
-### `few_sections_many_dois.ipynb`
+### `notebooks/export/few_sections_many_dois.ipynb`
 
 This notebook provides a batch extraction workflow for large collections of DOI or arXiv identifiers.
 
@@ -77,7 +103,7 @@ This workflow is useful when processing a large number of papers where the same 
 
 ---
 
-### `article_search.ipynb`
+### `notebooks/search/article_search.ipynb`
 
 This notebook contains the phrase-based article search module.
 
@@ -87,7 +113,15 @@ The notebook takes a user-provided phrase, searches for related scientific artic
 
 This module works as an additional entry point to the project. It does not replace the DOI/arXiv-based workflow, but complements it by helping users find relevant papers first.
 
-## What `to_json.ipynb` does
+---
+
+### `data/dois_test.txt`
+
+This file contains test DOI entries that can be used as sample input for the pipeline.
+
+It is useful for testing the scraping, conversion, and export workflows without manually entering DOI identifiers every time.
+
+## What `notebooks/scraping/to_json.ipynb` does
 
 The notebook performs the following tasks:
 
@@ -142,7 +176,7 @@ The notebook performs the following tasks:
 
 9. Allows the exported content to be compressed into a `.zip` archive.
 
-## What `one_zip_many_dois.ipynb` does
+## What `notebooks/export/one_zip_many_dois.ipynb` does
 
 The notebook performs the following tasks:
 
@@ -185,7 +219,7 @@ paper_pipeline_data/
 
 A ZIP archive with the same batch name is also created.
 
-## What `few_sections_many_dois.ipynb` does
+## What `notebooks/export/few_sections_many_dois.ipynb` does
 
 The notebook performs the following tasks:
 
@@ -239,7 +273,7 @@ paper_pipeline_data/
 
 A ZIP archive with the same batch name is also created.
 
-## What `article_search.ipynb` does
+## What `notebooks/search/article_search.ipynb` does
 
 The notebook performs the following tasks:
 
@@ -286,7 +320,7 @@ Depending on the notebook used, the `exports/` directory may contain:
 Use:
 
 ```text
-markdown_is_all_we_need.ipynb
+notebooks/scraping/markdown_is_all_we_need.ipynb
 ```
 
 This workflow is suitable when the goal is to create Markdown versions of papers for later inspection or analysis.
@@ -296,7 +330,7 @@ This workflow is suitable when the goal is to create Markdown versions of papers
 Use:
 
 ```text
-histogram_section.ipynb
+notebooks/analysis/histogram_sections.ipynb
 ```
 
 This workflow is suitable when the goal is to understand which section headings occur most often in the processed Markdown corpus.
@@ -306,7 +340,7 @@ This workflow is suitable when the goal is to understand which section headings 
 Use:
 
 ```text
-to_json.ipynb
+notebooks/scraping/to_json.ipynb
 ```
 
 This workflow is suitable when working with a smaller number of papers and when manual section selection is needed.
@@ -316,7 +350,7 @@ This workflow is suitable when working with a smaller number of papers and when 
 Use:
 
 ```text
-one_zip_many_dois.ipynb
+notebooks/export/one_zip_many_dois.ipynb
 ```
 
 This workflow is suitable when working with multiple papers, while still manually selecting sections, and when the final result should be one combined ZIP archive.
@@ -326,7 +360,7 @@ This workflow is suitable when working with multiple papers, while still manuall
 Use:
 
 ```text
-few_sections_many_dois.ipynb
+notebooks/export/few_sections_many_dois.ipynb
 ```
 
 This workflow is suitable when processing a large number of papers and extracting the same section types from all of them.
@@ -336,7 +370,29 @@ This workflow is suitable when processing a large number of papers and extractin
 Use:
 
 ```text
-article_search.ipynb
+notebooks/search/article_search.ipynb
 ```
 
 This workflow is suitable when the user does not have DOI or arXiv identifiers yet and wants to find relevant papers based on a research topic.
+
+## Path note
+
+Because the notebooks are organized into subfolders, relative paths should be checked before running them.
+
+If a notebook creates or reads folders such as:
+
+```text
+paper_pipeline_data/
+data/
+outputs/
+```
+
+it is recommended to run the notebook from the repository root or adjust path variables inside the notebook accordingly.
+
+For example, if a notebook inside `notebooks/export/` needs to read `data/dois_test.txt`, the relative path may need to be changed to:
+
+```text
+../../data/dois_test.txt
+```
+
+depending on the current working directory used by Jupyter.
