@@ -1183,8 +1183,8 @@ def zip_export(doc):
 
 
 def export_all_processed_json(processed, out_dir=EXPORT_DIR, filename=None):
-    """Save a single JSON file containing all processed documents and their
-    scraped contents (including inline markdown/html text where available).
+    """Save a single JSON file containing all processed documents,
+    storing only paths to markdown/html files (no inline content).
     """
     if not filename:
         filename = f"processed_export_{int(time.time())}.json"
@@ -1196,21 +1196,68 @@ def export_all_processed_json(processed, out_dir=EXPORT_DIR, filename=None):
     for doc in processed:
         entry = dict(doc)
 
+        # Keep only references to the md/html file paths instead of embedding contents
         md_path = doc.get("md")
+        entry["md_path"] = md_path if md_path else None
+
+        html_path = doc.get("html")
+        entry["html_path"] = html_path if html_path else None
+
+        # Extract tables from markdown sections (so tables are present similar to images)
+        entry_sections = []
         if md_path and os.path.exists(md_path):
             try:
                 with open(md_path, "r", encoding="utf-8") as f:
-                    entry["md_text"] = f.read()
-            except Exception:
-                entry["md_text"] = None
+                    md_text = f.read()
+                _, sections = parse_markdown(md_text)
+                local_images = doc.get("local_images", [])
+                for s in sections:
+                    # Tables: parse markdown tables into structured header/rows for easy re-import
+                    tables_struct = []
+                    for tbl_md in s.get("tables", []):
+                        parsed = parse_md_table(tbl_md)
+                        if parsed:
+                            header, rows = parsed
+                            tables_struct.append({
+                                "header": header,
+                                "rows": rows,
+                                "markdown": tbl_md
+                            })
+                        else:
+                            tables_struct.append({
+                                "header": None,
+                                "rows": None,
+                                "markdown": tbl_md
+                            })
 
-        html_path = doc.get("html")
-        if html_path and os.path.exists(html_path):
-            try:
-                with open(html_path, "r", encoding="utf-8") as f:
-                    entry["html_text"] = f.read()
+                    # Images: map markdown image placeholders/refs to local paths when possible
+                    images = []
+                    try:
+                        matches = re.findall(r'!\[(.*?)\]\((.*?)\)', s.get("text", ""))
+                        for alt, ref in matches:
+                            img_entry = {"placeholder": ref, "caption": alt, "path": None}
+                            if ref.startswith("PMC_FIG_"):
+                                m = re.search(r"PMC_FIG_(\d+)", ref)
+                                if m:
+                                    idx = int(m.group(1))
+                                    if idx < len(local_images):
+                                        img_entry["path"] = local_images[idx]
+                            else:
+                                # For direct URLs or other refs, leave placeholder and path empty
+                                img_entry["path"] = None
+                            images.append(img_entry)
+                    except Exception:
+                        images = []
+
+                    entry_sections.append({
+                        "heading": s.get("heading"),
+                        "tables": tables_struct,
+                        "images": images
+                    })
             except Exception:
-                entry["html_text"] = None
+                entry_sections = []
+
+        entry["sections"] = entry_sections
 
         out.append(entry)
 
