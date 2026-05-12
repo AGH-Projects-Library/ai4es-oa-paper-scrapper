@@ -1182,6 +1182,43 @@ def zip_export(doc):
     return zip_path
 
 
+def export_all_processed_json(processed, out_dir=EXPORT_DIR, filename=None):
+    """Save a single JSON file containing all processed documents and their
+    scraped contents (including inline markdown/html text where available).
+    """
+    if not filename:
+        filename = f"processed_export_{int(time.time())}.json"
+
+    os.makedirs(out_dir, exist_ok=True)
+    path = os.path.join(out_dir, filename)
+
+    out = []
+    for doc in processed:
+        entry = dict(doc)
+
+        md_path = doc.get("md")
+        if md_path and os.path.exists(md_path):
+            try:
+                with open(md_path, "r", encoding="utf-8") as f:
+                    entry["md_text"] = f.read()
+            except Exception:
+                entry["md_text"] = None
+
+        html_path = doc.get("html")
+        if html_path and os.path.exists(html_path):
+            try:
+                with open(html_path, "r", encoding="utf-8") as f:
+                    entry["html_text"] = f.read()
+            except Exception:
+                entry["html_text"] = None
+
+        out.append(entry)
+
+    save_json(out, path)
+    print(f"[EXPORT ALL] Saved {len(out)} entries to {path}")
+    return path
+
+
 # =========================================================
 # VIEW
 # =========================================================
@@ -1438,6 +1475,14 @@ if __name__ == "__main__":
 
     if not processed:
         raise SystemExit
+
+    # Offer to export all processed documents into a single JSON file
+    try:
+        export_choice = input("Export all processed documents to a single JSON file? (y/n): ").lower().strip()
+        if export_choice == "y":
+            export_all_processed_json(processed)
+    except Exception:
+        pass
 
     while True:
         print("\nProcessed documents:\n")
