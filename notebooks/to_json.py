@@ -4,6 +4,7 @@ import re
 import io
 import json
 import time
+import sys
 import gzip
 import tarfile
 import shutil
@@ -25,6 +26,19 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
+
+# Import ROB extraction (optional - graceful degradation if not available)
+services_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'backend', 'papers', 'services'))
+if os.path.exists(services_path) and services_path not in sys.path:
+    sys.path.insert(0, services_path)
+
+try:
+    from rob_extraction import extract_rob_artifacts_from_markdown, extract_rob_from_sections_images
+    HAS_ROB_MODULE = True
+except ImportError:
+    HAS_ROB_MODULE = False
+
+
 
 
 # =========================================================
@@ -1258,6 +1272,28 @@ def export_all_processed_json(processed, out_dir=EXPORT_DIR, filename=None):
                 entry_sections = []
 
         entry["sections"] = entry_sections
+        
+        # Extract ROB artifacts from markdown and images
+        if HAS_ROB_MODULE and md_path and os.path.exists(md_path):
+            try:
+                with open(md_path, "r", encoding="utf-8") as f:
+                    md_text = f.read()
+                entry["rob_artifacts"] = extract_rob_artifacts_from_markdown(
+                    md_text,
+                    paper_id=doc.get("paper_id"),
+                )
+            except Exception:
+                pass
+
+        if HAS_ROB_MODULE and entry_sections:
+            try:
+                ocr_artifacts = extract_rob_from_sections_images(entry_sections, paper_id=doc.get("paper_id"))
+                if ocr_artifacts:
+                    # Merge OCR artifacts with existing ROB artifacts
+                    existing_artifacts = entry.get("rob_artifacts", [])
+                    entry["rob_artifacts"] = existing_artifacts + ocr_artifacts
+            except Exception:
+                pass
 
         out.append(entry)
 

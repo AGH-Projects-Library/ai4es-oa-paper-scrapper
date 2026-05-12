@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import time
@@ -5,6 +6,9 @@ import requests
 import xml.etree.ElementTree as ET
 from tqdm import tqdm
 from bs4 import BeautifulSoup
+
+from .rob_extraction import extract_rob_artifacts_from_markdown, extract_rob_from_sections_images
+
 
 
 # CONFIG
@@ -178,7 +182,12 @@ def process_arxiv(doi):
     md_path = os.path.join(MD_DIR, f"{arxiv_id}.md")
     save_text(md, md_path)
 
-    return {"paper_id": doi, "md": md_path}
+    rob_artifacts = extract_rob_artifacts_from_markdown(md, paper_id=doi)
+    if rob_artifacts:
+        rob_path = os.path.join(MD_DIR, f"{arxiv_id}.rob.json")
+        save_text(json.dumps(rob_artifacts, ensure_ascii=False, indent=2), rob_path)
+
+    return {"paper_id": doi, "md": md_path, "rob_artifacts": rob_artifacts}
 
 
 # PUBMED
@@ -273,7 +282,12 @@ def process_pubmed(doi):
     md_path = os.path.join(MD_DIR, f"{pmcid}.md")
     save_text(md, md_path)
 
-    return {"paper_id": doi, "md": md_path}
+    rob_artifacts = extract_rob_artifacts_from_markdown(md, paper_id=doi)
+    if rob_artifacts:
+        rob_path = os.path.join(MD_DIR, f"{pmcid}.rob.json")
+        save_text(json.dumps(rob_artifacts, ensure_ascii=False, indent=2), rob_path)
+
+    return {"paper_id": doi, "md": md_path, "rob_artifacts": rob_artifacts}
 
 
 # MARKDOWN PARSER
@@ -404,6 +418,7 @@ def resolve_doi_to_paper(doi: str) -> dict:
         "paper": {
             "doi": doi,
             "title": title or "Untitled paper",
+            "robArtifacts": result.get("rob_artifacts", []),
             "source": source,
             "availableSections": available_sections,
         },
