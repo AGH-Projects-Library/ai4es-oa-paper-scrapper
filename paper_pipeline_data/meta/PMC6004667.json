@@ -16,10 +16,15 @@
     "qian@wuxiph.com"
   ],
   "local_images": [
+    "paper_pipeline_data/png/PMC6004667/13601_2018_209_Fig1_HTML.gif",
     "paper_pipeline_data/png/PMC6004667/13601_2018_209_Fig1_HTML.jpg",
+    "paper_pipeline_data/png/PMC6004667/13601_2018_209_Fig2_HTML.gif",
     "paper_pipeline_data/png/PMC6004667/13601_2018_209_Fig2_HTML.jpg",
+    "paper_pipeline_data/png/PMC6004667/13601_2018_209_Fig3_HTML.gif",
     "paper_pipeline_data/png/PMC6004667/13601_2018_209_Fig3_HTML.jpg",
+    "paper_pipeline_data/png/PMC6004667/13601_2018_209_Fig4_HTML.gif",
     "paper_pipeline_data/png/PMC6004667/13601_2018_209_Fig4_HTML.jpg",
+    "paper_pipeline_data/png/PMC6004667/13601_2018_209_Fig5_HTML.gif",
     "paper_pipeline_data/png/PMC6004667/13601_2018_209_Fig5_HTML.jpg"
   ]
 }

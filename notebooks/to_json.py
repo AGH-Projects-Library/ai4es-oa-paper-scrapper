@@ -11,6 +11,8 @@ import zipfile
 import requests
 import xml.etree.ElementTree as ET
 
+import concurrent.futures
+
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 from PIL import Image
@@ -18,6 +20,9 @@ import matplotlib.pyplot as plt
 from tabulate import tabulate
 
 from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 
@@ -157,11 +162,18 @@ def fetch_real_html_pmc(pmcid):
     driver = get_driver()
     url = f"https://pmc.ncbi.nlm.nih.gov/articles/{pmcid}/"
 
-    print(f"Opening browser for {pmcid}...")
+    print(f"Opening browser for {pmcid} (Selenium Fallback)...")
     driver.get(url)
 
     print("Waiting for rendered content / anti-bot redirect...")
-    time.sleep(10)
+    try:
+        # Wait up to 15s for the main article wrapper to appear
+        WebDriverWait(driver, 15).until(
+            EC.presence_of_element_located((By.XPATH, "//article | //div[contains(@class, 'article')] | //div[@id='mc']"))
+        )
+        time.sleep(2) # Short buffer for any lazily rendered figure elements
+    except Exception as e:
+        print(f"[Selenium] Timeout waiting for {pmcid}: {e}")
 
     html = driver.page_source
     driver.quit()
@@ -267,14 +279,74 @@ def download_binary(url, path):
         f.write(r.content)
 
 
+def extract_images_from_oa(pmcid):
+    """
+    Attempts to download and extract images via the PMC Open Access API tar.gz.
+    Returns a list of local paths if successful, otherwise None.
+    """
+    try:
+        r = requests.get('https://www.ncbi.nlm.nih.gov/pmc/utils/oa/oa.fcgi', params={"id": pmcid})
+        if r.status_code != 200:
+            return None
+            
+        root = ET.fromstring(r.text)
+        tgz = root.find(".//{*}link[@format='tgz']")
+        
+        if tgz is None:
+            return None
+            
+        href = tgz.attrib.get("href")
+        link = f'https{href[3:]}'
+
+        r = requests.get(link, stream=True)
+
+        if r.status_code != 200:
+            link = link.replace('https://ftp.ncbi.nlm.nih.gov/pub/pmc/', 'https://ftp.ncbi.nlm.nih.gov/pub/pmc/deprecated/')
+            r = requests.get(link, stream=True)
+
+        if r.status_code != 200:
+            print(f"[OA API] Failed to download package for {pmcid}: {r.status_code}")
+            return None
+        
+        doc_img_dir = os.path.join(PNG_DIR, pmcid)
+        os.makedirs(doc_img_dir, exist_ok=True)
+        local_paths = []
+
+        # Extract only images
+        with tarfile.open(fileobj=io.BytesIO(r.content), mode="r:gz") as tar:
+            for member in tar.getmembers():
+                if member.isfile() and re.search(r"\.(jpg|jpeg|png|gif|tif|tiff|webp)$", member.name, re.I):
+                    f = tar.extractfile(member)
+                    if f:
+                        filename = os.path.basename(member.name)
+                        local_path = os.path.join(doc_img_dir, filename)
+                        with open(local_path, "wb") as out_f:
+                            out_f.write(f.read())
+                        local_paths.append(local_path)
+                        
+        print(f"[OA API] Successfully extracted {len(local_paths)} images for {pmcid} without Selenium.")
+        return sorted(local_paths)
+    except Exception as e:
+        print(f"[OA API] Failed for {pmcid}: {e}")
+        return None
+
+
 def download_pmc_images(pmcid):
     """
-    Fetch rendered HTML using Selenium, extract real image URLs, download them,
-    and return ordered local paths.
+    Fetch images via OA API first. Only use Selenium rendered HTML extraction
+    as a fallback if the API fails.
     """
+    # 1. Try fast OA Extraction
+    oa_paths = extract_images_from_oa(pmcid)
+    
+    html_path = os.path.join(HTML_DIR, f"{pmcid}.html")
+    if oa_paths is not None:
+        save_text("HTML not fetched. OA API was used.", html_path)
+        return oa_paths, html_path
+
+    # 2. Fallback to Selenium
     html = fetch_real_html_pmc(pmcid)
 
-    html_path = os.path.join(HTML_DIR, f"{pmcid}.html")
     save_text(html, html_path)
 
     urls = extract_pmc_image_urls_from_rendered_html(html)
@@ -1340,19 +1412,24 @@ if __name__ == "__main__":
     success = 0
     failed = 0
 
-    for item in inputs:
-        print(f"\nProcessing: {item}")
-        try:
-            result = process_document(item)
-            if result:
-                processed.append(result)
-                success += 1
-            else:
+    print(f"\nProcessing {len(inputs)} document(s) concurrently...")
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+        future_to_item = {executor.submit(process_document, item): item for item in inputs}
+        
+        for future in concurrent.futures.as_completed(future_to_item):
+            item = future_to_item[future]
+            try:
+                result = future.result()
+                if result:
+                    processed.append(result)
+                    success += 1
+                else:
+                    failed += 1
+                    print(f"[FAIL] {item}")
+            except Exception as e:
                 failed += 1
-                print(f"[FAIL] {item}")
-        except Exception as e:
-            failed += 1
-            print(f"[ERROR] {item}: {e}")
+                print(f"[ERROR] {item}: {e}")
 
     print("\n==== SUMMARY ====")
     print(f"Processed successfully: {success}")
