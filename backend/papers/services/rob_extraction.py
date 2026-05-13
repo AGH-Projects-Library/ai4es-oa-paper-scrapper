@@ -258,92 +258,170 @@ def extract_rob_artifacts_from_markdown(md_text: str, paper_id: str | None = Non
     return artifacts
 
 
+def extract_bias_domain_from_header(header_text: str) -> str | None:
+    """
+    Extract bias domain from RoB 2 style headers.
+    E.g., "Risk of bias from randomization process" → "selection"
+    """
+    header_lower = header_text.lower()
+    
+    # For RoB 2 style headers, extract the domain concept from the header FIRST
+    # E.g., "Risk of bias from randomization process" → look for "randomization"
+    # This must be checked BEFORE the generic domain patterns
+    # Note: Use ? to handle singular/plural, use .* for flexible word matching
+    # ORDER MATTERS: Check specific/longer patterns first to avoid false matches
+    rob2_patterns = [
+        ("attrition", r"\b(missing|loss\s+to\s+follow|attritions?|dropouts?|follow[\s-]*up)\b.*\bdata\b"),
+        ("attrition", r"\b(missing|loss\s+to\s+follow|attritions?|dropouts?|follow[\s-]*up)\b"),
+        ("reporting", r"\b(selection|selective)\b.*\b(results?|report|publication)\b"),
+        ("reporting", r"\b(reportings?|selective\s+reportings?|publications?|published)\b"),
+        ("performance", r"\b(deviations?|intended\s+interventions?|performance|treatments?|exposures?)\b"),
+        ("detection", r"\b(measurements?|assessors?|blindings?|maskings?|knowledge)\b"),
+        ("selection", r"\b(randomiza?tions?|random\s+allocations?|allocations?|sequencings?|inclusions?|eligibilities?)\b"),
+    ]
+    
+    for domain_key, pattern in rob2_patterns:
+        if re.search(pattern, header_lower):
+            return domain_key
+    
+    # Fallback to generic domain patterns
+    for domain_key, domain_pattern in ROB_DOMAINS.items():
+        if re.search(domain_pattern, header_lower):
+            return domain_key
+    
+    return None
+
+
+def normalize_rob_cell_value(cell_value: str) -> str | None:
+    """
+    Normalize ROB cell values to standard terms.
+    E.g., "High risk" → "high", "Some concerns" → "unclear"
+    """
+    if not cell_value:
+        return None
+    
+    normalized = normalize(cell_value).lower()
+    
+    # Direct matches
+    for rob_val in ROB_VALUES:
+        if normalized == rob_val:
+            return rob_val
+    
+    # Handle phrases like "High risk", "Low risk", etc.
+    if "high" in normalized:
+        return "high"
+    if "low" in normalized:
+        return "low"
+    if "unclear" in normalized or "some concern" in normalized or "concern" in normalized:
+        return "unclear"
+    if "critical" in normalized:
+        return "critical"
+    
+    # Numeric values
+    if normalized.isdigit():
+        return normalized
+    
+    # Yes/No values
+    if normalized in ["yes", "no", "partial", "n/a", "na"]:
+        return normalized
+    
+    return None
+
+
 def normalize_rob_table(table: dict[str, Any], section: str | None = None) -> list[dict[str, Any]]:
     """
     Extract structured bias domain records from a ROB table.
     
+    Handles RoB 2 table structure:
+    - Column 0: Study names (study_name / row_label)
+    - Columns 1+: Each column is one bias domain; header describes the domain; 
+                  cells contain risk level
+    
     Returns:
-        List of {bias_domain, bias_value, row_index, confidence} records.
+        List of {bias_domain, bias_value, study_name, column_header, row_index, confidence} records.
     """
     if not table or not table.get("rows"):
         return []
     
-    header = [normalize(h).lower() for h in table.get("header", [])]
+    header = table.get("header", [])
     rows = table.get("rows", [])
     records = []
     
-    # Find domain and value columns by header pattern matching
-    domain_col_idx = None
-    value_col_indices = []
+    if len(header) < 2:  # Need at least study column + 1 domain column
+        return []
     
-    # Column that likely contains domain names (Study, Domain, etc.)
-    for i, h in enumerate(header):
-        if re.search(r"\b(domain|bias|criterion|item)\b", h):
-            domain_col_idx = i
-            break
+    # Normalize headers
+    norm_header = [normalize(h).lower() for h in header]
     
-    # Columns that likely contain ROB values (Risk, Assessment, Score, etc.)
-    for i, h in enumerate(header):
-        if re.search(r"\b(risk|assessment|score|rating|judgement|judgment|bias)\b", h):
-            value_col_indices.append(i)
+    # Column 0 is study names
+    study_col_idx = 0
     
-    # If no explicit domain column, assume first column is domain/study name
-    if domain_col_idx is None and len(header) > 0:
-        domain_col_idx = 0
+    # Columns 1+ are potential domain columns (each header might be a domain)
+    domain_col_indices = list(range(1, len(header)))
     
-    # If no value columns found, use all non-domain columns
-    if not value_col_indices and domain_col_idx is not None:
-        value_col_indices = [i for i in range(len(header)) if i != domain_col_idx]
+    # Extract domain from each column header
+    domain_mappings = {}  # col_idx -> (domain_key, confidence)
+    for col_idx in domain_col_indices:
+        domain = extract_bias_domain_from_header(norm_header[col_idx])
+        if domain:
+            domain_mappings[col_idx] = (domain, 0.9)  # High confidence if we extracted domain
+    
+    # If we found domains in headers, use those columns
+    if domain_mappings:
+        value_col_indices = list(domain_mappings.keys())
+    else:
+        # Fallback: assume all non-study columns have values
+        value_col_indices = domain_col_indices
+        # Try to infer domains from first few rows' data patterns
+        for col_idx in value_col_indices:
+            domain_mappings[col_idx] = (None, 0.5)  # Low confidence fallback
     
     # Parse rows
     for row_idx, row in enumerate(rows):
-        domain_name = None
+        # Get study/row name from column 0
+        study_name = None
+        if study_col_idx < len(row):
+            study_name = normalize(row[study_col_idx])
         
-        # Extract domain name from domain column
-        if domain_col_idx is not None and domain_col_idx < len(row):
-            domain_name = normalize(row[domain_col_idx])
+        if not study_name or study_name.lower() in ["", "study", "overall"]:
+            continue  # Skip rows without a study name
         
-        # Extract values from value columns
-        for val_col_idx in value_col_indices:
-            if val_col_idx < len(row):
-                cell_value = normalize(row[val_col_idx]).lower()
-                if not cell_value:
-                    continue
-                
-                # Match cell value to known ROB values
-                matched_value = None
-                for rob_val in ROB_VALUES:
-                    if rob_val in cell_value or cell_value == rob_val:
-                        matched_value = rob_val
-                        break
-                
-                if matched_value:
-                    # Try to infer bias domain from header or domain name
-                    bias_domain = None
-                    col_header = header[val_col_idx] if val_col_idx < len(header) else ""
-                    
-                    # Check column header for domain pattern
-                    for domain_key, domain_pattern in ROB_DOMAINS.items():
-                        if re.search(domain_pattern, col_header, re.IGNORECASE):
-                            bias_domain = domain_key
-                            break
-                    
-                    # If not found in header, check domain name
-                    if not bias_domain and domain_name:
-                        for domain_key, domain_pattern in ROB_DOMAINS.items():
-                            if re.search(domain_pattern, domain_name, re.IGNORECASE):
-                                bias_domain = domain_key
-                                break
-                    
-                    if bias_domain:
-                        records.append({
-                            "bias_domain": bias_domain,
-                            "bias_value": matched_value,
-                            "domain_name": domain_name,
-                            "column_header": col_header,
-                            "row_index": row_idx,
-                            "confidence": 0.85,
-                        })
+        # Extract risk values from domain columns
+        for col_idx in value_col_indices:
+            if col_idx >= len(row):
+                continue
+            
+            cell_value = normalize(row[col_idx])
+            if not cell_value:
+                continue
+            
+            # Normalize the cell value
+            normalized_value = normalize_rob_cell_value(cell_value)
+            if not normalized_value:
+                continue
+            
+            # Get bias domain for this column
+            bias_domain = None
+            domain_confidence = 0.5
+            
+            if col_idx in domain_mappings:
+                bias_domain, domain_confidence = domain_mappings[col_idx]
+            
+            # If domain not extracted from header, try to infer from study name
+            if not bias_domain and study_name:
+                bias_domain = extract_bias_domain_from_header(study_name)
+            
+            # Only create record if we have a domain
+            if bias_domain:
+                col_header = header[col_idx] if col_idx < len(header) else ""
+                records.append({
+                    "bias_domain": bias_domain,
+                    "bias_value": normalized_value,
+                    "study_name": study_name,  # Fixed: was "domain_name"
+                    "column_header": col_header,
+                    "row_index": row_idx,
+                    "confidence": min(domain_confidence, 0.95),
+                })
     
     return records
 

@@ -1299,6 +1299,32 @@ def export_all_processed_json(processed, out_dir=EXPORT_DIR, filename=None):
 
     save_json(out, path)
     print(f"[EXPORT ALL] Saved {len(out)} entries to {path}")
+    
+    # Create list of papers with ROB artifacts
+    rob_papers = []
+    for doc in out:
+        if doc.get("rob_artifacts"):
+            rob_papers.append({
+                "paper_id": doc.get("paper_id"),
+                "source": doc.get("source"),
+                "artifact_count": len(doc.get("rob_artifacts", []))
+            })
+    
+    # Save ROB papers list
+    if rob_papers:
+        rob_list_filename = filename.replace(".json", "_rob_papers.txt")
+        rob_list_path = os.path.join(out_dir, rob_list_filename)
+        
+        with open(rob_list_path, "w", encoding="utf-8") as f:
+            f.write(f"# Papers with ROB artifacts\n")
+            f.write(f"# Total: {len(rob_papers)} papers\n")
+            f.write(f"# Generated: {time.strftime('%Y-%m-%d %H:%M:%S')}\n\n")
+            
+            for paper in rob_papers:
+                f.write(f"{paper['paper_id']}\t{paper['source']}\t{paper['artifact_count']} artifacts\n")
+        
+        print(f"[EXPORT ALL] Saved {len(rob_papers)} ROB papers list to {rob_list_path}")
+    
     return path
 
 

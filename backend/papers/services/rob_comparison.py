@@ -12,6 +12,63 @@ from collections import defaultdict
 import json
 
 
+def aggregate_study_records_to_paper_level(normalized_records: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """
+    Aggregate study-level ROB records to paper-level assessment.
+    
+    When multiple studies in a paper have ROB values for the same domain,
+    use the "worst" value (Low < Unclear < High in risk terms).
+    
+    Args:
+        normalized_records: List of normalized ROB records from a table
+    
+    Returns:
+        Dict mapping domain -> aggregated bias_value
+    """
+    domain_values = defaultdict(list)
+    
+    # Collect all values for each domain
+    for record in normalized_records:
+        domain = record.get('bias_domain')
+        value = record.get('bias_value')
+        if domain and value:
+            domain_values[domain].append(value)
+    
+    # Aggregate to worst-case for each domain
+    aggregated = {}
+    risk_hierarchy = {
+        'low': 0,
+        'unclear': 1,
+        'some concerns': 1,  # Treat "some concerns" as equivalent to unclear
+        'high': 2,
+        'critical': 3,
+    }
+    
+    for domain, values in domain_values.items():
+        # Try risk-based aggregation (worst case)
+        risk_values = []
+        other_values = []
+        
+        for v in values:
+            v_lower = str(v).lower()
+            if v_lower in risk_hierarchy:
+                risk_values.append(v_lower)
+            else:
+                other_values.append(v_lower)
+        
+        # Use worst risk value if available
+        if risk_values:
+            aggregated[domain] = max(risk_values, key=lambda x: risk_hierarchy.get(x, 0))
+        elif other_values:
+            # For non-risk values (yes/no, numeric), use majority
+            from collections import Counter
+            aggregated[domain] = Counter(other_values).most_common(1)[0][0]
+        else:
+            aggregated[domain] = values[0] if values else None
+    
+    return aggregated
+
+
 def align_rob_tables_by_domain(papers_data: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
     Align ROB tables from multiple papers by bias domain.
@@ -41,10 +98,11 @@ def align_rob_tables_by_domain(papers_data: List[Dict[str, Any]]) -> Dict[str, A
             if artifact.get('artifact_type') == 'table' and 'normalized_records' in artifact:
                 normalized_records = artifact['normalized_records']
                 
-                for record in normalized_records:
-                    bias_domain = record.get('bias_domain')
-                    bias_value = record.get('bias_value')
-                    
+                # Aggregate study-level records to paper-level assessment
+                paper_level_assessment = aggregate_study_records_to_paper_level(normalized_records)
+                
+                # Add to domain matrix
+                for bias_domain, bias_value in paper_level_assessment.items():
                     if bias_domain and bias_value:
                         if paper_id not in domain_matrix[bias_domain]:
                             domain_matrix[bias_domain][paper_id] = bias_value
