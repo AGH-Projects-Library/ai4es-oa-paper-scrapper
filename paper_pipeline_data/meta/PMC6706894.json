@@ -1,6 +1,6 @@
 {
   "paper_id": "10.1186/s13601-019-0278-3",
-  "source": "pmc",
+  "source": "pubmed",
   "pmcid": "PMC6706894",
   "md": "paper_pipeline_data/md/PMC6706894.md",
   "html": "paper_pipeline_data/html/PMC6706894.html",
@@ -15,5 +15,6 @@
   "local_images": [
     "paper_pipeline_data/png/PMC6706894/13601_2019_278_Fig1_HTML.gif",
     "paper_pipeline_data/png/PMC6706894/13601_2019_278_Fig1_HTML.jpg"
-  ]
+  ],
+  "extraction_method": "oa_api"
 }

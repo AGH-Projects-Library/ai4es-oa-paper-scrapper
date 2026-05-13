@@ -349,6 +349,9 @@ def download_pmc_images(pmcid):
     """
     Fetch images via OA API first. Only use Selenium rendered HTML extraction
     as a fallback if the API fails.
+    
+    Returns: (local_paths, html_path, extraction_method)
+      where extraction_method is "oa_api" or "selenium"
     """
     # 1. Try fast OA Extraction
     oa_paths = extract_images_from_oa(pmcid)
@@ -356,7 +359,7 @@ def download_pmc_images(pmcid):
     html_path = os.path.join(HTML_DIR, f"{pmcid}.html")
     if oa_paths is not None:
         save_text("HTML not fetched. OA API was used.", html_path)
-        return oa_paths, html_path
+        return oa_paths, html_path, "oa_api"
 
     # 2. Fallback to Selenium
     html = fetch_real_html_pmc(pmcid)
@@ -365,7 +368,7 @@ def download_pmc_images(pmcid):
 
     urls = extract_pmc_image_urls_from_rendered_html(html)
     if not urls:
-        return [], html_path
+        return [], html_path, "selenium"
 
     doc_img_dir = os.path.join(PNG_DIR, pmcid)
     os.makedirs(doc_img_dir, exist_ok=True)
@@ -388,7 +391,7 @@ def download_pmc_images(pmcid):
         except Exception as e:
             print(f"[PMC IMG FAIL] {url} -> {e}")
 
-    return local_paths, html_path
+    return local_paths, html_path, "selenium"
 
 
 def parse_pmc_table(table):
@@ -1300,30 +1303,41 @@ def export_all_processed_json(processed, out_dir=EXPORT_DIR, filename=None):
     save_json(out, path)
     print(f"[EXPORT ALL] Saved {len(out)} entries to {path}")
     
-    # Create list of papers with ROB artifacts
+    # Create list of papers with ROB artifacts (DOIs only, one per line)
     rob_papers = []
+    oa_only_rob_papers = []  # Papers extracted via OA API (no Selenium) with ROB
+    
     for doc in out:
         if doc.get("rob_artifacts"):
-            rob_papers.append({
-                "paper_id": doc.get("paper_id"),
-                "source": doc.get("source"),
-                "artifact_count": len(doc.get("rob_artifacts", []))
-            })
+            paper_id = doc.get("paper_id")
+            rob_papers.append(paper_id)
+            
+            # Check if paper was extracted via OA API (not Selenium)
+            extraction_method = doc.get("extraction_method", "")
+            if extraction_method == "oa_api":
+                oa_only_rob_papers.append(paper_id)
     
-    # Save ROB papers list
+    # Save simple ROB papers list (DOIs only, one per line)
     if rob_papers:
-        rob_list_filename = filename.replace(".json", "_rob_papers.txt")
+        rob_list_filename = filename.replace(".json", "_rob_dois.txt")
         rob_list_path = os.path.join(out_dir, rob_list_filename)
         
         with open(rob_list_path, "w", encoding="utf-8") as f:
-            f.write(f"# Papers with ROB artifacts\n")
-            f.write(f"# Total: {len(rob_papers)} papers\n")
-            f.write(f"# Generated: {time.strftime('%Y-%m-%d %H:%M:%S')}\n\n")
-            
-            for paper in rob_papers:
-                f.write(f"{paper['paper_id']}\t{paper['source']}\t{paper['artifact_count']} artifacts\n")
+            for paper_id in rob_papers:
+                f.write(f"{paper_id}\n")
         
-        print(f"[EXPORT ALL] Saved {len(rob_papers)} ROB papers list to {rob_list_path}")
+        print(f"[EXPORT ALL] Saved {len(rob_papers)} ROB paper DOIs to {rob_list_path}")
+    
+    # Save OA-only ROB papers list (DOIs only, no Selenium needed)
+    if oa_only_rob_papers:
+        oa_rob_list_filename = filename.replace(".json", "_rob_oa_only_dois.txt")
+        oa_rob_list_path = os.path.join(out_dir, oa_rob_list_filename)
+        
+        with open(oa_rob_list_path, "w", encoding="utf-8") as f:
+            for paper_id in oa_only_rob_papers:
+                f.write(f"{paper_id}\n")
+        
+        print(f"[EXPORT ALL] Saved {len(oa_only_rob_papers)} OA-only ROB paper DOIs to {oa_rob_list_path}")
     
     return path
 
@@ -1459,7 +1473,7 @@ def process_pmc(doi):
 
     md = clean_markdown(md)
 
-    local_images, html_path = download_pmc_images(pmcid)
+    local_images, html_path, extraction_method = download_pmc_images(pmcid)
 
     md_path = os.path.join(MD_DIR, f"{pmcid}.md")
     meta_path = os.path.join(META_DIR, f"{pmcid}.json")
@@ -1468,13 +1482,14 @@ def process_pmc(doi):
 
     meta = {
         "paper_id": doi,
-        "source": "pmc",
+        "source": "pubmed",
         "pmcid": pmcid,
         "md": md_path,
         "html": html_path,
         "authors": authors,
         "emails": emails,
-        "local_images": local_images
+        "local_images": local_images,
+        "extraction_method": extraction_method
     }
     save_json(meta, meta_path)
 
