@@ -295,19 +295,19 @@ def download_binary(url, path):
 
 def extract_images_from_oa(pmcid):
     """
-    Attempts to download and extract images via the PMC Open Access API tar.gz.
-    Returns a list of local paths if successful, otherwise None.
+    Attempts to download and extract images and PDF via the PMC Open Access API tar.gz.
+    Returns: (local_image_paths, pdf_path) or (None, None) on failure
     """
     try:
         r = requests.get('https://www.ncbi.nlm.nih.gov/pmc/utils/oa/oa.fcgi', params={"id": pmcid})
         if r.status_code != 200:
-            return None
+            return None, None
             
         root = ET.fromstring(r.text)
         tgz = root.find(".//{*}link[@format='tgz']")
         
         if tgz is None:
-            return None
+            return None, None
             
         href = tgz.attrib.get("href")
         link = f'https{href[3:]}'
@@ -320,46 +320,60 @@ def extract_images_from_oa(pmcid):
 
         if r.status_code != 200:
             print(f"[OA API] Failed to download package for {pmcid}: {r.status_code}")
-            return None
+            return None, None
         
         doc_img_dir = os.path.join(PNG_DIR, pmcid)
         os.makedirs(doc_img_dir, exist_ok=True)
         local_paths = []
+        pdf_path = None
 
-        # Extract only images
+        # Extract images and PDF from tar.gz
         with tarfile.open(fileobj=io.BytesIO(r.content), mode="r:gz") as tar:
             for member in tar.getmembers():
-                if member.isfile() and re.search(r"\.(jpg|jpeg|png|gif|tif|tiff|webp)$", member.name, re.I):
-                    f = tar.extractfile(member)
-                    if f:
-                        filename = os.path.basename(member.name)
-                        local_path = os.path.join(doc_img_dir, filename)
-                        with open(local_path, "wb") as out_f:
-                            out_f.write(f.read())
-                        local_paths.append(local_path)
+                if member.isfile():
+                    # Extract images
+                    if re.search(r"\.(jpg|jpeg|png|gif|tif|tiff|webp)$", member.name, re.I):
+                        f = tar.extractfile(member)
+                        if f:
+                            filename = os.path.basename(member.name)
+                            local_path = os.path.join(doc_img_dir, filename)
+                            with open(local_path, "wb") as out_f:
+                                out_f.write(f.read())
+                            local_paths.append(local_path)
+                    # Extract PDF
+                    elif re.search(r"\.pdf$", member.name, re.I):
+                        f = tar.extractfile(member)
+                        if f:
+                            pdf_filename = f"{pmcid}.pdf"
+                            pdf_path = os.path.join(PDF_DIR, pdf_filename)
+                            with open(pdf_path, "wb") as out_f:
+                                out_f.write(f.read())
                         
         print(f"[OA API] Successfully extracted {len(local_paths)} images for {pmcid} without Selenium.")
-        return sorted(local_paths)
+        if pdf_path and os.path.exists(pdf_path):
+            print(f"[OA API] Successfully extracted PDF for {pmcid}")
+        return sorted(local_paths), pdf_path
     except Exception as e:
         print(f"[OA API] Failed for {pmcid}: {e}")
-        return None
+        return None, None
 
 
 def download_pmc_images(pmcid):
     """
-    Fetch images via OA API first. Only use Selenium rendered HTML extraction
+    Fetch images and PDF via OA API first. Only use Selenium rendered HTML extraction
     as a fallback if the API fails.
     
-    Returns: (local_paths, html_path, extraction_method)
+    Returns: (local_paths, html_path, pdf_path, extraction_method)
       where extraction_method is "oa_api" or "selenium"
+      pdf_path is None if extracted via Selenium (fallback)
     """
     # 1. Try fast OA Extraction
-    oa_paths = extract_images_from_oa(pmcid)
+    oa_paths, oa_pdf_path = extract_images_from_oa(pmcid)
     
     html_path = os.path.join(HTML_DIR, f"{pmcid}.html")
     if oa_paths is not None:
         save_text("HTML not fetched. OA API was used.", html_path)
-        return oa_paths, html_path, "oa_api"
+        return oa_paths, html_path, oa_pdf_path, "oa_api"
 
     # 2. Fallback to Selenium
     html = fetch_real_html_pmc(pmcid)
@@ -368,7 +382,7 @@ def download_pmc_images(pmcid):
 
     urls = extract_pmc_image_urls_from_rendered_html(html)
     if not urls:
-        return [], html_path, "selenium"
+        return [], html_path, None, "selenium"
 
     doc_img_dir = os.path.join(PNG_DIR, pmcid)
     os.makedirs(doc_img_dir, exist_ok=True)
@@ -391,7 +405,7 @@ def download_pmc_images(pmcid):
         except Exception as e:
             print(f"[PMC IMG FAIL] {url} -> {e}")
 
-    return local_paths, html_path, "selenium"
+    return local_paths, html_path, None, "selenium"
 
 
 def parse_pmc_table(table):
@@ -1342,6 +1356,93 @@ def export_all_processed_json(processed, out_dir=EXPORT_DIR, filename=None):
     return path
 
 
+def export_rob_tables_for_inspection(processed, out_dir=EXPORT_DIR, filename=None):
+    """
+    Export ROB tables from papers in a format suitable for easy inspection and comparison.
+    Each entry contains:
+    - DOI, md_path, pdf_path, extraction_method
+    - ROB tables with headers and rows for side-by-side comparison
+    
+    Output: JSON with structure:
+    [
+      {
+        "doi": "10.1234/...",
+        "md_path": "path/to/md",
+        "pdf_path": "path/to/pdf",
+        "extraction_method": "oa_api" or "selenium",
+        "rob_tables": [
+          {
+            "section": "Risk of Bias Assessment",
+            "table_index": 0,
+            "headers": ["Study", "Selection", "Performance", ...],
+            "rows": [
+              ["Study Name", "high", "low", ...],
+              ...
+            ],
+            "markdown": "| Study | ... |"
+          }
+        ]
+      }
+    ]
+    """
+    if not filename:
+        filename = f"rob_tables_inspection_{int(time.time())}.json"
+    
+    os.makedirs(out_dir, exist_ok=True)
+    path = os.path.join(out_dir, filename)
+    
+    out = []
+    papers_with_tables = 0
+    
+    for doc in processed:
+        # Skip if no ROB artifacts
+        if not doc.get("rob_artifacts"):
+            continue
+        
+        entry = {
+            "doi": doc.get("paper_id"),
+            "md_path": doc.get("md"),
+            "pdf_path": doc.get("pdf_path"),
+            "extraction_method": doc.get("extraction_method"),
+            "rob_tables": []
+        }
+        
+        # Extract table artifacts with actual table data
+        md_path = doc.get("md")
+        if md_path and os.path.exists(md_path):
+            try:
+                with open(md_path, "r", encoding="utf-8") as f:
+                    md_text = f.read()
+                
+                # Find all markdown tables in the ROB artifacts sections
+                for artifact in doc.get("rob_artifacts", []):
+                    if artifact.get("artifact_type") == "table":
+                        md_table = artifact.get("markdown", "")
+                        if md_table:
+                            parsed = parse_md_table(md_table)
+                            if parsed:
+                                header, rows = parsed
+                                entry["rob_tables"].append({
+                                    "section": artifact.get("section", "Unknown"),
+                                    "table_index": len(entry["rob_tables"]),
+                                    "headers": header,
+                                    "rows": rows,
+                                    "markdown": md_table,
+                                    "normalized_records": artifact.get("normalized_records", [])
+                                })
+            except Exception as e:
+                print(f"[ROB TABLES] Error extracting tables from {doc.get('paper_id')}: {e}")
+        
+        # Only include papers that have extracted ROB tables
+        if entry["rob_tables"]:
+            out.append(entry)
+            papers_with_tables += 1
+    
+    save_json(out, path)
+    print(f"[ROB TABLES EXPORT] Saved {papers_with_tables} papers with {sum(len(p.get('rob_tables', [])) for p in out)} ROB tables to {path}")
+    return path
+
+
 # =========================================================
 # VIEW
 # =========================================================
@@ -1473,7 +1574,7 @@ def process_pmc(doi):
 
     md = clean_markdown(md)
 
-    local_images, html_path, extraction_method = download_pmc_images(pmcid)
+    local_images, html_path, pdf_path, extraction_method = download_pmc_images(pmcid)
 
     md_path = os.path.join(MD_DIR, f"{pmcid}.md")
     meta_path = os.path.join(META_DIR, f"{pmcid}.json")
@@ -1486,6 +1587,7 @@ def process_pmc(doi):
         "pmcid": pmcid,
         "md": md_path,
         "html": html_path,
+        "pdf_path": pdf_path,
         "authors": authors,
         "emails": emails,
         "local_images": local_images,

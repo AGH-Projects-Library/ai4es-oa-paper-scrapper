@@ -34,7 +34,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 try:
     from to_json import (
         process_arxiv, process_pmc, process_document,
-        export_all_processed_json, is_arxiv_identifier
+        export_all_processed_json, export_rob_tables_for_inspection, is_arxiv_identifier
     )
 except ImportError as e:
     print(f"❌ Error: Could not import from to_json.py: {e}")
@@ -161,6 +161,10 @@ def main():
     try:
         export_path = export_all_processed_json(processed)
         print(f"✅ Export complete: {export_path}")
+        
+        # Also generate ROB tables inspection export
+        rob_tables_path = export_rob_tables_for_inspection(processed)
+        print(f"✅ ROB tables export complete: {rob_tables_path}")
     except Exception as e:
         print(f"❌ Export failed: {e}")
         sys.exit(1)
