@@ -1218,7 +1218,7 @@ def extract_and_save_tables(doc):
     """
     Extract all tables from a document's markdown and save them to TABLES_DIR as CSV.
     Folder structure matches other directories (png, md): tables/{pmcid or arxiv_id}/
-    Returns list of saved table file paths.
+    Returns list of table info dicts with path, section, and index.
     """
     md_path = doc.get("md")
     if not md_path or not os.path.exists(md_path):
@@ -1256,7 +1256,12 @@ def extract_and_save_tables(doc):
                         writer.writerow(header)
                         writer.writerows(rows)
                     
-                    saved_tables.append(table_path)
+                    saved_tables.append({
+                        "path": table_path,
+                        "section": section.get("heading"),
+                        "table_index": table_idx,
+                        "global_index": table_counter
+                    })
                     table_counter += 1
     except Exception as e:
         print(f"[TABLES] Error extracting tables from {doc.get('paper_id')}: {e}")
@@ -1291,6 +1296,23 @@ def export_all_processed_json(processed, out_dir=EXPORT_DIR, filename=None):
 
         html_path = doc.get("html")
         entry["html_path"] = html_path if html_path else None
+
+        # Add table CSV paths
+        saved_tables = extract_and_save_tables(doc)
+        entry["table_csv_paths"] = saved_tables
+        total_tables = sum(len(extract_and_save_tables(d)) for d in processed)
+        # Extract tables from markdown sections (so tables are present similar to images)
+        
+        # Add table CSV paths
+        saved_tables = extract_and_save_tables(doc)
+        entry["table_csv_paths"] = saved_tables
+
+        # Extract tables from markdown sections (so tables are present similar to images)
+        entry_sections = []
+        if md_path and os.path.exists(md_path):
+            # Add table CSV paths
+            saved_tables = extract_and_save_tables(doc)
+            entry["table_csv_paths"] = saved_tables
 
         # Extract tables from markdown sections (so tables are present similar to images)
         entry_sections = []
