@@ -53,8 +53,9 @@ PNG_DIR = os.path.join(BASE_DIR, "png")
 HTML_DIR = os.path.join(BASE_DIR, "html")
 META_DIR = os.path.join(BASE_DIR, "meta")
 EXPORT_DIR = os.path.join(BASE_DIR, "exports")
+TABLES_DIR = os.path.join(BASE_DIR, "tables")
 
-for d in [MD_DIR, PDF_DIR, PNG_DIR, HTML_DIR, META_DIR, EXPORT_DIR]:
+for d in [MD_DIR, PDF_DIR, PNG_DIR, HTML_DIR, META_DIR, EXPORT_DIR, TABLES_DIR]:
     os.makedirs(d, exist_ok=True)
 
 SESSION = requests.Session()
@@ -1213,15 +1214,72 @@ def zip_export(doc):
     return zip_path
 
 
+def extract_and_save_tables(doc):
+    """
+    Extract all tables from a document's markdown and save them to TABLES_DIR as CSV.
+    Folder structure matches other directories (png, md): tables/{pmcid or arxiv_id}/
+    Returns list of saved table file paths.
+    """
+    md_path = doc.get("md")
+    if not md_path or not os.path.exists(md_path):
+        return []
+    
+    # Use pmcid or arxiv_id for consistent folder naming (like PNG_DIR does)
+    doc_id = doc.get("pmcid") or doc.get("arxiv_id")
+    if not doc_id:
+        return []
+    
+    doc_dir = os.path.join(TABLES_DIR, doc_id)
+    os.makedirs(doc_dir, exist_ok=True)
+    
+    saved_tables = []
+    
+    try:
+        with open(md_path, "r", encoding="utf-8") as f:
+            md_text = f.read()
+        
+        _, sections = parse_markdown(md_text)
+        
+        table_counter = 0
+        for section in sections:
+            for table_idx, table_md in enumerate(section.get("tables", [])):
+                parsed = parse_md_table(table_md)
+                if parsed:
+                    header, rows = parsed
+                    
+                    table_filename = f"table_{table_counter}.csv"
+                    table_path = os.path.join(doc_dir, table_filename)
+                    
+                    # Save as CSV
+                    with open(table_path, "w", encoding="utf-8", newline="") as f:
+                        writer = __import__("csv").writer(f)
+                        writer.writerow(header)
+                        writer.writerows(rows)
+                    
+                    saved_tables.append(table_path)
+                    table_counter += 1
+    except Exception as e:
+        print(f"[TABLES] Error extracting tables from {doc.get('paper_id')}: {e}")
+    
+    return saved_tables
+
+
 def export_all_processed_json(processed, out_dir=EXPORT_DIR, filename=None):
     """Save a single JSON file containing all processed documents,
     storing only paths to markdown/html files (no inline content).
+    Also extracts and saves all tables to TABLES_DIR.
     """
     if not filename:
         filename = f"processed_export_{int(time.time())}.json"
 
     os.makedirs(out_dir, exist_ok=True)
     path = os.path.join(out_dir, filename)
+    
+    # Extract and save tables for all documents
+    total_tables = 0
+    for doc in processed:
+        saved_tables = extract_and_save_tables(doc)
+        total_tables += len(saved_tables)
 
     out = []
     for doc in processed:
@@ -1316,6 +1374,7 @@ def export_all_processed_json(processed, out_dir=EXPORT_DIR, filename=None):
 
     save_json(out, path)
     print(f"[EXPORT ALL] Saved {len(out)} entries to {path}")
+    print(f"[EXPORT ALL] Saved {total_tables} tables to {TABLES_DIR}")
     
     # Create list of papers with ROB artifacts (DOIs only, one per line)
     rob_papers = []
