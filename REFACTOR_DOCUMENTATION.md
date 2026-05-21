@@ -621,11 +621,14 @@ reader = ExportReader('paper_pipeline_data/exports/processed_export_1778625756.j
 | `get_documents_dataframe()` | `pd.DataFrame` | All documents with metadata (authors, emails, file paths, content statistics) |
 | `get_all_tables_dataframe()` | `pd.DataFrame` | All tables from all documents (paper_id, section, csv_path, etc.) |
 | `get_all_images_dataframe()` | `pd.DataFrame` | All images from all documents (paper_id, section, caption, path, etc.) |
+| `get_all_sections_dataframe()` | `pd.DataFrame` | All sections from all documents (paper_id, section_index, heading, md_path, num_tables, num_images) |
 | `get_document(paper_id)` | `Dict` | Retrieve a single document by ID |
 | `get_document_metadata(paper_id)` | `Dict` | Get metadata for a specific document |
 | `get_document_tables(paper_id)` | `List[Dict]` | Get all tables from a document (with section info) |
 | `get_document_images(paper_id)` | `List[Dict]` | Get all images from a document (with section info) |
 | `load_document_sections(paper_id)` | `List[Dict]` | Load complete sections with table data and images |
+| `load_section_markdown(md_path)` | `Optional[str]` | Load markdown content from a section markdown file |
+| `load_section_with_content(paper_id, section_index)` | `Optional[Dict]` | Load section with markdown content, tables, and images |
 | `load_table_csv(csv_path)` | `pd.DataFrame` | Load a specific table CSV into a DataFrame |
 | `get_authors_summary()` | `pd.DataFrame` | Summary of all authors across documents |
 | `search_papers(query, field)` | `pd.DataFrame` | Search for papers by query string |
@@ -701,6 +704,31 @@ papers = reader.search_papers('Smith', field='authors')
 
 # Search for PMC papers
 pmc_papers = reader.search_papers('pmc', field='source')
+```
+
+**Example 6: Section-Based Analysis**
+```python
+# Get all sections as DataFrame
+df_sections = reader.get_all_sections_dataframe()
+print(f"Total sections: {len(df_sections)}")
+
+# Filter sections by keyword (case-insensitive)
+methods_sections = df_sections[
+    df_sections['heading'].str.contains('method', case=False, na=False)
+]
+print(f"Found {len(methods_sections)} sections with 'method' in heading")
+
+# Load section content
+for _, row in methods_sections.iterrows():
+    section = reader.load_section_with_content(row['paper_id'], row['section_index'])
+    print(f"\nPaper: {row['paper_id']}")
+    print(f"Section: {section['heading']}")
+    print(f"Tables: {section['num_tables']}, Images: {section['num_images']}")
+    
+    # Show markdown preview
+    if section['md_content']:
+        preview = section['md_content'][:300] + "..." if len(section['md_content']) > 300 else section['md_content']
+        print(f"Content: {preview}")
 ```
 
 ### Analysis Workflow: Using `inspect_clean_export.ipynb`
