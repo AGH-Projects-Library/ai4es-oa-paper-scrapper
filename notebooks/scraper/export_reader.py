@@ -245,6 +245,54 @@ class ExportReader:
         
         return images
     
+    def get_section_tables(self, paper_id: str, section_index: int) -> List[Dict]:
+        """
+        Get all tables from a specific section.
+        
+        Args:
+            paper_id: Document identifier
+            section_index: Index of section within document
+        
+        Returns:
+            List of table dicts with keys: csv_path, table_index, global_index, section
+            Returns empty list if section not found
+        """
+        doc = self.get_document(paper_id)
+        if not doc or section_index >= len(doc.get('sections', [])):
+            return []
+        
+        section = doc['sections'][section_index]
+        tables = []
+        for table in section.get('tables', []):
+            table_with_section = {**table, 'section': section.get('heading')}
+            tables.append(table_with_section)
+        
+        return tables
+    
+    def get_section_images(self, paper_id: str, section_index: int) -> List[Dict]:
+        """
+        Get all images from a specific section.
+        
+        Args:
+            paper_id: Document identifier
+            section_index: Index of section within document
+        
+        Returns:
+            List of image dicts with keys: path, caption, placeholder, section
+            Returns empty list if section not found
+        """
+        doc = self.get_document(paper_id)
+        if not doc or section_index >= len(doc.get('sections', [])):
+            return []
+        
+        section = doc['sections'][section_index]
+        images = []
+        for img in section.get('images', []):
+            img_with_section = {**img, 'section': section.get('heading')}
+            images.append(img_with_section)
+        
+        return images
+    
     def get_document_metadata(self, paper_id: str) -> Optional[Dict[str, Any]]:
         """
         Get metadata for a specific document.

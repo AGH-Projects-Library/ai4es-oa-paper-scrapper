@@ -626,6 +626,8 @@ reader = ExportReader('paper_pipeline_data/exports/processed_export_1778625756.j
 | `get_document_metadata(paper_id)` | `Dict` | Get metadata for a specific document |
 | `get_document_tables(paper_id)` | `List[Dict]` | Get all tables from a document (with section info) |
 | `get_document_images(paper_id)` | `List[Dict]` | Get all images from a document (with section info) |
+| `get_section_tables(paper_id, section_index)` | `List[Dict]` | Get all tables from a specific section |
+| `get_section_images(paper_id, section_index)` | `List[Dict]` | Get all images from a specific section |
 | `load_document_sections(paper_id)` | `List[Dict]` | Load complete sections with table data and images |
 | `load_section_markdown(md_path)` | `Optional[str]` | Load markdown content from a section markdown file |
 | `load_section_with_content(paper_id, section_index)` | `Optional[Dict]` | Load section with markdown content, tables, and images |
