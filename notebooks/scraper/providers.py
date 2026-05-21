@@ -308,5 +308,6 @@ def process_document(doi: str, base_dir: str = "paper_pipeline_data") -> Optiona
     doc = process_pmc(doi, base_dir)
     if doc:
         return doc
-        
+    
+    print(f"[SKIP] Could not process {doi}: not recognized as arXiv or PMC document")
     return None

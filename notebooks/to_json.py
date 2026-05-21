@@ -3,11 +3,12 @@ import sys
 import argparse
 import time
 from scraper.providers import process_document
-from scraper.exporters import export_documents
+from scraper.exporters import export_documents, compress_directory
 
 def main():
     parser = argparse.ArgumentParser(description="Batch process DOIs to JSON")
     parser.add_argument("dois_file", help="Path to the .txt file containing DOIs")
+    parser.add_argument("--compress", action="store_true", help="Compress paper_pipeline_data directory to ZIP after processing")
     args = parser.parse_args()
 
     if not os.path.exists(args.dois_file):
@@ -27,8 +28,9 @@ def main():
     base_dir = os.path.abspath(base_dir)
     
     results = []
-    for do in dois:
-        print(f"Processing {do}...")
+    total_dois = len(dois)
+    for idx, do in enumerate(dois, 1):
+        print(f"[{idx}/{total_dois}] Processing {do}...")
         try:
             res = process_document(do, base_dir=base_dir)
             if res:
@@ -45,6 +47,16 @@ def main():
     
     export_documents(results, output_path)
     print(f"Exported to {output_path}")
+    
+    # Optionally compress the entire paper_pipeline_data directory
+    if args.compress:
+        print("\nCompressing paper_pipeline_data directory...")
+        zip_filename = f"processed_export_{timestamp}"
+        # Save zip file outside paper_pipeline_data to avoid recursive compression
+        zip_output_dir = notebooks_dir  # Save in notebooks folder instead
+        compress_directory(base_dir, zip_output_dir, zip_filename)
+    else:
+        print("\nSkipping compression (use --compress flag to enable)")
 
 if __name__ == "__main__":
     main()
