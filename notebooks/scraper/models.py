@@ -32,12 +32,14 @@ class SectionInfo:
     heading: str
     tables: List[TableInfo] = field(default_factory=list)
     images: List[ImageInfo] = field(default_factory=list)
+    md_path: str = ""
     
     def to_dict(self) -> Dict[str, Any]:
         return {
             "heading": self.heading,
             "tables": [t.to_dict() for t in self.tables],
-            "images": [i.to_dict() for i in self.images]
+            "images": [i.to_dict() for i in self.images],
+            "md_path": self.md_path
         }
 
 @dataclass

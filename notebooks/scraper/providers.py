@@ -45,16 +45,24 @@ def save_text(text: str, path: str):
 
 
 def process_sections_and_tables(doc: DocumentInfo, md_text: str, base_dir: str, local_images: List[str]):
-    # Parses markdown, extracts sections, handles tables and images
+    """
+    Parses markdown, extracts sections, saves each section to separate markdown file,
+    handles tables and images.
+    """
     title, sections = parse_markdown(md_text)
     
     doc_id = safe_filename(doc.paper_id)
     tables_dir = os.path.join(base_dir, "tables", doc_id)
+    sections_dir = os.path.join(base_dir, "md", doc_id, "sections")
+    os.makedirs(sections_dir, exist_ok=True)
     
     global_table_counter = 0
 
-    for sec in sections:
+    for sec_idx, sec in enumerate(sections):
         section_info = SectionInfo(heading=sec.get("heading", ""))
+        
+        # Build section markdown content lines
+        section_md_lines = [f"## {sec['heading']}", ""]
         
         # Process tables
         for table_idx, table_md in enumerate(sec.get("tables", [])):
@@ -76,9 +84,14 @@ def process_sections_and_tables(doc: DocumentInfo, md_text: str, base_dir: str, 
                     global_index=global_table_counter
                 ))
                 global_table_counter += 1
+                
+                # Add table markdown to section content
+                section_md_lines.append(table_md)
+                section_md_lines.append("")
 
-        # Process images
-        matches = re.findall(r'!\[(.*?)\]\((.*?)\)', sec.get("text", ""))
+        # Process text and images
+        text = sec.get("text", "")
+        matches = re.findall(r'!\[(.*?)\]\((.*?)\)', text)
         for alt, ref in matches:
             if doc.source == "pmc" and ref.startswith("PMC_FIG_"):
                 m = re.search(r"PMC_FIG_(\d+)", ref)
@@ -97,7 +110,19 @@ def process_sections_and_tables(doc: DocumentInfo, md_text: str, base_dir: str, 
                     caption=alt,
                     path=ref 
                 ))
-                
+        
+        # Add text content to section markdown
+        section_md_lines.append(text)
+        
+        # Save section markdown to separate file with sanitized heading
+        section_heading_sanitized = safe_filename(sec["heading"])
+        section_filename = f"section_{sec_idx:03d}_{section_heading_sanitized}.md"
+        section_md_path = os.path.join(sections_dir, section_filename)
+        
+        with open(section_md_path, "w", encoding="utf-8") as f:
+            f.write("\n".join(section_md_lines))
+        
+        section_info.md_path = os.path.relpath(section_md_path, base_dir)
         doc.sections.append(section_info)
 
 

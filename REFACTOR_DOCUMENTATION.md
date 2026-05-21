@@ -73,6 +73,7 @@ Defines four core dataclasses:
    - `heading`: Section title
    - `tables`: List of `TableInfo`
    - `images`: List of `ImageInfo`
+   - `md_path`: Path to individual section markdown file (relative to base_dir)
 
 4. **`DocumentInfo`**: Complete processed document
    - **Identifiers**: `paper_id`, `source` (pmc/arxiv), optional `pmcid`/`arxiv_id`
@@ -367,6 +368,7 @@ Processing: 10.1186/s13601-019-0278-3
     "sections": [
       {
         "heading": "Methods",
+        "md_path": "md/0903.2017/sections/section_001_methods.md",
         "tables": [
           {
             "csv_path": "tables/0903.2017/table_0.csv",
@@ -412,8 +414,16 @@ notebooks/paper_pipeline_data/
 │   ├── processed_export_1778625960.json
 │   └── ...
 ├── md/
-│   ├── PMC6706894.md
-│   ├── PMC6706895.md
+│   ├── PMC6706894/
+│   │   ├── sections/
+│   │   │   ├── section_000_abstract.md
+│   │   │   ├── section_001_introduction.md
+│   │   │   ├── section_002_methods.md
+│   │   │   ├── section_003_results.md
+│   │   │   └── section_004_discussion.md
+│   │   └── full_document.md
+│   ├── PMC6706895/
+│   │   └── ...
 │   └── ...
 ├── html/
 │   ├── PMC6706894.html

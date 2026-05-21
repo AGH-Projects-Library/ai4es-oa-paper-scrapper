@@ -428,6 +428,85 @@ class ExportReader:
         
         print(f"Exported {len(subset)} documents to {output_path}")
     
+    def get_all_sections_dataframe(self) -> pd.DataFrame:
+        """
+        Extract all sections from all documents into a single DataFrame.
+        
+        Returns:
+            DataFrame with columns:
+            - paper_id: Document identifier
+            - section_index: Index of section within document
+            - heading: Section heading
+            - md_path: Path to section markdown file
+            - num_tables: Number of tables in section
+            - num_images: Number of images in section
+        """
+        rows = []
+        
+        for doc in self.data:
+            paper_id = doc.get('paper_id')
+            
+            for sec_idx, sec in enumerate(doc.get('sections', [])):
+                row = {
+                    'paper_id': paper_id,
+                    'section_index': sec_idx,
+                    'heading': sec.get('heading'),
+                    'md_path': sec.get('md_path', ''),
+                    'num_tables': len(sec.get('tables', [])),
+                    'num_images': len(sec.get('images', [])),
+                }
+                rows.append(row)
+        
+        return pd.DataFrame(rows)
+    
+    def load_section_markdown(self, md_path: str) -> Optional[str]:
+        """
+        Load markdown content from a section markdown file.
+        
+        Args:
+            md_path: Relative path to section markdown file (as stored in JSON)
+        
+        Returns:
+            Markdown text content or None if file not found
+        """
+        if not md_path:
+            return None
+        
+        try:
+            abs_path = self._resolve_path(md_path)
+            with open(abs_path, 'r', encoding='utf-8') as f:
+                return f.read()
+        except FileNotFoundError:
+            return None
+    
+    def load_section_with_content(self, paper_id: str, section_index: int) -> Optional[Dict[str, Any]]:
+        """
+        Load a section with its markdown content.
+        
+        Args:
+            paper_id: Document identifier
+            section_index: Index of section within document
+        
+        Returns:
+            Dict with keys: heading, md_path, md_content, num_tables, num_images
+            or None if not found
+        """
+        doc = self.get_document(paper_id)
+        if not doc or section_index >= len(doc.get('sections', [])):
+            return None
+        
+        section = doc['sections'][section_index]
+        md_path = section.get('md_path', '')
+        md_content = self.load_section_markdown(md_path)
+        
+        return {
+            'heading': section.get('heading'),
+            'md_path': md_path,
+            'md_content': md_content,
+            'num_tables': len(section.get('tables', [])),
+            'num_images': len(section.get('images', []))
+        }
+
     def print_summary(self) -> None:
         """Print a summary of the export data."""
         print("=" * 60)
