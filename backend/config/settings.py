@@ -130,6 +130,10 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Directory where the scraper writes all output files (md, html, pdf, png, tables).
+# Passed as base_dir to scraper.providers.process_document().
+SCRAPER_DATA_DIR = BASE_DIR / "data"
+
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }

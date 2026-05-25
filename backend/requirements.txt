@@ -1,6 +1,11 @@
 Django>=5.0,<6.0
-djangorestframework 
+djangorestframework
 drf-spectacular
 requests
 beautifulsoup4
 django-cors-headers
+# scraper package dependencies (notebooks/scraper/)
+selenium
+webdriver-manager
+pandas
+lxml
