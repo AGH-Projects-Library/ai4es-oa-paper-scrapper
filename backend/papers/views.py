@@ -6,7 +6,7 @@ from django.conf import settings
 from django.http import FileResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .services.resolve_doi import resolve_doi_to_paper, fetch_sections_for_doi
-from .models import ResolvedPaper
+from .models import ResolvedPaper, Table, Image
 
 DATA_DIR = str(settings.SCRAPER_DATA_DIR)
 
@@ -213,8 +213,8 @@ def papers_list_view(request):
                 "source": p.source,
                 "authors": p.authors,
                 "num_sections": len(p.available_sections),
-                "num_tables": len(p.tables_metadata),
-                "num_images": len(p.images_metadata),
+                "num_tables": p.tables.count(),
+                "num_images": p.images.count(),
                 "processed_at": p.processed_at.isoformat(),
             }
             for p in papers
@@ -230,6 +230,23 @@ def paper_detail_view(request, pk):
         return JsonResponse({"status": "not_found", "message": "Paper not found."}, status=404)
 
     if request.method == "GET":
+        # Source: backend/papers/models.py — Table, Image
+        tables = [
+            {
+                "id": t.id, "global_index": t.global_index, "table_index": t.table_index,
+                "section_id": t.section.section_id, "section_name": t.section.heading,
+                "csv_path": t.csv_path,
+            }
+            for t in paper.tables.select_related("section").all()
+        ]
+        images = [
+            {
+                "id": img.id, "idx": img.idx, "placeholder": img.placeholder,
+                "caption": img.caption, "path": img.path,
+                "section_id": img.section.section_id, "section_name": img.section.heading,
+            }
+            for img in paper.images.select_related("section").all()
+        ]
         return JsonResponse({
             "status": "success",
             "paper": {
@@ -243,8 +260,8 @@ def paper_detail_view(request, pk):
                 "extraction_method": paper.extraction_method,
                 "processed_at": paper.processed_at.isoformat(),
                 "available_sections": paper.available_sections,
-                "tables_metadata": paper.tables_metadata,
-                "images_metadata": paper.images_metadata,
+                "tables": tables,
+                "images": images,
                 "rob_artifacts": paper.rob_artifacts,
             },
         })
@@ -279,7 +296,16 @@ def paper_tables_view(request, pk):
     except ResolvedPaper.DoesNotExist:
         return JsonResponse({"status": "not_found", "message": "Paper not found."}, status=404)
 
-    return JsonResponse({"status": "success", "tables": paper.tables_metadata})
+    # Source: backend/papers/models.py — Table
+    tables = [
+        {
+            "id": t.id, "global_index": t.global_index, "table_index": t.table_index,
+            "section_id": t.section.section_id, "section_name": t.section.heading,
+            "csv_path": t.csv_path,
+        }
+        for t in paper.tables.select_related("section").all()
+    ]
+    return JsonResponse({"status": "success", "tables": tables})
 
 
 # Source: backend/papers/models.py — ResolvedPaper
@@ -293,28 +319,29 @@ def paper_table_detail_view(request, pk, global_index):
     except ResolvedPaper.DoesNotExist:
         return JsonResponse({"status": "not_found", "message": "Paper not found."}, status=404)
 
-    entry = next((t for t in paper.tables_metadata if t.get("global_index") == global_index), None)
-    if not entry or not entry.get("csv_path"):
+    # Source: backend/papers/models.py — Table
+    try:
+        tbl = paper.tables.select_related("section").get(global_index=global_index)
+    except Table.DoesNotExist:
         return JsonResponse({"status": "not_found", "message": "Table not found."}, status=404)
 
-    abs_path = os.path.join(DATA_DIR, entry["csv_path"])
+    if not tbl.csv_path:
+        return JsonResponse({"status": "not_found", "message": "Table has no CSV file."}, status=404)
+
+    abs_path = os.path.join(DATA_DIR, tbl.csv_path)
     try:
         with open(abs_path, newline="", encoding="utf-8") as f:
-            reader = csv.reader(f)
-            rows = list(reader)
+            rows = list(csv.reader(f))
     except FileNotFoundError:
         return JsonResponse({"status": "not_found", "message": "CSV file missing from disk."}, status=404)
-
-    header = rows[0] if rows else []
-    data = rows[1:] if len(rows) > 1 else []
 
     return JsonResponse({
         "status": "success",
         "global_index": global_index,
-        "section_id": entry.get("section_id", ""),
-        "section_name": entry.get("section_name", ""),
-        "header": header,
-        "rows": data,
+        "section_id": tbl.section.section_id,
+        "section_name": tbl.section.heading,
+        "header": rows[0] if rows else [],
+        "rows": rows[1:] if len(rows) > 1 else [],
     })
 
 
@@ -328,7 +355,16 @@ def paper_images_view(request, pk):
     except ResolvedPaper.DoesNotExist:
         return JsonResponse({"status": "not_found", "message": "Paper not found."}, status=404)
 
-    return JsonResponse({"status": "success", "images": paper.images_metadata})
+    # Source: backend/papers/models.py — Image
+    images = [
+        {
+            "id": img.id, "idx": img.idx, "placeholder": img.placeholder,
+            "caption": img.caption, "path": img.path,
+            "section_id": img.section.section_id, "section_name": img.section.heading,
+        }
+        for img in paper.images.select_related("section").all()
+    ]
+    return JsonResponse({"status": "success", "images": images})
 
 
 # Source: backend/papers/models.py — ResolvedPaper
@@ -341,11 +377,16 @@ def paper_image_view(request, pk, idx):
     except ResolvedPaper.DoesNotExist:
         return JsonResponse({"status": "not_found", "message": "Paper not found."}, status=404)
 
-    entry = next((img for img in paper.images_metadata if img.get("idx") == idx), None)
-    if not entry or not entry.get("path"):
+    # Source: backend/papers/models.py — Image
+    try:
+        img = paper.images.get(idx=idx)
+    except Image.DoesNotExist:
         return JsonResponse({"status": "not_found", "message": "Image not found."}, status=404)
 
-    abs_path = os.path.join(DATA_DIR, entry["path"])
+    if not img.path:
+        return JsonResponse({"status": "not_found", "message": "Image has no file path."}, status=404)
+
+    abs_path = os.path.join(DATA_DIR, img.path)
     if not os.path.exists(abs_path):
         return JsonResponse({"status": "not_found", "message": "Image file missing from disk."}, status=404)
 

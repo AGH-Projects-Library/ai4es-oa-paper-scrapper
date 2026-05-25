@@ -12,14 +12,11 @@ class ResolvedPaper(models.Model):
     md_path = models.CharField(max_length=512, blank=True)
     html_path = models.CharField(max_length=512, blank=True)
     pdf_path = models.CharField(max_length=512, blank=True)
+    export_json_path = models.CharField(max_length=512, blank=True)
     processed_at = models.DateTimeField(auto_now_add=True)
     rob_artifacts = models.JSONField(default=list)
     # [{"id": "methods", "name": "Methods"}, ...]
     available_sections = models.JSONField(default=list)
-    # [{"global_index": 0, "section_id": "methods", "section_name": "Methods", "table_index": 0, "csv_path": "..."}, ...]
-    tables_metadata = models.JSONField(default=list)
-    # [{"idx": 0, "section_id": "methods", "section_name": "Methods", "placeholder": "FIG_1", "caption": "...", "path": "..."}, ...]
-    images_metadata = models.JSONField(default=list)
 
 
 class Section(models.Model):
@@ -32,3 +29,26 @@ class Section(models.Model):
     class Meta:
         ordering = ['order']
         unique_together = [('paper', 'section_id')]
+
+
+class Table(models.Model):
+    paper = models.ForeignKey(ResolvedPaper, on_delete=models.CASCADE, related_name='tables')
+    section = models.ForeignKey(Section, on_delete=models.CASCADE, related_name='tables')
+    table_index = models.IntegerField()    # index within the section
+    global_index = models.IntegerField()  # unique index across the whole paper
+    csv_path = models.CharField(max_length=512, blank=True)
+
+    class Meta:
+        ordering = ['global_index']
+
+
+class Image(models.Model):
+    paper = models.ForeignKey(ResolvedPaper, on_delete=models.CASCADE, related_name='images')
+    section = models.ForeignKey(Section, on_delete=models.CASCADE, related_name='images')
+    idx = models.IntegerField()           # sequential index across the whole paper
+    placeholder = models.CharField(max_length=255, blank=True)
+    caption = models.TextField(blank=True)
+    path = models.CharField(max_length=512, blank=True)
+
+    class Meta:
+        ordering = ['idx']

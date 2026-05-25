@@ -8,13 +8,12 @@ whose sections already have their markdown files saved to disk.
 ROB extraction is handled by the existing rob_extraction module.
 """
 import os
-import re
 
 from django.conf import settings
 from scraper.providers import process_document
 from scraper.parsers_md import parse_markdown, normalize
 from .rob_extraction import extract_rob_artifacts_from_markdown
-from papers.models import ResolvedPaper, Section
+from papers.models import ResolvedPaper, Section, Table, Image
 
 DATA_DIR = str(settings.SCRAPER_DATA_DIR)
 
@@ -29,38 +28,12 @@ def _load_text(path: str) -> str:
         return f.read()
 
 
-# Source: backend/papers/models.py — ResolvedPaper, Section
+# Source: backend/papers/models.py — ResolvedPaper, Section, Table, Image
 def _save_to_db(doi, doc, title, rob_artifacts):
     available_sections = [
         {"id": _make_section_id(s.heading), "name": s.heading}
         for s in doc.sections if s.heading
     ]
-
-    tables_metadata = []
-    images_metadata = []
-    img_idx = 0
-    for s in doc.sections:
-        if not s.heading:
-            continue
-        sid = _make_section_id(s.heading)
-        for tbl in (s.tables or []):
-            tables_metadata.append({
-                "global_index": tbl.global_index,
-                "section_id": sid,
-                "section_name": s.heading,
-                "table_index": tbl.table_index,
-                "csv_path": tbl.csv_path or "",
-            })
-        for img in (s.images or []):
-            images_metadata.append({
-                "idx": img_idx,
-                "section_id": sid,
-                "section_name": s.heading,
-                "placeholder": img.placeholder,
-                "caption": img.caption,
-                "path": img.path or "",
-            })
-            img_idx += 1
 
     paper, _ = ResolvedPaper.objects.update_or_create(
         doi=doi,
@@ -76,10 +49,10 @@ def _save_to_db(doi, doc, title, rob_artifacts):
             "pdf_path": getattr(doc, "pdf_path", "") or "",
             "rob_artifacts": rob_artifacts,
             "available_sections": available_sections,
-            "tables_metadata": tables_metadata,
-            "images_metadata": images_metadata,
         },
     )
+
+    # Deleting sections cascades to Table and Image rows.
     paper.sections.all().delete()
     Section.objects.bulk_create([
         Section(
@@ -91,6 +64,40 @@ def _save_to_db(doi, doc, title, rob_artifacts):
         )
         for i, s in enumerate(doc.sections) if s.heading
     ])
+
+    # Re-fetch sections so we have their PKs for the FK relations below.
+    section_map = {s.section_id: s for s in paper.sections.all()}
+
+    table_rows = []
+    image_rows = []
+    img_idx = 0
+    for s in doc.sections:
+        if not s.heading:
+            continue
+        db_sec = section_map.get(_make_section_id(s.heading))
+        if db_sec is None:
+            continue
+        for tbl in (s.tables or []):
+            table_rows.append(Table(
+                paper=paper,
+                section=db_sec,
+                table_index=tbl.table_index,
+                global_index=tbl.global_index,
+                csv_path=tbl.csv_path or "",
+            ))
+        for img in (s.images or []):
+            image_rows.append(Image(
+                paper=paper,
+                section=db_sec,
+                idx=img_idx,
+                placeholder=img.placeholder,
+                caption=img.caption,
+                path=img.path or "",
+            ))
+            img_idx += 1
+
+    Table.objects.bulk_create(table_rows)
+    Image.objects.bulk_create(image_rows)
 
 
 # Source: backend/papers/models.py — ResolvedPaper
