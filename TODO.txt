@@ -1,9 +1,0 @@
-2. Add error handeling
-4. Add json/csv downloading
-5. Add multiple dois
-6. Add multiple dois by file
-7. Add error handeling for many dois
-8. Add images
-9. Add article searching
-10. Finish the entire pipeline leaving out only the risk-of-bias recognition model
-11. Remove files after the end of pipeline

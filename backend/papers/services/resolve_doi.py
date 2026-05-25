@@ -99,6 +99,8 @@ def _save_to_db(doi, doc, title, rob_artifacts):
     Table.objects.bulk_create(table_rows)
     Image.objects.bulk_create(image_rows)
 
+    return paper
+
 
 # Source: backend/papers/models.py — ResolvedPaper
 def _load_from_db(doi) -> dict | None:
@@ -109,6 +111,7 @@ def _load_from_db(doi) -> dict | None:
     return {
         "status": "success",
         "paper": {
+            "id": paper.id,
             "doi": doi,
             "title": paper.title,
             "source": paper.source,
@@ -182,11 +185,12 @@ def resolve_doi_to_paper(doi: str) -> dict:
     rob_artifacts = extract_rob_artifacts_from_markdown(md_text, paper_id=doi)
 
     # Persist to DB before returning
-    _save_to_db(doi, doc, title, rob_artifacts)
+    saved_paper = _save_to_db(doi, doc, title, rob_artifacts)
 
     return {
         "status": "success",
         "paper": {
+            "id": saved_paper.id,
             "doi": doi,
             "title": title or "Untitled paper",
             "source": doc.source,

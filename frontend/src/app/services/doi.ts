@@ -3,6 +3,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, catchError, throwError } from 'rxjs';
 import { ResolveDoiRequest, ResolveDoiResponse } from '../models/resolve-doi.model';
 import { ApiErrorResponse, ApiRequestError } from '../models/api-error.model';
+import { PaperTableMeta, PaperTableData, PaperImage } from '../models/paper.model';
 
 export interface FetchSectionsRequest {
   doi: string;
@@ -12,6 +13,20 @@ export interface FetchSectionsRequest {
 export interface FetchSectionsResponse {
   status: 'success';
   sections: Array<{ id: string; name: string; content: string }>;
+}
+
+export interface GetTablesResponse {
+  status: 'success';
+  tables: PaperTableMeta[];
+}
+
+export interface GetTableDetailResponse extends PaperTableData {
+  status: 'success';
+}
+
+export interface GetImagesResponse {
+  status: 'success';
+  images: PaperImage[];
 }
 
 @Injectable({
@@ -32,6 +47,28 @@ export class Doi {
     return this.http
       .post<FetchSectionsResponse>(`${this.baseUrl}/fetch-sections/`, payload)
       .pipe(catchError((error) => this.handleHttpError(error)));
+  }
+
+  getTables(paperId: number): Observable<GetTablesResponse> {
+    return this.http
+      .get<GetTablesResponse>(`${this.baseUrl}/papers/${paperId}/tables/`)
+      .pipe(catchError((error) => this.handleHttpError(error)));
+  }
+
+  getTableDetail(paperId: number, globalIndex: number): Observable<GetTableDetailResponse> {
+    return this.http
+      .get<GetTableDetailResponse>(`${this.baseUrl}/papers/${paperId}/tables/${globalIndex}/`)
+      .pipe(catchError((error) => this.handleHttpError(error)));
+  }
+
+  getImages(paperId: number): Observable<GetImagesResponse> {
+    return this.http
+      .get<GetImagesResponse>(`${this.baseUrl}/papers/${paperId}/images/`)
+      .pipe(catchError((error) => this.handleHttpError(error)));
+  }
+
+  imageUrl(paperId: number, idx: number): string {
+    return `${this.baseUrl}/papers/${paperId}/images/${idx}/`;
   }
 
   private handleHttpError(error: HttpErrorResponse) {

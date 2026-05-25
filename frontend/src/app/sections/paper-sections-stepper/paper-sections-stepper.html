@@ -1,8 +1,8 @@
 <div class="stepper-shell">
   <div class="stepper-header">
-    <h2 class="stepper-title">Extract paper sections</h2>
+    <h2 class="stepper-title">Extract paper content</h2>
     <p class="stepper-description">
-      Enter one DOI, review the detected paper and available sections, then view the selected section content.
+      Enter one DOI, review the detected paper and available sections, then explore sections, ROB artifacts, tables, and images.
     </p>
   </div>
 
@@ -122,6 +122,17 @@
               </div>
             </div>
 
+            <div class="artifact-summary">
+              <span class="count-chip">
+                <mat-icon>psychology</mat-icon>
+                {{ paper.robArtifacts.length }} ROB artifact{{ paper.robArtifacts.length !== 1 ? 's' : '' }} found
+              </span>
+              <span class="count-chip">
+                <mat-icon>segment</mat-icon>
+                {{ paper.availableSections.length }} section{{ paper.availableSections.length !== 1 ? 's' : '' }} available
+              </span>
+            </div>
+
             <div class="section-picker">
               <h4 class="section-picker-title">Available sections</h4>
 
@@ -170,43 +181,77 @@
       </div>
     </mat-step>
 
-    <mat-step label="View sections">
+    <mat-step label="View content">
       <div class="step-content">
         <mat-card class="step-card p-4">
-          <h3 class="card-title">Selected section content</h3>
+          <h3 class="card-title">Extracted paper content</h3>
           <p class="card-description">
-            Review the extracted content for the sections you selected.
+            Browse sections, risk-of-bias artifacts, tables, and images extracted from the paper.
           </p>
 
-          @if (resultState() === 'loading') {
-            <div class="center-state">
-              <mat-spinner diameter="48"></mat-spinner>
-              <p>Loading selected sections…</p>
-            </div>
-          }
+          <mat-tab-group
+            animationDuration="200ms"
+            class="content-tabs"
+            (selectedIndexChange)="onTabChange($event)"
+          >
+            <mat-tab label="Sections">
+              <div class="tab-body">
+                @if (resultState() === 'loading') {
+                  <div class="center-state">
+                    <mat-spinner diameter="48"></mat-spinner>
+                    <p>Loading selected sections…</p>
+                  </div>
+                }
 
-          @if (resultState() === 'error') {
-            <div class="message-card error-card">
-              <div class="message-card__icon">
-                <mat-icon>error</mat-icon>
-              </div>
-              <div>
-                <h4>We couldn't load the sections</h4>
-                <p>{{ resultErrorMessage() }}</p>
-              </div>
-            </div>
-          }
+                @if (resultState() === 'error') {
+                  <div class="message-card error-card">
+                    <div class="message-card__icon">
+                      <mat-icon>error</mat-icon>
+                    </div>
+                    <div>
+                      <h4>We couldn't load the sections</h4>
+                      <p>{{ resultErrorMessage() }}</p>
+                    </div>
+                  </div>
+                }
 
-          @if (resultState() === 'success' && sectionResults().length) {
-            <div class="results-list p-4">
-              @for (item of sectionResults(); track item.id) {
-                <div class="result-card">
-                  <h4>{{ item.name }}</h4>
-                  <p>{{ item.content }}</p>
-                </div>
-              }
-            </div>
-          }
+                @if (resultState() === 'success' && sectionResults().length) {
+                  <div class="results-list">
+                    @for (item of sectionResults(); track item.id) {
+                      <div class="result-card">
+                        <h4>{{ item.name }}</h4>
+                        <p>{{ item.content }}</p>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            </mat-tab>
+
+            <mat-tab label="ROB Analysis">
+              <div class="tab-body">
+                @if (tabsVisited().has(1) && resolvedPaper(); as paper) {
+                  <app-rob-artifacts [artifacts]="paper.robArtifacts" />
+                }
+              </div>
+            </mat-tab>
+
+            <mat-tab label="Tables">
+              <div class="tab-body">
+                @if (tabsVisited().has(2) && resolvedPaper(); as paper) {
+                  <app-tables-viewer [paperId]="paper.id" />
+                }
+              </div>
+            </mat-tab>
+
+            <mat-tab label="Images">
+              <div class="tab-body">
+                @if (tabsVisited().has(3) && resolvedPaper(); as paper) {
+                  <app-images-viewer [paperId]="paper.id" />
+                }
+              </div>
+            </mat-tab>
+          </mat-tab-group>
 
           <div class="step-actions">
             <button mat-stroked-button type="button" matStepperPrevious>
