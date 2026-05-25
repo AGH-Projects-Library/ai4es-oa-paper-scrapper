@@ -53,17 +53,21 @@ A user provides a DOI (or arXiv identifier) through a browser UI. The system dow
 ## The Scraper Package (`backend/scraper/`)
 
 Copied from `notebooks/scraper/` with two backend-specific changes in `fetchers.py`:
+
 1. Selenium imports wrapped in `try/except` so the module loads without Chrome installed
 2. `get_driver()` reads `CHROMEDRIVER_PATH` env var; `Dockerfile` sets it to the apt-installed driver
 
 ### Data Models
+
 - `DocumentInfo` — paper_id, source, authors, emails, file paths, list of sections
 - `SectionInfo` — heading, `tables: List[TableInfo]`, `images: List[ImageInfo]`, `md_path`
 - `TableInfo` — `csv_path`, `table_index`, `global_index`
 - `ImageInfo` — `placeholder`, `caption`, `path`
 
 ### Processing Pipeline (`providers.py`)
+
 Main entry point: `process_document(doi, base_dir)`:
+
 1. Detects arXiv vs PMC from the DOI
 2. **arXiv**: fetches rendered HTML from ar5iv.org, downloads source `.tex` for authors, downloads images
 3. **PMC**: DOI → PMCID via NCBI API → OA XML → images/PDF from tar.gz (Selenium fallback for ~10 % of papers)
@@ -89,22 +93,23 @@ Migration chain: `0001_initial` → `0002_replace_models` → `0003_add_media_me
 
 ## Current API — All Implemented Endpoints
 
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/resolve-doi/` | Scrape DOI (or return cached result), persist to DB, return paper metadata + ROB artifacts + available sections |
-| POST | `/fetch-sections/` | Return markdown content for the requested section IDs; triggers scrape if DOI not yet cached |
-| GET | `/papers/` | List all processed papers with counts |
-| GET | `/papers/<pk>/` | Full paper detail: sections, tables, images, ROB artifacts |
-| DELETE | `/papers/<pk>/` | Delete the DB record (cascades to sections, tables, images) |
-| GET | `/papers/<pk>/rob/` | ROB artifacts list for this paper |
-| GET | `/papers/<pk>/tables/` | Table index with section metadata |
-| GET | `/papers/<pk>/tables/<global_index>/` | Parse CSV and return `{header, rows}` as JSON |
-| GET | `/papers/<pk>/images/` | Image index with captions and section metadata |
-| GET | `/papers/<pk>/images/<idx>/` | Serve image binary (`FileResponse`) |
+| Method | Path                                  | Description                                                                                                     |
+| ------ | ------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| POST   | `/resolve-doi/`                       | Scrape DOI (or return cached result), persist to DB, return paper metadata + ROB artifacts + available sections |
+| POST   | `/fetch-sections/`                    | Return markdown content for the requested section IDs; triggers scrape if DOI not yet cached                    |
+| GET    | `/papers/`                            | List all processed papers with counts                                                                           |
+| GET    | `/papers/<pk>/`                       | Full paper detail: sections, tables, images, ROB artifacts                                                      |
+| DELETE | `/papers/<pk>/`                       | Delete the DB record (cascades to sections, tables, images)                                                     |
+| GET    | `/papers/<pk>/rob/`                   | ROB artifacts list for this paper                                                                               |
+| GET    | `/papers/<pk>/tables/`                | Table index with section metadata                                                                               |
+| GET    | `/papers/<pk>/tables/<global_index>/` | Parse CSV and return `{header, rows}` as JSON                                                                   |
+| GET    | `/papers/<pk>/images/`                | Image index with captions and section metadata                                                                  |
+| GET    | `/papers/<pk>/images/<idx>/`          | Serve image binary (`FileResponse`)                                                                             |
 
 ### Response shapes
 
 **`POST /resolve-doi/`** success:
+
 ```json
 {
   "status": "success",
@@ -118,14 +123,18 @@ Migration chain: `0001_initial` → `0002_replace_models` → `0003_add_media_me
 ```
 
 **`POST /fetch-sections/`** success:
+
 ```json
 {
   "status": "success",
-  "sections": [{"id": "methods", "name": "Methods", "content": "...markdown..."}]
+  "sections": [
+    { "id": "methods", "name": "Methods", "content": "...markdown..." }
+  ]
 }
 ```
 
 **`GET /papers/`** success:
+
 ```json
 {
   "status": "success",
@@ -135,9 +144,11 @@ Migration chain: `0001_initial` → `0002_replace_models` → `0003_add_media_me
 ```
 
 ### Caching logic
+
 `resolve_doi_to_paper()` checks the DB first (fast path). If the DOI is already stored, it returns immediately without hitting any external API. `fetch_sections_for_doi()` also uses the DB fast path; it only calls `resolve_doi_to_paper()` as a fallback if the DOI is not yet cached.
 
 ### CORS
+
 `django-cors-headers` is configured to allow `http://localhost:4200`. `CorsMiddleware` is at position 0 in the middleware stack.
 
 ---
@@ -155,7 +166,7 @@ Migration chain: `0001_initial` → `0002_replace_models` → `0003_add_media_me
   - `POST /batch-process/` — `{"dois": [...]}` — per-DOI results with summary counts
   - `POST /batch-process/upload/` — multipart `.txt` file (one DOI per line, `#` comments skipped)
 - [x] **Search** — `GET /search/?q=...&source=pmc|arxiv`
-- [x] **`DELETE /papers/<pk>/`** — removes DB rows *and* all on-disk files (md, csv, png, export JSON)
+- [x] **`DELETE /papers/<pk>/`** — removes DB rows _and_ all on-disk files (md, csv, png, export JSON)
 - [x] **ROB tables sub-endpoint** — `GET /papers/<pk>/rob/tables/`
 - [x] **Wire `export_json_path`** — `scraper.exporters.export_documents()` called after every scrape; path stored in `ResolvedPaper.export_json_path`
 - [x] **ROB image OCR** — `extract_rob_from_sections_images()` runs after markdown extraction; OCR artifacts merged before DB persist (no-op when pytesseract absent)
@@ -176,24 +187,24 @@ Migration chain: `0001_initial` → `0002_replace_models` → `0003_add_media_me
 
 ### Fully covered ✓
 
-| Feature | How |
-|---------|-----|
-| PMC XML fetch + parse | `process_document()` called by `resolve_doi_to_paper()` |
-| arXiv HTML (ar5iv) fetch + parse | Same |
-| Author / email extraction | Stored in `ResolvedPaper.authors` / `.emails`, returned by `/resolve-doi/` |
-| Section splitting + per-section `.md` files | `Section` rows; content served by `POST /fetch-sections/` |
-| Table extraction → CSV | `Table` rows; data served by `/papers/<pk>/tables/<global_index>/` |
-| Image downloading | `Image` rows; files served by `/papers/<pk>/images/<idx>/` |
-| ROB detection from markdown sections + tables | `extract_rob_artifacts_from_markdown()` called on every scrape; stored in `rob_artifacts`; exposed at `/papers/<pk>/rob/` |
-| ROB table normalisation (`normalize_rob_table`) | Runs inside `extract_rob_artifacts_from_markdown()`; normalised records embedded under `normalized_records` key |
-| ROB extraction from images (OCR) | `extract_rob_from_sections_images()` called after markdown extraction; no-op when pytesseract absent |
-| DB caching / fast-path on repeat requests | `_load_from_db()` checked before scraping |
-| Paper list / detail / delete (with file cleanup) | `/papers/`, `/papers/<pk>/`, `DELETE /papers/<pk>/` |
-| Batch DOI processing | `POST /batch-process/` and `POST /batch-process/upload/` |
-| Export to JSON | `export_json_path` populated on every scrape; served at `/papers/<pk>/export/json/` |
-| Export to ZIP | `/papers/<pk>/export/markdown/`, `/papers/<pk>/export/csv/`, `/batch-export/` |
-| Cross-paper search | `GET /search/?q=...&source=pmc\|arxiv` |
-| File-upload DOI list | `POST /batch-process/upload/` (multipart `.txt`) |
+| Feature                                          | How                                                                                                                       |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| PMC XML fetch + parse                            | `process_document()` called by `resolve_doi_to_paper()`                                                                   |
+| arXiv HTML (ar5iv) fetch + parse                 | Same                                                                                                                      |
+| Author / email extraction                        | Stored in `ResolvedPaper.authors` / `.emails`, returned by `/resolve-doi/`                                                |
+| Section splitting + per-section `.md` files      | `Section` rows; content served by `POST /fetch-sections/`                                                                 |
+| Table extraction → CSV                           | `Table` rows; data served by `/papers/<pk>/tables/<global_index>/`                                                        |
+| Image downloading                                | `Image` rows; files served by `/papers/<pk>/images/<idx>/`                                                                |
+| ROB detection from markdown sections + tables    | `extract_rob_artifacts_from_markdown()` called on every scrape; stored in `rob_artifacts`; exposed at `/papers/<pk>/rob/` |
+| ROB table normalisation (`normalize_rob_table`)  | Runs inside `extract_rob_artifacts_from_markdown()`; normalised records embedded under `normalized_records` key           |
+| ROB extraction from images (OCR)                 | `extract_rob_from_sections_images()` called after markdown extraction; no-op when pytesseract absent                      |
+| DB caching / fast-path on repeat requests        | `_load_from_db()` checked before scraping                                                                                 |
+| Paper list / detail / delete (with file cleanup) | `/papers/`, `/papers/<pk>/`, `DELETE /papers/<pk>/`                                                                       |
+| Batch DOI processing                             | `POST /batch-process/` and `POST /batch-process/upload/`                                                                  |
+| Export to JSON                                   | `export_json_path` populated on every scrape; served at `/papers/<pk>/export/json/`                                       |
+| Export to ZIP                                    | `/papers/<pk>/export/markdown/`, `/papers/<pk>/export/csv/`, `/batch-export/`                                             |
+| Cross-paper search                               | `GET /search/?q=...&source=pmc\|arxiv`                                                                                    |
+| File-upload DOI list                             | `POST /batch-process/upload/` (multipart `.txt`)                                                                          |
 
 ---
 
@@ -206,25 +217,3 @@ Migration chain: `0001_initial` → `0002_replace_models` → `0003_add_media_me
 - The `scraper/export_reader.py` `ExportReader` class is available for loading batch JSON exports into pandas DataFrames.
 - ZIP exports are built in-memory (`io.BytesIO`) — no temporary files written to disk.
 - The frontend `PaperSelectionService` signal bridges `PaperList` → `PaperSectionsStepper` without requiring a shared parent component.
-
----
-
-## Future Steps
-
-The following improvements are natural next priorities:
-
-1. **Async batch processing** — Offload long scrapes to Celery + Redis so the HTTP response returns immediately. Add `GET /batch-jobs/<id>/` for status polling and `GET /batch-jobs/<id>/results/` for final output. The current synchronous implementation times out for batches > ~5 papers.
-
-2. **Full-text section search** — `GET /search/` currently uses SQLite `icontains` on the title and JSON-serialised author list. Replace with SQLite FTS5 (via `django-fts`) or an Elasticsearch index to support searching *inside* section markdown content.
-
-3. **Authentication & multi-tenancy** — Add user accounts (Django Allauth or JWT) so different researchers have isolated paper collections. The `ResolvedPaper` model needs a `user` FK; the paper list and delete endpoints should enforce ownership.
-
-4. **Citation graph** — Extract `<ref>` elements from PMC XML and DOI links from arXiv HTML. Store references as a `Reference` model (FK paper → FK cited paper or raw DOI string) and expose `GET /papers/<pk>/references/` to power a citation-network visualisation.
-
-5. **Systematic-review export formats** — Add PRISMA-compatible CSV, RIS, and BibTeX export so results can be imported directly into Covidence, Rayyan, or Zotero. `GET /papers/<pk>/export/ris/` is the minimal addition needed.
-
-6. **Paper versioning** — Track arXiv paper versions (v1 → v2 → v3). Store `arxiv_version` on `ResolvedPaper`; add a `POST /papers/<pk>/refresh/` endpoint that re-scrapes and diffs sections between versions.
-
-7. **Test coverage** — Unit tests for `scraper/parsers_pmc.py`, `scraper/parsers_arxiv.py`, and `rob_extraction.py` using `pytest`. Integration tests for the Django API using `django.test.TestClient` with fixture-based DOI mocking so tests run without network access.
-
-8. **Docker production hardening** — Replace the development server with gunicorn behind nginx. Switch SQLite to PostgreSQL (needed for concurrent writes during batch processing). Manage secrets via environment variables injected at runtime, not baked into the image.
