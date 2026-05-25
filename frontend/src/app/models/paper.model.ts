@@ -118,3 +118,9 @@ export interface BatchProcessResponse {
     error: number;
   };
 }
+
+export interface BatchPaperFull {
+  paper: ResolvedPaper;
+  matchedSections: PaperSection[];
+  sectionContent: SectionResult[];
+}

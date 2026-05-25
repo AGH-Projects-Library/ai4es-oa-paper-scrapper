@@ -1,0 +1,5 @@
+Outcome,Post window,SE (avg post),MDE (avg post)
+Medication adherence (beta-blockers),p0–p5,0.0179,0.0503
+Cardiologist visits,p0–p5,0.0160,0.0448
+Echocardiograms,p0–p5,0.0126,0.0352
+ER visits,p0–p5,0.0184,0.0515

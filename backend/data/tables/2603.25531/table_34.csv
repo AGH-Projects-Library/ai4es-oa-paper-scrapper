@@ -1,0 +1,6 @@
+Work,Time handling,Key assumption/tool,Limitation vs. SSTL
+"Fainekos&Pappas (Fainekos and Pappas, 2009 )",Discrete check of CTL/MTL,"Robustness, bounded sampling",Needs robustness margins; extra assumptions
+"Deshmukh et al. (Bartocci et al . , 2018 )",Piecewise-constant interp.,"RoSI, partial traces",Interp. choice affects semantics
+"Chen&Francis (Chen and Francis, 1995 )",Uniform discrete-time STL,Fixed sampling over ℕ ≥ 0 \mathbb{N}_{\geq 0},Breaks explicit link to dense-time STL
+"Donzé et al. (Donzé et al . , 2013 )",Mixed-time with interfaces,@ c ​ d @_{cd} / @ d ​ c @_{dc} operators,Interface discipline adds complexity
+"Yang et al. (Yang et al . , 2020 )",Uniform discretisation for planning,"Robust semantics, MIQP",Optimization-oriented; not equivalence

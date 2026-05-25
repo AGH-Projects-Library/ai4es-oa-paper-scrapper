@@ -1,0 +1,3 @@
+## 6.1 Automatic Evaluation
+
+ For automatic evaluation, we compute the diagnostic accuracy of the model. Specifically, we compare the final diagnosis predicted by the model with the gold disease label provided in the dataset. Although accuracy provides a straightforward measure of diagnostic correctness, it does not capture other critical aspects of conversational medical systems such as safety, reasoning quality, or conversational coherence. Therefore, we complement automatic evaluation with human expert assessment.

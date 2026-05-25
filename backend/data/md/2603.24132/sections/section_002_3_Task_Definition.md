@@ -1,0 +1,3 @@
+## 3 Task Definition
+
+ We study the problem of multilingual multi-turn medical dialogue generation, where a conversational agent interacts with a patient to collect symptoms and provide preliminary diagnostic guidance. Unlike single-turn medical question answering, this task requires modeling sequential physician–patient interactions where diagnostic reasoning emerges through multiple conversational exchanges.

@@ -1,0 +1,4 @@
+(10),,[ φ 1 ] ∨ [ φ 2 ] \displaystyle[\varphi_{1}]\vee[\varphi_{2}],:= ¬ ( ¬ [ φ 1 ] ∧ ¬ [ φ 2 ] ) \displaystyle:=\neg(\neg[\varphi_{1}]\land\neg[\varphi_{2}]),
+(11),,[ φ 1 ] ⟹ [ φ 2 ] \displaystyle[\varphi_{1}]\implies[\varphi_{2}],:= ¬ [ φ 1 ] ∨ [ φ 2 ] \displaystyle:=\neg[\varphi_{1}]\lor[\varphi_{2}],
+(12),,"◆ [ [ a ] , [ b ] ] ​ [ φ ] \displaystyle\lozenge_{[[a],[b]]}[\varphi]",":= ⊤ 𝒰 [ [ a ] , [ b ] ] ​ [ φ ] \displaystyle:=\top\mathcal{U}_{[[a],[b]]}[\varphi]",
+(13),,"□ [ [ a ] , [ b ] ] ​ [ φ ] \displaystyle\square_{[[a],[b]]}[\varphi]",":= ¬ ◆ [ [ a ] , [ b ] ] ​ ¬ [ φ ] \displaystyle:=\neg\lozenge_{[[a],[b]]}\neg[\varphi]",

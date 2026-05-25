@@ -1,0 +1,3 @@
+## 4 MedAidDialog Dataset
+
+ Multi-turn conversational datasets are essential for training medical dialogue systems that can iteratively collect symptoms and provide diagnostic guidance (Macherla et al. , 2023 ; Tu et al. , 2024 ) . The MDDial dataset (Macherla et al. , 2023 ) provides an English differential-diagnosis dialogue corpus derived from structured medical records. However, its template-based generation limits conversational diversity and realism, and it does not support multilingual deployment. To address these limitations, we construct MedAidDialog , a synthetic multilingual medical dialogue dataset designed to simulate more natural physician–patient consultations while enabling accessibility across multiple languages.

@@ -1,0 +1,6 @@
+(22),,"( σ , j ) ⊧ ϕ 1 ∨ ϕ 2 \displaystyle(\sigma,j)\models\phi_{1}\lor\phi_{2}","⇔ ( σ , j ) ⊧ ϕ 1 ​ or ​ ( σ , j ) ⊧ ϕ 2 \displaystyle\iff(\sigma,j)\models\phi_{1}\text{ or }(\sigma,j)\models\phi_{2}",
+(23),,"( σ , j ) ⊧ ○ ϕ \displaystyle(\sigma,j)\models\bigcirc\phi","⇔ ( σ , j + 1 ) ⊧ ϕ \displaystyle\iff(\sigma,j+1)\models\phi",
+(24),,"( σ , j ) ⊧ ϕ 1 ​ 𝒰 ​ ϕ 2 \displaystyle(\sigma,j)\models\phi_{1}\mathcal{U}\phi_{2}","⇔ ∃ k ≥ j ​ such that ​ ( σ , k ) ⊧ ϕ 2 \displaystyle\iff\exists k\geq j\text{ such that }(\sigma,k)\models\phi_{2}",
+(25),,,"and ​ ∀ l ∈ [ j , k ) , σ , l ⊧ ϕ 1 \displaystyle\quad\text{ and }\forall l\in[j,k),\sigma,l\models\phi_{1}",
+(26),,"( σ , j ) ⊧ □ ​ ϕ \displaystyle(\sigma,j)\models\Box\phi","⇔ ∀ k ≥ j , ( σ , k ) ⊧ ϕ \displaystyle\iff\forall k\geq j,(\sigma,k)\models\phi",
+(27),,"( σ , j ) ⊧ ◇ ​ ϕ \displaystyle(\sigma,j)\models\Diamond\phi","⇔ ∃ k ≥ j , ( σ , k ) ⊧ ϕ \displaystyle\iff\exists k\geq j,(\sigma,k)\models\phi",

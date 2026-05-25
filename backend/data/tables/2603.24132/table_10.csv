@@ -1,0 +1,7 @@
+Metric,Krippendorff’s α \alpha
+Symptom Extraction,0.82
+Context Memory,0.84
+Diagnostic Correctness,0.80
+Conversational Flow,0.83
+Efficiency,0.78
+Average,0.81

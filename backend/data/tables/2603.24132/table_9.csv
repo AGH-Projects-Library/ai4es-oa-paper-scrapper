@@ -1,0 +1,11 @@
+Original Disease,Misclassified As,Frequency
+Pneumonia,Asthma,3
+Esophagitis,Enteritis,2
+Esophagitis,Asthma,2
+Asthma,Pneumonia,2
+Coronary heart disease,Asthma,2
+Pneumonia,Enteritis,2
+External otitis,Conjunctivitis,2
+Conjunctivitis,Mastitis,2
+Mastitis,Traumatic brain injury,2
+Esophagitis,Coronary heart disease,1

@@ -1,0 +1,3 @@
+## 5.2 Dialogue Formatting
+
+ Before training, all dialogues are converted into a unified multi-turn instruction format. Specifically, we transform each consultation into a ShareGPT-style conversation in which patient utterances are mapped to human turns and doctor utterances are mapped to gpt turns. A system message defines the diagnostic consultation setting, and the final assistant turn contains the diagnosis-oriented output. This representation is convenient for instruction tuning and preserves the sequential nature of symptom elicitation. The exact formatting prompt is provided in Appendix D.2 .

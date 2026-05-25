@@ -1,0 +1,3 @@
+(18),,"( σ , j ) ⊧ P \displaystyle(\sigma,j)\models P",⇔ a 1 ​ s j ​ ( y 1 ) + a 2 ​ s j ​ ( y 2 ) + … + a n ​ s j ​ ( y n ) ⋈ b \displaystyle\iff a_{1}s_{j}(y_{1})+a_{2}s_{j}(y_{2})+\ldots+a_{n}s_{j}(y_{n})\bowtie b,
+(19),,"( σ , j ) ⊧ ¬ ϕ \displaystyle(\sigma,j)\models\neg\phi","⇔ ( σ , j ) ⊧̸ ϕ \displaystyle\iff(\sigma,j)\not\models\phi",
+(20),,"( σ , j ) ⊧ ϕ 1 ∧ ϕ 2 \displaystyle(\sigma,j)\models\phi_{1}\land\phi_{2}","⇔ ( σ , j ) ⊧ ϕ 1 ​ and ​ ( σ , j ) ⊧ ϕ 2 \displaystyle\iff(\sigma,j)\models\phi_{1}\text{ and }(\sigma,j)\models\phi_{2}",

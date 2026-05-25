@@ -1,120 +1,315 @@
-<div class="batch-shell">
-  <div class="batch-header">
-    <h3 class="batch-title">Batch processing</h3>
-    <p class="batch-description">
-      Process multiple papers at once. Paste DOIs (one per line) or upload a plain-text file.
+<div class="batch-stepper-shell">
+  <div class="stepper-header">
+    <h2 class="stepper-title">Batch paper processing</h2>
+    <p class="stepper-description">
+      Process multiple papers at once, select a section type, then explore content and export results.
     </p>
   </div>
 
-  <mat-button-toggle-group
-    class="mode-toggle"
-    [value]="inputMode()"
-    (change)="setInputMode($event.value)"
-  >
-    <mat-button-toggle value="text">
-      <mat-icon>edit_note</mat-icon> Paste DOIs
-    </mat-button-toggle>
-    <mat-button-toggle value="file">
-      <mat-icon>upload_file</mat-icon> Upload file
-    </mat-button-toggle>
-  </mat-button-toggle-group>
+  <mat-stepper #stepper linear class="custom-stepper">
 
-  @if (inputMode() === 'text') {
-    <textarea
-      class="doi-textarea"
-      [value]="doiText()"
-      (input)="onDoiTextChange($any($event.target).value)"
-      placeholder="One DOI or arXiv ID per line&#10;e.g.&#10;10.1371/journal.pmed.1001583&#10;2410.00123"
-      rows="8"
-    ></textarea>
-  }
+    <!-- ────────────────────────────── STEP 1 ────────────────────────────── -->
+    <mat-step label="Add papers">
+      <div class="step-content">
+        <mat-card class="step-card p-4">
+          <h3 class="card-title">Add papers</h3>
+          <p class="card-description">
+            Paste DOIs or arXiv IDs (one per line) or upload a plain-text file.
+          </p>
 
-  @if (inputMode() === 'file') {
-    <div class="file-drop-area">
-      <mat-icon class="file-icon">description</mat-icon>
-      @if (selectedFile()) {
-        <span class="file-name">{{ selectedFile()!.name }}</span>
-      } @else {
-        <span class="file-placeholder">No file selected</span>
-      }
-      <label class="file-label" mat-stroked-button>
-        Choose .txt file
-        <input type="file" accept=".txt" hidden (change)="onFileChange($event)" />
-      </label>
-    </div>
-  }
+          <mat-button-toggle-group
+            class="mode-toggle"
+            [value]="inputMode()"
+            (change)="setInputMode($event.value)"
+          >
+            <mat-button-toggle value="text">
+              <mat-icon>edit_note</mat-icon> Paste DOIs
+            </mat-button-toggle>
+            <mat-button-toggle value="file">
+              <mat-icon>upload_file</mat-icon> Upload file
+            </mat-button-toggle>
+          </mat-button-toggle-group>
 
-  <div class="batch-actions">
-    <button
-      mat-flat-button
-      class="primary-btn"
-      type="button"
-      [disabled]="!canSubmit()"
-      (click)="submit()"
-    >
-      @if (batchState() === 'loading') {
-        <mat-spinner diameter="20" color="accent"></mat-spinner>
-        Processing…
-      } @else {
-        Process all
-      }
-    </button>
+          @if (inputMode() === 'text') {
+            <textarea
+              class="doi-textarea"
+              [value]="doiText()"
+              (input)="onDoiTextChange($any($event.target).value)"
+              placeholder="One DOI or arXiv ID per line&#10;e.g.&#10;10.1371/journal.pmed.1001583&#10;2410.00123"
+              rows="8"
+            ></textarea>
+          }
 
-    @if (batchState() !== 'idle') {
-      <button mat-stroked-button type="button" (click)="reset()">
-        Reset
-      </button>
-    }
-  </div>
+          @if (inputMode() === 'file') {
+            <div class="file-drop-area">
+              <mat-icon class="file-icon">description</mat-icon>
+              @if (selectedFile()) {
+                <span class="file-name">{{ selectedFile()!.name }}</span>
+              } @else {
+                <span class="file-placeholder">No file selected</span>
+              }
+              <label class="file-label">
+                Choose .txt file
+                <input type="file" accept=".txt" hidden (change)="onFileChange($event)" />
+              </label>
+            </div>
+          }
 
-  @if (batchState() === 'error') {
-    <div class="batch-message-card batch-error-card">
-      <mat-icon>error</mat-icon>
-      <div>
-        <h4>Processing failed</h4>
-        <p>{{ errorMessage() }}</p>
-      </div>
-    </div>
-  }
+          @if (step1State() === 'error') {
+            <div class="message-card error-card mt-3">
+              <mat-icon>error</mat-icon>
+              <div>
+                <h4>Processing failed</h4>
+                <p>{{ step1Error() }}</p>
+              </div>
+            </div>
+          }
 
-  @if (batchState() === 'loading') {
-    <div class="viewer-center-state">
-      <mat-spinner diameter="40"></mat-spinner>
-      <p>Processing papers — this may take a while…</p>
-    </div>
-  }
+          @if (step1State() === 'done' && batchSummary(); as s) {
+            <div class="batch-summary mt-3">
+              <span class="summary-chip summary-chip--total">{{ s.total }} total</span>
+              <span class="summary-chip summary-chip--success">{{ s.success }} succeeded</span>
+              @if (s.not_found > 0) {
+                <span class="summary-chip summary-chip--warn">{{ s.not_found }} not found</span>
+              }
+              @if (s.error > 0) {
+                <span class="summary-chip summary-chip--error">{{ s.error }} errors</span>
+              }
+            </div>
+          }
 
-  @if (batchState() === 'success' && summary(); as s) {
-    <div class="batch-summary">
-      <span class="summary-chip summary-chip--total">{{ s.total }} total</span>
-      <span class="summary-chip summary-chip--success">{{ s.success }} succeeded</span>
-      @if (s.not_found > 0) {
-        <span class="summary-chip summary-chip--warn">{{ s.not_found }} not found</span>
-      }
-      @if (s.error > 0) {
-        <span class="summary-chip summary-chip--error">{{ s.error }} errors</span>
-      }
-    </div>
+          <div class="step-actions mt-3">
+            <button
+              mat-flat-button
+              class="primary-btn"
+              type="button"
+              [disabled]="!canSubmit()"
+              (click)="submit()"
+            >
+              @if (step1State() === 'loading') {
+                <mat-spinner diameter="18" color="accent"></mat-spinner>
+                Processing…
+              } @else if (resolveState() === 'loading') {
+                <mat-spinner diameter="18" color="accent"></mat-spinner>
+                Loading section info…
+              } @else {
+                Process all
+              }
+            </button>
 
-    <div class="results-list">
-      @for (result of batchResults(); track result.doi) {
-        <div class="result-row" [class]="'result-row--' + result.status">
-          <mat-icon class="result-icon">
-            @if (result.status === 'success') { check_circle }
-            @else if (result.status === 'not_found') { help }
-            @else { cancel }
-          </mat-icon>
-          <div class="result-body">
-            <span class="result-doi">{{ result.doi }}</span>
-            @if (result.status === 'success' && result.paper) {
-              <span class="result-title">{{ result.paper.title }}</span>
-            }
-            @if (result.status !== 'success' && result.message) {
-              <span class="result-message">{{ result.message }}</span>
+            @if (step1State() !== 'idle') {
+              <button mat-stroked-button type="button" (click)="resetFlow()">Reset</button>
             }
           </div>
-        </div>
-      }
-    </div>
-  }
+        </mat-card>
+      </div>
+    </mat-step>
+
+    <!-- ────────────────────────────── STEP 2 ────────────────────────────── -->
+    <mat-step label="Select section type">
+      <div class="step-content">
+        <mat-card class="step-card p-4">
+          <h3 class="card-title">Choose a section type</h3>
+          <p class="card-description">
+            Select a semantic category — the system will find all matching sections across your papers.
+          </p>
+
+          <div class="category-chips">
+            @for (cat of semanticCategories; track cat.id) {
+              <button
+                class="category-chip"
+                [class.active]="selectedCategory() === cat.id"
+                type="button"
+                (click)="selectCategory(cat.id)"
+              >
+                {{ cat.label }}
+              </button>
+            }
+            <button
+              class="category-chip"
+              [class.active]="selectedCategory() === ''"
+              type="button"
+              (click)="clearCategory()"
+            >
+              Custom
+            </button>
+          </div>
+
+          @if (selectedCategory() === '') {
+            <mat-form-field appearance="outline" class="keyword-field">
+              <mat-label>Keyword</mat-label>
+              <input
+                matInput
+                [ngModel]="customKeyword()"
+                (ngModelChange)="customKeyword.set($event)"
+                placeholder="e.g. methodology, conclusions, bias"
+              />
+              <mat-hint>Case-insensitive — matches any section name containing this word</mat-hint>
+            </mat-form-field>
+          }
+
+          @if (resolveState() === 'done' && activeKeyword) {
+            @let preview = getMatchingPreview();
+            <div class="keyword-preview">
+              @if (preview.papersWithMatch > 0) {
+                <mat-icon class="preview-icon preview-icon--ok">check_circle</mat-icon>
+                <span>
+                  Found in <strong>{{ preview.papersWithMatch }} / {{ resolvedPapers().size }}</strong>
+                  paper{{ resolvedPapers().size !== 1 ? 's' : '' }}
+                  &nbsp;·&nbsp;
+                  <strong>{{ preview.totalSections }}</strong> matching section{{ preview.totalSections !== 1 ? 's' : '' }} total
+                </span>
+              } @else {
+                <mat-icon class="preview-icon preview-icon--warn">info</mat-icon>
+                <span>No sections match this keyword in the processed papers.</span>
+              }
+              @if (preview.papersWithout > 0) {
+                <span class="preview-missing">
+                  &nbsp;({{ preview.papersWithout }} paper{{ preview.papersWithout !== 1 ? 's' : '' }} will have no matched sections)
+                </span>
+              }
+            </div>
+          }
+
+          @if (contentState() === 'error') {
+            <div class="message-card error-card mt-3">
+              <mat-icon>error</mat-icon>
+              <div>
+                <h4>Could not load section content</h4>
+                <p>{{ contentError() }}</p>
+              </div>
+            </div>
+          }
+
+          <div class="step-actions mt-3">
+            <button mat-stroked-button type="button" matStepperPrevious>Back</button>
+            <button
+              mat-flat-button
+              class="primary-btn"
+              type="button"
+              [disabled]="!canLoadSections() || contentState() === 'loading'"
+              (click)="loadSectionContent()"
+            >
+              @if (contentState() === 'loading') {
+                <mat-spinner diameter="18" color="accent"></mat-spinner>
+                Loading…
+              } @else {
+                Load sections
+              }
+            </button>
+          </div>
+        </mat-card>
+      </div>
+    </mat-step>
+
+    <!-- ────────────────────────────── STEP 3 ────────────────────────────── -->
+    <mat-step label="View results">
+      <div class="step-content">
+        <mat-card class="step-card p-4">
+          <h3 class="card-title">Results</h3>
+          <p class="card-description">
+            Browse matched sections, ROB artifacts, tables, and images for each paper.
+          </p>
+
+          <div class="export-bar">
+            <span class="export-label">Export all:</span>
+            <button
+              mat-stroked-button
+              type="button"
+              [disabled]="paperResults().length === 0"
+              (click)="downloadBatchExport()"
+            >
+              <mat-icon>folder_zip</mat-icon> ZIP
+            </button>
+          </div>
+
+          <mat-accordion class="paper-accordion" multi>
+            @for (result of paperResults(); track result.paper.id) {
+              <mat-expansion-panel class="paper-panel">
+                <mat-expansion-panel-header>
+                  <mat-panel-title class="paper-panel-title">
+                    <span class="paper-title-text">{{ result.paper.title }}</span>
+                    <span class="paper-source-chip paper-source-chip--{{ result.paper.source }}">
+                      {{ result.paper.source.toUpperCase() }}
+                    </span>
+                    @if (result.matchedSections.length === 0) {
+                      <span class="paper-source-chip paper-source-chip--none">no match</span>
+                    }
+                  </mat-panel-title>
+                  <mat-panel-description class="paper-panel-desc">
+                    <span class="paper-doi-text">{{ result.paper.doi }}</span>
+                  </mat-panel-description>
+                </mat-expansion-panel-header>
+
+                <div class="paper-panel-body">
+                  <div class="paper-download-bar">
+                    <span class="download-label">Download:</span>
+                    <button mat-stroked-button type="button" (click)="downloadCsv(result.paper.id)">
+                      <mat-icon>table_chart</mat-icon> CSV
+                    </button>
+                    <button mat-stroked-button type="button" (click)="downloadMarkdown(result.paper.id)">
+                      <mat-icon>description</mat-icon> Markdown
+                    </button>
+                    <button mat-stroked-button type="button" (click)="downloadJson(result.paper.id)">
+                      <mat-icon>data_object</mat-icon> JSON
+                    </button>
+                  </div>
+
+                  <mat-tab-group animationDuration="150ms" class="paper-tabs">
+
+                    <mat-tab label="Sections">
+                      <div class="tab-body">
+                        @if (result.sectionContent.length === 0) {
+                          <div class="empty-state">
+                            <mat-icon>search_off</mat-icon>
+                            <p>No sections matched the selected keyword for this paper.</p>
+                          </div>
+                        } @else {
+                          <div class="sections-list">
+                            @for (sec of result.sectionContent; track sec.id) {
+                              <div class="section-content-card">
+                                <h4 class="section-heading">{{ sec.name }}</h4>
+                                <p class="section-body">{{ sec.content }}</p>
+                              </div>
+                            }
+                          </div>
+                        }
+                      </div>
+                    </mat-tab>
+
+                    <mat-tab label="ROB Analysis">
+                      <div class="tab-body">
+                        <app-rob-artifacts [artifacts]="result.paper.robArtifacts" />
+                      </div>
+                    </mat-tab>
+
+                    <mat-tab label="Tables">
+                      <div class="tab-body">
+                        <app-tables-viewer [paperId]="result.paper.id" />
+                      </div>
+                    </mat-tab>
+
+                    <mat-tab label="Images">
+                      <div class="tab-body">
+                        <app-images-viewer [paperId]="result.paper.id" />
+                      </div>
+                    </mat-tab>
+
+                  </mat-tab-group>
+                </div>
+              </mat-expansion-panel>
+            }
+          </mat-accordion>
+
+          <div class="step-actions mt-4">
+            <button mat-stroked-button type="button" matStepperPrevious>Back</button>
+            <button mat-flat-button class="primary-btn" type="button" (click)="resetFlow()">
+              Start again
+            </button>
+          </div>
+        </mat-card>
+      </div>
+    </mat-step>
+
+  </mat-stepper>
 </div>

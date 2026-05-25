@@ -1,0 +1,9 @@
+Parameter,Value
+Rank ( r r ),16
+Target Modules,"q_proj, k_proj, v_proj, o_proj,"
+,"gate_proj, up_proj, down_proj"
+LoRA Alpha,16
+LoRA Dropout,0
+Bias,none
+Use RSLora,False
+LoftQ Config,None

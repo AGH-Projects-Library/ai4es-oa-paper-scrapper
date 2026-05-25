@@ -1,0 +1,8 @@
+Hyperparameter,Value
+Learning Rate,2 × 10 − 4 2\times 10^{-4}
+Optimizer,AdamW (8-bit)
+Learning Rate Scheduler,Linear
+Weight Decay,0.001
+Warmup Steps,5
+Maximum Training Steps,600
+Random Seed,3407

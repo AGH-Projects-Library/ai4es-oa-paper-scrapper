@@ -1,0 +1,4 @@
+,,Controls ( D = 0 D=0 ),Treated ( D = 1 D=1 ),Treated − - Control
+Panel,Sample definition,N N,Mean (SD),N N
+A,Full eligible sample,"15,097",0.0275 (0.0697),487
+B,Restrict to GPs with n gp ≥ 10 n_{\text{gp}}\geq 10,"12,896",0.0279 (0.0652),420

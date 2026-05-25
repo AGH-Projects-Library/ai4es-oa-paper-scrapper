@@ -1,0 +1,3 @@
+## 3.3 Patient Context Personalization
+
+ In real clinical consultations, physicians often begin with basic contextual information about the patient before asking symptom-related questions. To better simulate this scenario, our framework allows optional patient pretext information to be provided at the start of the dialogue. This information may include age group, gender, geographic location, known allergies, and pre-existing medical conditions, etc . This information is appended to the dialogue prefix and incorporated into the model input. Incorporating patient context allows the model to personalize its questioning strategy and diagnostic reasoning, reflecting how clinicians adapt their inquiries based on patient demographics and medical history.

@@ -1,0 +1,3 @@
+## 2. Motivating Example
+
+ In this section, we present a motivating case study based on a 33-node human heart model, which is representative of digital healthcare systems where safety and liveness properties are critical. This case study highlights the limitations of continuous-time temporal logic specifications, such as Signal Temporal Logic, and motivates the need for a discrete, synchronous variant suitable for digital implementations.

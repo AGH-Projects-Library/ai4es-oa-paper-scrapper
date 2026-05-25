@@ -1,0 +1,1828 @@
+<!DOCTYPE html><html lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>[2603.24132] MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare</title><meta property="og:description" content="Conversational artificial intelligence has the potential to assist users in preliminary medical consultations, particularly in settings where access to healthcare professionals is limited. However, many existing medica…">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare">
+<meta name="twitter:image:src" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta name="twitter:image:alt" content="ar5iv logo">
+<meta property="og:title" content="MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare">
+<meta property="og:site_name" content="ar5iv">
+<meta property="og:image" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://ar5iv.labs.arxiv.org/html/2603.24132">
+<link rel="canonical" target="_blank" href="https://ar5iv.labs.arxiv.org/html/2603.24132">
+
+<!--Generated on Mon Apr  6 00:42:32 2026 by LaTeXML (version 0.8.8) http://dlmf.nist.gov/LaTeXML/.-->
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<script>
+  function detectColorScheme(){
+    var theme="light";
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if(current_theme){
+      if(current_theme == "dark"){
+        theme = "dark";
+      } }
+    else if(!window.matchMedia) { return false; }
+    else if(window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      theme = "dark"; }
+    if (theme=="dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+      document.documentElement.setAttribute("data-theme", "light"); } }
+
+  detectColorScheme();
+
+  function toggleColorScheme(){
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if (current_theme) {
+      if (current_theme == "light") {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+      else {
+        localStorage.setItem("ar5iv_theme", "light"); } }
+    else {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+    detectColorScheme(); }
+</script>
+<link media="all" rel="stylesheet" href="/assets/ar5iv-fonts.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv-site.0.2.2.css">
+</head>
+<body>
+<div class="ltx_page_main">
+<div class="ltx_page_content">
+<article class="ltx_document">
+<h1 class="ltx_title ltx_title_document">MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare</h1>
+<div class="ltx_authors">
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Shubham Kumar Nigam<sup id="id7.7.id1" class="ltx_sup"><span id="id7.7.id1.1" class="ltx_text ltx_font_italic">1∗†</span></sup>  Suparnojit Sarkar<sup id="id8.8.id2" class="ltx_sup"><span id="id8.8.id2.1" class="ltx_text ltx_font_italic">2∗</span></sup>  Piyush Patel<sup id="id9.9.id3" class="ltx_sup"><span id="id9.9.id3.1" class="ltx_text ltx_font_italic">3∗</span></sup>
+<br class="ltx_break"><sup id="id10.10.id4" class="ltx_sup"><span id="id10.10.id4.1" class="ltx_text ltx_font_italic">1</span></sup> University of Birmingham, Dubai, United Arab Emirates 
+<br class="ltx_break"><sup id="id11.11.id5" class="ltx_sup"><span id="id11.11.id5.1" class="ltx_text ltx_font_italic">2</span></sup> Heritage Institute of Technology, Kolkata, India
+<br class="ltx_break"><sup id="id12.12.id6" class="ltx_sup"><span id="id12.12.id6.1" class="ltx_text ltx_font_italic">3</span></sup> Madan Mohan Malaviya University of Technology, India
+<br class="ltx_break"><span id="id13.13.id7" class="ltx_text ltx_font_typewriter">{shubhamkumarnigam, suparnojit2026, ppiyush0005}@gmail.com</span>
+</span></span>
+</div>
+
+<div id="abstract1" class="ltx_abstract">
+<h6 class="ltx_title ltx_title_abstract">Abstract</h6>
+<p class="ltx_p">Conversational artificial intelligence has the potential to assist users in preliminary medical consultations, particularly in settings where access to healthcare professionals is limited. However, many existing medical dialogue systems operate in a single-turn question–answering paradigm or rely on template-based datasets, limiting conversational realism and multilingual applicability. In this work, we introduce <span class="ltx_text ltx_font_typewriter">MedAidDialog</span>, a multilingual multi-turn medical dialogue dataset designed to simulate realistic physician–patient consultations. The dataset extends the <span class="ltx_text ltx_font_typewriter">MDDial</span> corpus by generating synthetic consultations using large language models and further expands them into a parallel multilingual corpus covering seven languages: English, Hindi, Telugu, Tamil, Bengali, Marathi, and Arabic.
+Building on this dataset, we develop <span class="ltx_text ltx_font_typewriter">MedAidLM</span>, a conversational medical model trained using parameter-efficient fine-tuning on quantized small language models, enabling deployment without high-end computational infrastructure. Our framework additionally incorporates optional patient pre-context information (e.g., age, gender, allergies) to personalize the consultation process. Experimental results demonstrate that the proposed system can effectively perform symptom elicitation through multi-turn dialogue and generate diagnostic recommendations. We further conduct medical expert evaluation to assess the plausibility and coherence of the generated consultations.</p>
+</div>
+<div id="p1" class="ltx_para ltx_noindent">
+<div id="p1.6" class="ltx_block ltx_align_bottom">
+<p id="p1.6.7" class="ltx_p ltx_align_center"><span id="p1.6.7.1" class="ltx_text ltx_font_bold">MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare</span></p>
+<p id="p1.6.6" class="ltx_p ltx_align_center" style="width:345.0pt;"><span id="p1.6.6.6" class="ltx_text ltx_inline-block" style="width:0.0pt;">
+<span id="p1.6.6.6.6" class="ltx_tabular ltx_align_top">
+<span class="ltx_tbody">
+<span id="p1.3.3.3.3.3" class="ltx_tr">
+<span id="p1.3.3.3.3.3.3" class="ltx_td ltx_align_center"><span id="p1.3.3.3.3.3.3.3" class="ltx_text ltx_font_bold">Shubham Kumar Nigam<sup id="p1.3.3.3.3.3.3.3.1" class="ltx_sup"><span id="p1.3.3.3.3.3.3.3.1.1" class="ltx_text ltx_font_medium ltx_font_italic">1∗†</span></sup>   Suparnojit Sarkar<sup id="p1.3.3.3.3.3.3.3.2" class="ltx_sup"><span id="p1.3.3.3.3.3.3.3.2.1" class="ltx_text ltx_font_medium ltx_font_italic">2∗</span></sup>   Piyush Patel<sup id="p1.3.3.3.3.3.3.3.3" class="ltx_sup"><span id="p1.3.3.3.3.3.3.3.3.1" class="ltx_text ltx_font_medium ltx_font_italic">3∗</span></sup></span></span></span>
+<span id="p1.4.4.4.4.4" class="ltx_tr">
+<span id="p1.4.4.4.4.4.1" class="ltx_td ltx_align_center"><sup id="p1.4.4.4.4.4.1.1" class="ltx_sup"><span id="p1.4.4.4.4.4.1.1.1" class="ltx_text ltx_font_italic">1</span></sup> University of Birmingham, Dubai, United Arab Emirates</span></span>
+<span id="p1.5.5.5.5.5" class="ltx_tr">
+<span id="p1.5.5.5.5.5.1" class="ltx_td ltx_align_center"><sup id="p1.5.5.5.5.5.1.1" class="ltx_sup"><span id="p1.5.5.5.5.5.1.1.1" class="ltx_text ltx_font_italic">2</span></sup> Heritage Institute of Technology, Kolkata, India</span></span>
+<span id="p1.6.6.6.6.6" class="ltx_tr">
+<span id="p1.6.6.6.6.6.1" class="ltx_td ltx_align_center"><sup id="p1.6.6.6.6.6.1.1" class="ltx_sup"><span id="p1.6.6.6.6.6.1.1.1" class="ltx_text ltx_font_italic">3</span></sup> Madan Mohan Malaviya University of Technology, India</span></span>
+<span id="p1.6.6.6.6.7.1" class="ltx_tr">
+<span id="p1.6.6.6.6.7.1.1" class="ltx_td ltx_align_center"><span id="p1.6.6.6.6.7.1.1.1" class="ltx_text ltx_font_typewriter">{shubhamkumarnigam, suparnojit2026, ppiyush0005}@gmail.com</span></span></span>
+</span>
+</span></span></p>
+</div>
+</div>
+<span id="footnotex1" class="ltx_note ltx_role_footnotetext"><sup class="ltx_note_mark">$*$</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">$*$</sup><span class="ltx_note_type">footnotetext: </span>These authors contributed equally to this work</span></span></span><span id="footnotex2" class="ltx_note ltx_role_footnotetext"><sup class="ltx_note_mark">$\dagger$</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">$\dagger$</sup><span class="ltx_note_type">footnotetext: </span>Corresponding author</span></span></span>
+<section id="S1" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">1 </span>Introduction</h2>
+
+<div id="S1.p1" class="ltx_para">
+<p id="S1.p1.1" class="ltx_p">Conversational artificial intelligence has recently demonstrated strong potential for assisting users in healthcare settings, particularly for preliminary symptom assessment and medical guidance. Large language models (LLMs) have shown impressive capabilities in natural language understanding and dialogue generation, enabling systems to interact with patients in a conversational manner <cite class="ltx_cite ltx_citemacro_citep">(Tu<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib11" title="Towards conversational diagnostic ai" class="ltx_ref">2024</a>)</cite>. However, many existing models primarily operate in a <span id="S1.p1.1.1" class="ltx_text ltx_font_italic">single-turn</span> question–answering paradigm, where users provide all relevant information in a single prompt. In real clinical practice, physicians rarely rely on such interactions; instead, diagnosis typically emerges through a sequence of questions that progressively refine the patient’s symptoms.</p>
+</div>
+<div id="S1.p2" class="ltx_para">
+<p id="S1.p2.1" class="ltx_p">Furthermore, most conversational medical AI systems are trained on datasets that are either template-based or limited to a single language. While datasets such as <span id="S1.p2.1.1" class="ltx_text ltx_font_typewriter">MDDial</span> <cite class="ltx_cite ltx_citemacro_citep">(Macherla<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib2" title="Mddial: a multi-turn differential diagnosis dialogue dataset with reliability evaluation" class="ltx_ref">2023</a>)</cite> provide an important step toward multi-turn diagnostic dialogue, template-driven generation often constrains linguistic diversity and conversational realism. In addition, the lack of multilingual dialogue resources limits the applicability of such systems in low-resource environments, where patients may not communicate in English.</p>
+</div>
+<div id="S1.p3" class="ltx_para">
+<p id="S1.p3.1" class="ltx_p">Another important limitation of many existing systems is the absence of <span id="S1.p3.1.1" class="ltx_text ltx_font_italic">patient context</span>. In real consultations, physicians typically begin with basic demographic information such as age, gender, medical history, or allergies before asking symptom-related questions. Without this information, responses generated by general-purpose models may remain generic or overly verbose. Figure <a href="#S1.F1" title="Figure 1 ‣ Contributions ‣ 1 Introduction ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a> illustrates this limitation: a general-purpose LLM generates a single explanatory answer without conducting follow-up questioning, whereas our proposed model engages in a multi-turn dialogue to collect additional symptoms before providing a diagnostic recommendation.</p>
+</div>
+<div id="S1.p4" class="ltx_para">
+<p id="S1.p4.1" class="ltx_p">To address these limitations, we introduce <span id="S1.p4.1.1" class="ltx_text ltx_font_typewriter">MedAidDialog</span>, a multilingual multi-turn medical dialogue dataset designed to simulate realistic physician–patient consultations. The dataset extends the <span id="S1.p4.1.2" class="ltx_text ltx_font_typewriter">MDDial</span> corpus with synthetic dialogues generated using a large language model and further expands the conversations into a parallel multilingual corpus covering seven languages: English, Hindi, Telugu, Tamil, Bengali, Marathi, and Arabic. This multilingual design aims to improve accessibility of conversational healthcare systems for users in rural or linguistically diverse regions.</p>
+</div>
+<div id="S1.p5" class="ltx_para">
+<p id="S1.p5.1" class="ltx_p">Building on this dataset, we develop <span id="S1.p5.1.1" class="ltx_text ltx_font_typewriter">MedAidLM</span>, a fine-tuned conversational medical model trained using parameter-efficient fine-tuning techniques. Unlike large proprietary systems that require extensive computational resources, is trained using quantized small language models and can therefore be deployed on modest hardware environments. This makes the approach particularly suitable for low-resource healthcare settings where high-end infrastructure may not be available.</p>
+</div>
+<div id="S1.p6" class="ltx_para">
+<p id="S1.p6.1" class="ltx_p">Figure <a href="#S1.F1" title="Figure 1 ‣ Contributions ‣ 1 Introduction ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a> illustrates the behavior of a general-purpose LLM, which generates a single verbose response without engaging in follow-up questioning. In contrast, the proposed system (Figure <a href="#S1.F2" title="Figure 2 ‣ Contributions ‣ 1 Introduction ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>) utilizes patient pre-context information and performs multi-turn conversational symptom elicitation before producing a diagnosis, more closely resembling a real physician–patient consultation.</p>
+</div>
+<div id="S1.p7" class="ltx_para">
+<p id="S1.p7.1" class="ltx_p">To ensure reliability of the generated consultations, we additionally conduct evaluation with medical experts who assess the coherence and plausibility of the model’s responses. This evaluation provides qualitative validation of the system’s ability to simulate realistic clinical dialogue.</p>
+</div>
+<div id="S1.p8" class="ltx_para">
+<p id="S1.p8.1" class="ltx_p">To ensure reproducibility and encourage further research, the dataset and model code will be made publicly available soon.</p>
+</div>
+<section id="S1.SS0.SSS0.Px1" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Contributions</h4>
+
+<div id="S1.SS0.SSS0.Px1.p1" class="ltx_para">
+<p id="S1.SS0.SSS0.Px1.p1.1" class="ltx_p">The main contributions of this work are summarized as follows:</p>
+</div>
+<div id="S1.SS0.SSS0.Px1.p2" class="ltx_para">
+<ul id="S1.I1" class="ltx_itemize">
+<li id="S1.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S1.I1.i1.p1" class="ltx_para">
+<p id="S1.I1.i1.p1.1" class="ltx_p">We introduce a new task of <span id="S1.I1.i1.p1.1.1" class="ltx_text ltx_font_italic">multilingual multi-turn medical dialogue generation</span> and construct <span id="S1.I1.i1.p1.1.2" class="ltx_text ltx_font_typewriter">MedAidDialog</span>, a parallel medical dialogue dataset designed for low-resource multilingual environments.</p>
+</div>
+</li>
+<li id="S1.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S1.I1.i2.p1" class="ltx_para">
+<p id="S1.I1.i2.p1.1" class="ltx_p">We incorporate <span id="S1.I1.i2.p1.1.1" class="ltx_text ltx_font_italic">patient pre-context information</span> (e.g., age, gender, allergies, and demographic attributes) to enable personalized conversational medical assistance.</p>
+</div>
+</li>
+<li id="S1.I1.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S1.I1.i3.p1" class="ltx_para">
+<p id="S1.I1.i3.p1.1" class="ltx_p">We develop <span id="S1.I1.i3.p1.1.1" class="ltx_text ltx_font_typewriter">MedAidLM</span>, a parameter-efficient fine-tuned conversational model based on quantized small language models, enabling deployment without high-end computational infrastructure.</p>
+</div>
+</li>
+<li id="S1.I1.i4" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S1.I1.i4.p1" class="ltx_para">
+<p id="S1.I1.i4.p1.1" class="ltx_p">We perform <span id="S1.I1.i4.p1.1.1" class="ltx_text ltx_font_italic">medical expert evaluation</span> to validate the quality and plausibility of the generated diagnostic dialogues.</p>
+</div>
+</li>
+</ul>
+</div>
+<figure id="S1.F1" class="ltx_figure"><img src="/html/2603.24132/assets/x1.png" id="S1.F1.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="830" height="277" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 1: </span>Example response from a general-purpose LLM (ChatGPT 5.3). The model produces a single explanatory response without collecting additional symptoms or conducting follow-up questioning.</figcaption>
+</figure>
+<figure id="S1.F2" class="ltx_figure"><img src="/html/2603.24132/assets/x2.png" id="S1.F2.g1" class="ltx_graphics ltx_centering ltx_img_square" width="830" height="801" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 2: </span>Example interaction with <span id="S1.F2.2.1" class="ltx_text ltx_font_typewriter">MedAidLM</span>. The system first incorporates patient pre-context information (e.g., age, gender, and allergies) and then performs multi-turn dialogue to collect symptoms before producing a diagnostic recommendation.</figcaption>
+</figure>
+</section>
+</section>
+<section id="S2" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">2 </span>Related Work</h2>
+
+<div id="S2.p1" class="ltx_para">
+<p id="S2.p1.1" class="ltx_p">Prior work on medical dialogue has progressed from structured and task-oriented diagnosis systems toward neural and LLM-based conversational assistants. Early datasets and systems emphasized symptom collection, slot filling, or diagnosis prediction, but often lacked natural multi-turn physician–patient interaction <cite class="ltx_cite ltx_citemacro_citep">(Zeng<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib4" title="MedDialog: large-scale medical dialogue datasets" class="ltx_ref">2020</a>; Liu<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib5" title="Meddg: an entity-centric medical consultation dataset for entity-aware medical dialogue generation" class="ltx_ref">2022</a>)</cite>. More recent resources explicitly target multi-turn medical consultation. For example, MDDial introduces an English differential-diagnosis dialogue dataset, but it is constructed through templates and remains partially scripted <cite class="ltx_cite ltx_citemacro_citep">(Macherla<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib2" title="Mddial: a multi-turn differential diagnosis dialogue dataset with reliability evaluation" class="ltx_ref">2023</a>)</cite>. MedDG and Zhongjing advance multi-turn medical conversation in Chinese, with a focus on entity-aware consultation and improving proactive inquiry using real-world dialogue <cite class="ltx_cite ltx_citemacro_citep">(Liu<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib5" title="Meddg: an entity-centric medical consultation dataset for entity-aware medical dialogue generation" class="ltx_ref">2022</a>; Yang<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib6" title="Zhongjing: enhancing the chinese medical capabilities of large language model through expert feedback and real-world multi-turn dialogue" class="ltx_ref">2024</a>)</cite>. MediTOD further provides an English medical history-taking dataset with detailed annotations, though it is primarily designed for structured task-oriented interaction <cite class="ltx_cite ltx_citemacro_citep">(Saley<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib10" title="Meditod: an english dialogue dataset for medical history taking with comprehensive annotations" class="ltx_ref">2024</a>)</cite>.</p>
+</div>
+<div id="S2.p2" class="ltx_para">
+<p id="S2.p2.1" class="ltx_p">In parallel, medical LLMs such as ChatDoctor, Med-Chat, and related systems have shown that domain-specific fine-tuning substantially improves medical response quality over general-purpose LLMs <cite class="ltx_cite ltx_citemacro_citep">(Li<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib14" title="Chatdoctor: a medical chat model fine-tuned on a large language model meta-ai (llama) using medical domain knowledge" class="ltx_ref">2023</a>; Chu<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib12" title="Med-chat: tuning chatglm3-6b with chinese medical dialogue" class="ltx_ref">2024</a>)</cite>. However, many such systems are still optimized for single-turn question answering or instruction following, which assumes that patients can provide complete and precise information in one prompt. This differs from real clinical practice, where doctors iteratively ask follow-up questions before giving advice or forming a diagnosis. AMIE frames diagnosis as conversational history-taking and reasoning <cite class="ltx_cite ltx_citemacro_citep">(Tu<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib11" title="Towards conversational diagnostic ai" class="ltx_ref">2024</a>)</cite>, while DoctorAgent-RL further models multi-turn clinical dialogue as an adaptive decision process with RL <cite class="ltx_cite ltx_citemacro_citep">(Feng<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib3" title="Doctoragent-rl: a multi-agent collaborative reinforcement learning system for multi-turn clinical dialogue" class="ltx_ref">2025</a>)</cite>. Other approaches, such as BianQue, T-Agent, and continuous entity reasoning, explicitly model questioning behavior, medical term flow, or entity transitions across dialogue turns <cite class="ltx_cite ltx_citemacro_citep">(Chen<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib9" title="Bianque: balancing the questioning and suggestion ability of health llms with multi-turn health conversations polished by chatgpt" class="ltx_ref">2023</a>; Hu<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib13" title="T-agent: a term-aware agent for medical dialogue generation" class="ltx_ref">2024</a>; Wang<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib18" title="Continuous entity reasoning for multi-turn medical dialogue generation" class="ltx_ref">2025</a>)</cite>.</p>
+</div>
+<div id="S2.p3" class="ltx_para">
+<p id="S2.p3.1" class="ltx_p">Because real clinical conversations are difficult to release due to privacy and governance constraints, several studies have explored synthetic dialogue generation. NoteChat generates patient–physician conversations conditioned on clinical notes <cite class="ltx_cite ltx_citemacro_citep">(Wang<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib8" title="Notechat: a dataset of synthetic patient-physician conversations conditioned on clinical notes" class="ltx_ref">2024</a>)</cite>, while MDDial uses template-based synthesis from structured diagnostic data <cite class="ltx_cite ltx_citemacro_citep">(Macherla<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib2" title="Mddial: a multi-turn differential diagnosis dialogue dataset with reliability evaluation" class="ltx_ref">2023</a>)</cite>. Such work shows the value of synthetic data for training conversational medical systems, but most existing datasets remain either single-language, template-constrained, or not designed as multilingual parallel corpora.</p>
+</div>
+<div id="S2.p4" class="ltx_para">
+<p id="S2.p4.1" class="ltx_p">Multilingual medical dialogue remains especially underexplored. BiMediX is an important step toward bilingual medical conversation in English and Arabic <cite class="ltx_cite ltx_citemacro_citep">(Pieri<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib1" title="Bimedix: bilingual medical mixture of experts llm" class="ltx_ref">2024</a>)</cite>, but broader multilingual coverage for low-resource settings is still missing. This limitation is critical for practical deployment, especially in regions where patients may not be comfortable using English and where lightweight models are preferable for accessibility. More broadly, multi-turn dialogue research in NLP has highlighted the importance of context tracking, coherence, reasoning, and safety across turns <cite class="ltx_cite ltx_citemacro_citep">(Li<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib15" title="Dailydialog: a manually labelled multi-turn dialogue dataset" class="ltx_ref">2017</a>; Cui<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib21" title="MuTual: a dataset for multi-turn dialogue reasoning" class="ltx_ref">2020</a>; Su<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib23" title="Improving multi-turn dialogue modelling with utterance rewriter" class="ltx_ref">2019</a>; Zhang and Zhao, <a href="#bib.bib24" title="Advances in multi-turn dialogue comprehension: a survey" class="ltx_ref">2021</a>; Yi<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib22" title="A survey on recent advances in llm-based multi-turn dialogue systems" class="ltx_ref">2025</a>; Zhou<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib25" title="Speak out of turn: safety vulnerability of large language models in multi-turn dialogue" class="ltx_ref">2024</a>)</cite>. Recent evaluation work in medical dialogue also shows that success should not be measured only by final-answer accuracy, but also by questioning quality, safety, and turn-level clinical relevance <cite class="ltx_cite ltx_citemacro_citep">(Macherla<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib2" title="Mddial: a multi-turn differential diagnosis dialogue dataset with reliability evaluation" class="ltx_ref">2023</a>; Tu<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib11" title="Towards conversational diagnostic ai" class="ltx_ref">2024</a>; Gong<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib16" title="MedDialogRubrics: a comprehensive benchmark and evaluation framework for multi-turn medical consultations in large language models" class="ltx_ref">2026</a>)</cite>.</p>
+</div>
+</section>
+<section id="S3" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">3 </span>Task Definition</h2>
+
+<div id="S3.p1" class="ltx_para">
+<p id="S3.p1.1" class="ltx_p">We study the problem of multilingual multi-turn medical dialogue generation, where a conversational agent interacts with a patient to collect symptoms and provide preliminary diagnostic guidance. Unlike single-turn medical question answering, this task requires modeling sequential physician–patient interactions where diagnostic reasoning emerges through multiple conversational exchanges.</p>
+</div>
+<section id="S3.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.1 </span>Problem Setup</h3>
+
+<div id="S3.SS1.p1" class="ltx_para">
+<p id="S3.SS1.p1.7" class="ltx_p">A medical consultation dialogue is represented as a sequence of conversational turns between a patient and a doctor <math id="S3.SS1.p1.1.m1" class="ltx_Math" alttext="D=\{u_{1},u_{2},...,u_{T}\}" display="inline" intent=":literal"><semantics><mrow><mi>D</mi><mo>=</mo><mrow><mo stretchy="false">{</mo><msub><mi>u</mi><mn>1</mn></msub><mo>,</mo><msub><mi>u</mi><mn>2</mn></msub><mo>,</mo><mi mathvariant="normal">…</mi><mo>,</mo><msub><mi>u</mi><mi>T</mi></msub><mo stretchy="false">}</mo></mrow></mrow><annotation encoding="application/x-tex">D=\{u_{1},u_{2},...,u_{T}\}</annotation></semantics></math>,
+where <math id="S3.SS1.p1.2.m2" class="ltx_Math" alttext="u_{t}" display="inline" intent=":literal"><semantics><msub><mi>u</mi><mi>t</mi></msub><annotation encoding="application/x-tex">u_{t}</annotation></semantics></math> denotes the utterance at turn <math id="S3.SS1.p1.3.m3" class="ltx_Math" alttext="t" display="inline" intent=":literal"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>, and <math id="S3.SS1.p1.4.m4" class="ltx_Math" alttext="T" display="inline" intent=":literal"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math> is the total number of dialogue turns. In our setting, odd turns correspond to patient utterances and even turns correspond to doctor responses. Each dialogue is associated with a diagnostic label <math id="S3.SS1.p1.5.m5" class="ltx_Math" alttext="y" display="inline" intent=":literal"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math> drawn from a disease set <math id="S3.SS1.p1.6.m6" class="ltx_Math" alttext="y\in\mathcal{Y}" display="inline" intent=":literal"><semantics><mrow><mi>y</mi><mo>∈</mo><mi class="ltx_font_mathcaligraphic">𝒴</mi></mrow><annotation encoding="application/x-tex">y\in\mathcal{Y}</annotation></semantics></math>, where <math id="S3.SS1.p1.7.m7" class="ltx_Math" alttext="\mathcal{Y}" display="inline" intent=":literal"><semantics><mi class="ltx_font_mathcaligraphic">𝒴</mi><annotation encoding="application/x-tex">\mathcal{Y}</annotation></semantics></math> denotes the set of possible diseases considered in the dataset.</p>
+</div>
+<div id="S3.SS1.p2" class="ltx_para">
+<p id="S3.SS1.p2.1" class="ltx_p">Given a dialogue context consisting of the previous turns:</p>
+</div>
+<div id="S3.SS1.p3" class="ltx_para">
+<table id="S3.E1" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S3.E1.m1" class="ltx_Math" alttext="C_{t}=\{u_{1},u_{2},...,u_{t-1}\}" display="block" intent=":literal"><semantics><mrow><msub><mi>C</mi><mi>t</mi></msub><mo>=</mo><mrow><mo stretchy="false">{</mo><msub><mi>u</mi><mn>1</mn></msub><mo>,</mo><msub><mi>u</mi><mn>2</mn></msub><mo>,</mo><mi mathvariant="normal">…</mi><mo>,</mo><msub><mi>u</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false">}</mo></mrow></mrow><annotation encoding="application/x-tex">C_{t}=\{u_{1},u_{2},...,u_{t-1}\}</annotation></semantics></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(1)</span></td>
+</tr></tbody>
+</table>
+</div>
+<div id="S3.SS1.p4" class="ltx_para">
+<p id="S3.SS1.p4.1" class="ltx_p">The objective of the model is to generate the next doctor response:</p>
+</div>
+<div id="S3.SS1.p5" class="ltx_para">
+<table id="S3.E2" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S3.E2.m1" class="ltx_Math" alttext="u_{t}=\arg\max_{u}P(u\mid C_{t})" display="block" intent=":literal"><semantics><mrow><msub><mi>u</mi><mi>t</mi></msub><mo>=</mo><mrow><mrow><mi>arg</mi><mo lspace="0.167em">⁡</mo><mrow><munder><mi>max</mi><mi>u</mi></munder><mo lspace="0.167em">⁡</mo><mi>P</mi></mrow></mrow><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><mrow><mi>u</mi><mo>∣</mo><msub><mi>C</mi><mi>t</mi></msub></mrow><mo stretchy="false">)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">u_{t}=\arg\max_{u}P(u\mid C_{t})</annotation></semantics></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(2)</span></td>
+</tr></tbody>
+</table>
+</div>
+<div id="S3.SS1.p6" class="ltx_para">
+<p id="S3.SS1.p6.1" class="ltx_p">The conversation continues until sufficient information has been collected and a diagnostic recommendation is produced.</p>
+</div>
+</section>
+<section id="S3.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.2 </span>Multilingual Dialogue Setting</h3>
+
+<div id="S3.SS2.p1" class="ltx_para">
+<p id="S3.SS2.p1.1" class="ltx_p">The dataset supports multilingual dialogue generation across seven languages: English, Hindi, Telugu, Tamil, Bengali, Marathi, and Arabic. The objective is to learn a model that can generate medically coherent responses across languages while maintaining consistent diagnostic reasoning.</p>
+</div>
+</section>
+<section id="S3.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.3 </span>Patient Context Personalization</h3>
+
+<div id="S3.SS3.p1" class="ltx_para">
+<p id="S3.SS3.p1.1" class="ltx_p">In real clinical consultations, physicians often begin with basic contextual information about the patient before asking symptom-related questions. To better simulate this scenario, our framework allows optional patient pretext information to be provided at the start of the dialogue. This information may include <span id="S3.SS3.p1.1.1" class="ltx_text ltx_font_italic">age group, gender, geographic location, known allergies, and pre-existing medical conditions, etc</span>. This information is appended to the dialogue prefix and incorporated into the model input. Incorporating patient context allows the model to personalize its questioning strategy and diagnostic reasoning, reflecting how clinicians adapt their inquiries based on patient demographics and medical history.</p>
+</div>
+</section>
+</section>
+<section id="S4" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">4 </span><span id="S4.1.1" class="ltx_text ltx_font_typewriter">MedAidDialog</span> Dataset</h2>
+
+<div id="S4.p1" class="ltx_para">
+<p id="S4.p1.1" class="ltx_p">Multi-turn conversational datasets are essential for training medical dialogue systems that can iteratively collect symptoms and provide diagnostic guidance <cite class="ltx_cite ltx_citemacro_citep">(Macherla<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib2" title="Mddial: a multi-turn differential diagnosis dialogue dataset with reliability evaluation" class="ltx_ref">2023</a>; Tu<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib11" title="Towards conversational diagnostic ai" class="ltx_ref">2024</a>)</cite>. The MDDial dataset <cite class="ltx_cite ltx_citemacro_citep">(Macherla<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib2" title="Mddial: a multi-turn differential diagnosis dialogue dataset with reliability evaluation" class="ltx_ref">2023</a>)</cite> provides an English differential-diagnosis dialogue corpus derived from structured medical records. However, its template-based generation limits conversational diversity and realism, and it does not support multilingual deployment.</p>
+</div>
+<div id="S4.p2" class="ltx_para">
+<p id="S4.p2.1" class="ltx_p">To address these limitations, we construct <span id="S4.p2.1.1" class="ltx_text ltx_font_typewriter">MedAidDialog</span>, a synthetic multilingual medical dialogue dataset designed to simulate more natural physician–patient consultations while enabling accessibility across multiple languages.</p>
+</div>
+<section id="S4.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.1 </span>Synthetic Dialogue Generation</h3>
+
+<div id="S4.SS1.p1" class="ltx_para">
+<p id="S4.SS1.p1.1" class="ltx_p">To increase conversational diversity beyond template-based dialogues, we generate synthetic medical consultations using the Llama-3.3-70B-Versatile model through the Groq API<span id="footnote1" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">1</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">1</sup><span class="ltx_tag ltx_tag_note">1</span><a target="_blank" href="https://groq.com/" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://groq.com/</a></span></span></span>. The model architecture follows the design described in the Llama 3 model card <cite class="ltx_cite ltx_citemacro_citep">(AI@Meta, <a href="#bib.bib42" title="Llama 3 model card" class="ltx_ref">2024</a>)</cite>.</p>
+</div>
+<div id="S4.SS1.p2" class="ltx_para">
+<p id="S4.SS1.p2.1" class="ltx_p">The generation pipeline simulates diagnostic consultations involving 12 diseases and 118 symptoms. Each dialogue begins with a randomized patient complaint and proceeds through multiple conversational exchanges in which the physician asks follow-up questions to gather diagnostic evidence. Dialogues typically contain 4–8 conversational turns and conclude with a final diagnosis.</p>
+</div>
+<div id="S4.SS1.p3" class="ltx_para">
+<p id="S4.SS1.p3.1" class="ltx_p">To better approximate real clinical conversations, the generation process introduces variability through non-deterministic patient responses, overlapping symptom descriptions, and incomplete or ambiguous symptom reporting. Using this pipeline, we generated 1,101 synthetic consultations, providing a more diverse training resource compared with template-based dialogue construction. Table <a href="#S4.T1" title="Table 1 ‣ 4.1 Synthetic Dialogue Generation ‣ 4 MedAidDialog Dataset ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a> summarizes the statistics of the original MDDial dataset and the synthetic dialogues used to construct <span id="S4.SS1.p3.1.1" class="ltx_text ltx_font_typewriter">MedAidDialog</span>. Compared with the template-driven corpus, the synthetic dataset contains longer dialogues and richer conversational exchanges.</p>
+</div>
+<figure id="S4.T1" class="ltx_table">
+<div id="S4.T1.1" class="ltx_inline-block ltx_align_center ltx_transformed_outer" style="width:433.6pt;height:90.3pt;vertical-align:-42.5pt;"><span class="ltx_transformed_inner" style="transform:translate(11.1pt,-2.3pt) scale(1.05410883192997,1.05410883192997) ;">
+<table id="S4.T1.1.1" class="ltx_tabular ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr id="S4.T1.1.1.1.1" class="ltx_tr">
+<td id="S4.T1.1.1.1.1.1" class="ltx_td ltx_border_tt"></td>
+<td id="S4.T1.1.1.1.1.2" class="ltx_td ltx_align_center ltx_border_tt" colspan="4"><span id="S4.T1.1.1.1.1.2.1" class="ltx_text ltx_font_bold">Dialogue Turns</span></td>
+<td id="S4.T1.1.1.1.1.3" class="ltx_td ltx_align_center ltx_border_tt" colspan="3"><span id="S4.T1.1.1.1.1.3.1" class="ltx_text ltx_font_bold">Average Words</span></td>
+</tr>
+<tr id="S4.T1.1.1.2.2" class="ltx_tr">
+<td id="S4.T1.1.1.2.2.1" class="ltx_td ltx_align_left"><span id="S4.T1.1.1.2.2.1.1" class="ltx_text ltx_font_bold">Dataset</span></td>
+<td id="S4.T1.1.1.2.2.2" class="ltx_td ltx_align_center ltx_border_t">Avg</td>
+<td id="S4.T1.1.1.2.2.3" class="ltx_td ltx_align_center ltx_border_t">Total</td>
+<td id="S4.T1.1.1.2.2.4" class="ltx_td ltx_align_center ltx_border_t">Min</td>
+<td id="S4.T1.1.1.2.2.5" class="ltx_td ltx_align_center ltx_border_t">Max</td>
+<td id="S4.T1.1.1.2.2.6" class="ltx_td ltx_align_center ltx_border_t">Per</td>
+<td id="S4.T1.1.1.2.2.7" class="ltx_td ltx_align_center ltx_border_t">Patient</td>
+<td id="S4.T1.1.1.2.2.8" class="ltx_td ltx_align_center ltx_border_t">Doctor</td>
+</tr>
+<tr id="S4.T1.1.1.3.3" class="ltx_tr">
+<td id="S4.T1.1.1.3.3.1" class="ltx_td"></td>
+<td id="S4.T1.1.1.3.3.2" class="ltx_td ltx_align_center">Turns</td>
+<td id="S4.T1.1.1.3.3.3" class="ltx_td ltx_align_center">Dialogues</td>
+<td id="S4.T1.1.1.3.3.4" class="ltx_td ltx_align_center">Turns</td>
+<td id="S4.T1.1.1.3.3.5" class="ltx_td ltx_align_center">Turns</td>
+<td id="S4.T1.1.1.3.3.6" class="ltx_td ltx_align_center">Dialogue</td>
+<td id="S4.T1.1.1.3.3.7" class="ltx_td ltx_align_center">Utterance</td>
+<td id="S4.T1.1.1.3.3.8" class="ltx_td ltx_align_center">Utterance</td>
+</tr>
+<tr id="S4.T1.1.1.4.4" class="ltx_tr">
+<td id="S4.T1.1.1.4.4.1" class="ltx_td ltx_align_left ltx_border_t">MDDial (MD)</td>
+<td id="S4.T1.1.1.4.4.2" class="ltx_td ltx_align_center ltx_border_t">4.9</td>
+<td id="S4.T1.1.1.4.4.3" class="ltx_td ltx_align_center ltx_border_t">1879</td>
+<td id="S4.T1.1.1.4.4.4" class="ltx_td ltx_align_center ltx_border_t">1</td>
+<td id="S4.T1.1.1.4.4.5" class="ltx_td ltx_align_center ltx_border_t">16</td>
+<td id="S4.T1.1.1.4.4.6" class="ltx_td ltx_align_center ltx_border_t">53.5</td>
+<td id="S4.T1.1.1.4.4.7" class="ltx_td ltx_align_center ltx_border_t">5.6</td>
+<td id="S4.T1.1.1.4.4.8" class="ltx_td ltx_align_center ltx_border_t">6.7</td>
+</tr>
+<tr id="S4.T1.1.1.5.5" class="ltx_tr">
+<td id="S4.T1.1.1.5.5.1" class="ltx_td ltx_align_left">Synthetic (SYN)</td>
+<td id="S4.T1.1.1.5.5.2" class="ltx_td ltx_align_center">6.6</td>
+<td id="S4.T1.1.1.5.5.3" class="ltx_td ltx_align_center">1101</td>
+<td id="S4.T1.1.1.5.5.4" class="ltx_td ltx_align_center">5</td>
+<td id="S4.T1.1.1.5.5.5" class="ltx_td ltx_align_center">11</td>
+<td id="S4.T1.1.1.5.5.6" class="ltx_td ltx_align_center">134.5</td>
+<td id="S4.T1.1.1.5.5.7" class="ltx_td ltx_align_center">8.8</td>
+<td id="S4.T1.1.1.5.5.8" class="ltx_td ltx_align_center">9.6</td>
+</tr>
+<tr id="S4.T1.1.1.6.6" class="ltx_tr">
+<td id="S4.T1.1.1.6.6.1" class="ltx_td ltx_align_left">MD + SYN</td>
+<td id="S4.T1.1.1.6.6.2" class="ltx_td ltx_align_center">5.7</td>
+<td id="S4.T1.1.1.6.6.3" class="ltx_td ltx_align_center">2980</td>
+<td id="S4.T1.1.1.6.6.4" class="ltx_td ltx_align_center">1</td>
+<td id="S4.T1.1.1.6.6.5" class="ltx_td ltx_align_center">16</td>
+<td id="S4.T1.1.1.6.6.6" class="ltx_td ltx_align_center">86.9</td>
+<td id="S4.T1.1.1.6.6.7" class="ltx_td ltx_align_center">7.00</td>
+<td id="S4.T1.1.1.6.6.8" class="ltx_td ltx_align_center">8.05</td>
+</tr>
+<tr id="S4.T1.1.1.7.7" class="ltx_tr">
+<td id="S4.T1.1.1.7.7.1" class="ltx_td ltx_align_left ltx_border_bb">MDDial Test</td>
+<td id="S4.T1.1.1.7.7.2" class="ltx_td ltx_align_center ltx_border_bb">5.9</td>
+<td id="S4.T1.1.1.7.7.3" class="ltx_td ltx_align_center ltx_border_bb">237</td>
+<td id="S4.T1.1.1.7.7.4" class="ltx_td ltx_align_center ltx_border_bb">1</td>
+<td id="S4.T1.1.1.7.7.5" class="ltx_td ltx_align_center ltx_border_bb">13</td>
+<td id="S4.T1.1.1.7.7.6" class="ltx_td ltx_align_center ltx_border_bb">55.4</td>
+<td id="S4.T1.1.1.7.7.7" class="ltx_td ltx_align_center ltx_border_bb">5.6</td>
+<td id="S4.T1.1.1.7.7.8" class="ltx_td ltx_align_center ltx_border_bb">6.6</td>
+</tr>
+</tbody>
+</table>
+</span></div>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 1: </span>Statistics of the original MDDial dataset (MD) and the synthetic dialogues used to construct the MedAidDialog corpus. The synthetic dialogues contain more conversational turns and longer utterances, resulting in richer physician–patient interactions.</figcaption>
+</figure>
+</section>
+<section id="S4.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.2 </span>Multilingual Expansion</h3>
+
+<div id="S4.SS2.p1" class="ltx_para">
+<p id="S4.SS2.p1.1" class="ltx_p">A primary goal of <span id="S4.SS2.p1.1.1" class="ltx_text ltx_font_typewriter">MedAidDialog</span> is to support healthcare accessibility for users in rural or linguistically diverse regions. To this end, we construct a parallel multilingual corpus by translating the English dialogues into six additional languages: <span id="S4.SS2.p1.1.2" class="ltx_text ltx_font_italic">Hindi, Telugu, Tamil, Bengali, Marathi, and Arabic</span>. Each dialogue therefore has aligned translations across seven languages.
+The translation pipeline combines TranslateGemma <cite class="ltx_cite ltx_citemacro_citep">(Finkelstein<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib29" title="TranslateGemma technical report" class="ltx_ref">2026</a>)</cite> and TinyAya <cite class="ltx_cite ltx_citemacro_citep">(Salamanca<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib30" title="Tiny aya: bridging scale and multilingual depth" class="ltx_ref">2026</a>)</cite>, two multilingual models designed for efficient translation and cross-lingual generation. To ensure consistent translation and preservation of medical semantics, we employ a structured prompting strategy. The full translation prompt used in the pipeline is provided in Appendix <a href="#A4.SS3" title="D.3 Translation Prompt ‣ Appendix D Prompt Templates ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">D.3</span></a>.</p>
+</div>
+</section>
+</section>
+<section id="S5" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">5 </span>Methodology</h2>
+
+<div id="S5.p1" class="ltx_para">
+<p id="S5.p1.1" class="ltx_p">Our framework consists of three stages:
+(1) synthetic dialogue generation based on <span id="S5.p1.1.1" class="ltx_text ltx_font_typewriter">MDDial</span>,
+(2) parameter-efficient fine-tuning of compact open-source language models,
+and (3) deployment of the best-performing model in a multilingual conversational system.
+Figure <a href="#S5.F3" title="Figure 3 ‣ Quality Control. ‣ 5.1 Base Dataset and Synthetic Augmentation ‣ 5 Methodology ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a> presents the overall pipeline.</p>
+</div>
+<section id="S5.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">5.1 </span>Base Dataset and Synthetic Augmentation</h3>
+
+<div id="S5.SS1.p1" class="ltx_para">
+<p id="S5.SS1.p1.1" class="ltx_p">We use <span id="S5.SS1.p1.1.1" class="ltx_text ltx_font_typewriter">MDDial</span> <cite class="ltx_cite ltx_citemacro_citep">(Macherla<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib2" title="Mddial: a multi-turn differential diagnosis dialogue dataset with reliability evaluation" class="ltx_ref">2023</a>)</cite> as the starting point for our data construction pipeline. <span id="S5.SS1.p1.1.2" class="ltx_text ltx_font_typewriter">MDDial</span> is a benchmark corpus for multi-turn medical dialogue in which each conversation is associated with a final disease label. It provides a useful foundation for diagnosis-oriented dialogue modeling, but its template-driven construction limits conversational diversity and does not fully reflect the variability of realistic physician–patient interaction.</p>
+</div>
+<div id="S5.SS1.p2" class="ltx_para">
+<p id="S5.SS1.p2.1" class="ltx_p">To address this limitation, we generate synthetic consultations using Llama-3.3-70B-Versatile via the Groq API.<span id="footnote2" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">2</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">2</sup><span class="ltx_tag ltx_tag_note">2</span><a target="_blank" href="https://groq.com/" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://groq.com/</a></span></span></span> The synthetic generation process is conditioned on disease categories from <span id="S5.SS1.p2.1.1" class="ltx_text ltx_font_typewriter">MDDial</span>, demographic profiles, and stylistic constraints so that the generated conversations remain medically plausible while exhibiting richer linguistic variation. The full synthetic generation prompt is included in Appendix <a href="#A4.SS1" title="D.1 Synthetic Dialogue Generation Prompt ‣ Appendix D Prompt Templates ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">D.1</span></a>.</p>
+</div>
+<div id="S5.SS1.p3" class="ltx_para">
+<p id="S5.SS1.p3.1" class="ltx_p">Each synthetic consultation is designed to follow a realistic diagnostic flow: the patient presents an initial complaint, the model playing the doctor asks follow-up questions to elicit additional symptoms, and the conversation ends with a diagnosis-oriented response. We target dialogues of 4–8 turns so that the synthetic corpus remains compatible with the interaction style of <span id="S5.SS1.p3.1.1" class="ltx_text ltx_font_typewriter">MDDial</span> while supporting greater diversity in phrasing and symptom progression.</p>
+</div>
+<section id="S5.SS1.SSS0.Px1" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Quality Control.</h4>
+
+<div id="S5.SS1.SSS0.Px1.p1" class="ltx_para">
+<p id="S5.SS1.SSS0.Px1.p1.1" class="ltx_p">To improve the quality of the generated corpus, we apply two filtering stages. First, we perform a <span id="S5.SS1.SSS0.Px1.p1.1.1" class="ltx_text ltx_font_italic">coherence check</span> to verify logical consistency between symptom descriptions and the final diagnosis. Second, we apply a <span id="S5.SS1.SSS0.Px1.p1.1.2" class="ltx_text ltx_font_italic">diversity check</span> based on MinHash-style near-duplicate removal to reduce repetitive generations. The resulting synthetic dialogues are merged with the original <span id="S5.SS1.SSS0.Px1.p1.1.3" class="ltx_text ltx_font_typewriter">MDDial</span> training split to form the augmented training corpus, denoted by <math id="S5.SS1.SSS0.Px1.p1.1.m1" class="ltx_Math" alttext="\mathcal{D}_{\text{train}}" display="inline" intent=":literal"><semantics><msub><mi class="ltx_font_mathcaligraphic">𝒟</mi><mtext>train</mtext></msub><annotation encoding="application/x-tex">\mathcal{D}_{\text{train}}</annotation></semantics></math>.</p>
+</div>
+<figure id="S5.F3" class="ltx_figure"><img src="/html/2603.24132/assets/x3.png" id="S5.F3.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="830" height="474" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 3: </span>
+Overview of the proposed framework.
+<span id="S5.F3.6.1" class="ltx_text ltx_font_bold">Stage 1: Data Augmentation.</span> The <span id="S5.F3.7.2" class="ltx_text ltx_font_typewriter">MDDial</span> dataset is expanded with synthetic medical dialogues, followed by coherence and diversity filtering.
+<span id="S5.F3.8.3" class="ltx_text ltx_font_bold">Stage 2: Model Adaptation.</span> Compact open-source language models are fine-tuned using parameter-efficient training and LoRA-based SFT. The dotted connection indicates an optional GRPO optimisation stage applied to selected models.
+<span id="S5.F3.9.4" class="ltx_text ltx_font_bold">Stage 3: Deployment.</span> The best-performing checkpoint is deployed as <span id="S5.F3.10.5" class="ltx_text ltx_font_typewriter">MedAidLM</span>, which operates within a multilingual inference loop that incorporates optional patient pre-context and bidirectional translation.
+</figcaption>
+</figure>
+</section>
+</section>
+<section id="S5.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">5.2 </span>Dialogue Formatting</h3>
+
+<div id="S5.SS2.p1" class="ltx_para">
+<p id="S5.SS2.p1.1" class="ltx_p">Before training, all dialogues are converted into a unified multi-turn instruction format. Specifically, we transform each consultation into a ShareGPT-style conversation in which patient utterances are mapped to <span id="S5.SS2.p1.1.1" class="ltx_text ltx_font_typewriter">human</span> turns and doctor utterances are mapped to <span id="S5.SS2.p1.1.2" class="ltx_text ltx_font_typewriter">gpt</span> turns. A system message defines the diagnostic consultation setting, and the final assistant turn contains the diagnosis-oriented output. This representation is convenient for instruction tuning and preserves the sequential nature of symptom elicitation. The exact formatting prompt is provided in Appendix <a href="#A4.SS2" title="D.2 Dialogue Formatting Prompt ‣ Appendix D Prompt Templates ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">D.2</span></a>.</p>
+</div>
+</section>
+<section id="S5.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">5.3 </span>Parameter-Efficient Fine-Tuning</h3>
+
+<section id="S5.SS3.SSS0.Px1" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Model Families.</h4>
+
+<div id="S5.SS3.SSS0.Px1.p1" class="ltx_para">
+<p id="S5.SS3.SSS0.Px1.p1.1" class="ltx_p">We fine-tune multiple compact open-source model families in order to study the feasibility of low-resource deployment. Our experiments focus on SLMs, including Llama-3.2-3B-Instruct <cite class="ltx_cite ltx_citemacro_citep">(Grattafiori<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib28" title="The llama 3 herd of models" class="ltx_ref">2024</a>)</cite>, Mistral-7B-Instruct <cite class="ltx_cite ltx_citemacro_citep">(Jiang<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib32" title="6G non-terrestrial networks enabled low-altitude economy: opportunities and challenges" class="ltx_ref">2023</a>)</cite>, DeepSeek-R1-Distill-Qwen-1.5B <cite class="ltx_cite ltx_citemacro_citep">(DeepSeek-AI, <a href="#bib.bib34" title="DeepSeek-r1: incentivizing reasoning capability in llms via reinforcement learning" class="ltx_ref">2025</a>)</cite>, and Qwen3-4B <cite class="ltx_cite ltx_citemacro_citep">(Team, <a href="#bib.bib35" title="Qwen3 technical report" class="ltx_ref">2025</a>)</cite>. All models are loaded in 4-bit NF4 quantized format to reduce memory usage and enable training on commodity GPUs.</p>
+</div>
+</section>
+<section id="S5.SS3.SSS0.Px2" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">LoRA Setup.</h4>
+
+<div id="S5.SS3.SSS0.Px2.p1" class="ltx_para">
+<p id="S5.SS3.SSS0.Px2.p1.1" class="ltx_p">We adopt Low-Rank Adaptation (LoRA) <cite class="ltx_cite ltx_citemacro_citep">(Hu<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib38" title="Lora: low-rank adaptation of large language models." class="ltx_ref">2022</a>)</cite> for parameter-efficient fine-tuning. LoRA adapters are inserted into the attention projection layers of each transformer block, enabling efficient adaptation while keeping the number of trainable parameters small. Detailed hyperparameters and configuration settings are provided in Appendix <a href="#A1" title="Appendix A LoRA Training Configuration ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">A</span></a>.</p>
+</div>
+</section>
+<section id="S5.SS3.SSS0.Px3" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Stage 1: Supervised Fine-Tuning.</h4>
+
+<div id="S5.SS3.SSS0.Px3.p1" class="ltx_para">
+<p id="S5.SS3.SSS0.Px3.p1.1" class="ltx_p">In the first training stage, each model is fine-tuned on <math id="S5.SS3.SSS0.Px3.p1.1.m1" class="ltx_Math" alttext="\mathcal{D}_{\text{train}}" display="inline" intent=":literal"><semantics><msub><mi class="ltx_font_mathcaligraphic">𝒟</mi><mtext>train</mtext></msub><annotation encoding="application/x-tex">\mathcal{D}_{\text{train}}</annotation></semantics></math> using standard next-token prediction. We train for three epochs using AdamW <cite class="ltx_cite ltx_citemacro_citep">(Loshchilov and Hutter, <a href="#bib.bib39" title="Decoupled weight decay regularization" class="ltx_ref">2017</a>)</cite> with a cosine learning-rate schedule. The dialogues are formatted so that the model learns to ask symptom-focused follow-up questions and delay disease prediction until enough information has been collected.</p>
+</div>
+</section>
+<section id="S5.SS3.SSS0.Px4" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Optional RL Optimisation.</h4>
+
+<div id="S5.SS3.SSS0.Px4.p1" class="ltx_para">
+<p id="S5.SS3.SSS0.Px4.p1.1" class="ltx_p">Starting from the supervised checkpoint, we optionally apply Group Relative Policy Optimisation (GRPO) <cite class="ltx_cite ltx_citemacro_citep">(Shao<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib40" title="Deepseekmath: pushing the limits of mathematical reasoning in open language models" class="ltx_ref">2024</a>)</cite> to further refine dialogue behaviour. The reward signal combines diagnostic correctness, conversational quality, and format compliance. Since this optimisation step is optional and not used in all model variants, additional implementation details are provided in Appendix <a href="#A2" title="Appendix B GRPO Optimisation ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">B</span></a>.</p>
+</div>
+</section>
+</section>
+<section id="S5.SS4" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">5.4 </span>Patient Pre-Context and Personalisation</h3>
+
+<div id="S5.SS4.p1" class="ltx_para">
+<p id="S5.SS4.p1.1" class="ltx_p">A key component of our framework is the use of optional <span id="S5.SS4.p1.1.1" class="ltx_text ltx_font_italic">patient pre-context</span> before the dialogue begins. This pre-context may include demographic or clinically useful attributes such as age, gender, height, weight, allergies, and other basic history fields. We prepend this information to the conversation as a structured consultation profile, allowing the model to condition its questioning strategy on essential patient characteristics.</p>
+</div>
+<div id="S5.SS4.p2" class="ltx_para">
+<p id="S5.SS4.p2.1" class="ltx_p">This design more closely matches real consultation settings, where physicians often begin with basic contextual information before exploring symptoms in detail. It also enables more personalized follow-up questions, especially in cases where age, sex, or allergy information may influence diagnostic reasoning.</p>
+</div>
+</section>
+<section id="S5.SS5" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">5.5 </span>Multilingual Inference Pipeline</h3>
+
+<div id="S5.SS5.p1" class="ltx_para">
+<p id="S5.SS5.p1.1" class="ltx_p">The best-performing fine-tuned checkpoint is deployed as <span id="S5.SS5.p1.1.1" class="ltx_text ltx_font_typewriter">MedAidLM</span>, the dialogue engine in our multilingual consultation system. Since the fine-tuned model operates in English, we wrap it with a bidirectional translation layer so that patients can interact in their preferred language.</p>
+</div>
+<div id="S5.SS5.p2" class="ltx_para">
+<p id="S5.SS5.p2.1" class="ltx_p">At inference time, the user input in language <math id="S5.SS5.p2.1.m1" class="ltx_Math" alttext="\ell" display="inline" intent=":literal"><semantics><mi mathvariant="normal">ℓ</mi><annotation encoding="application/x-tex">\ell</annotation></semantics></math> is first translated into English, then passed to <span id="S5.SS5.p2.1.1" class="ltx_text ltx_font_typewriter">MedAidLM</span> together with the patient pre-context and dialogue history. The model generates the next English response, which is then translated back into the user language before being displayed. This process continues turn by turn until the model emits a dedicated <span id="S5.SS5.p2.1.2" class="ltx_text ltx_font_typewriter">[PREDICT]</span> marker, after which the final diagnosis and justification are returned.</p>
+</div>
+<div id="S5.SS5.p3" class="ltx_para">
+<p id="S5.SS5.p3.1" class="ltx_p">For the translation layer, we evaluate TranslateGemma <cite class="ltx_cite ltx_citemacro_citep">(Finkelstein<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib29" title="TranslateGemma technical report" class="ltx_ref">2026</a>)</cite> and TinyAya <cite class="ltx_cite ltx_citemacro_citep">(Salamanca<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib30" title="Tiny aya: bridging scale and multilingual depth" class="ltx_ref">2026</a>)</cite>. The final system prompt used for translation is shown in Appendix <a href="#A4.SS3" title="D.3 Translation Prompt ‣ Appendix D Prompt Templates ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">D.3</span></a>. This translation-augmented loop enables multilingual use while preserving a single English-centered dialogue model.</p>
+</div>
+</section>
+<section id="S5.SS6" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">5.6 </span>System Summary</h3>
+
+<div id="S5.SS6.p1" class="ltx_para">
+<p id="S5.SS6.p1.1" class="ltx_p">The resulting system combines data augmentation, compact model adaptation, and multilingual inference into a single deployable pipeline. Synthetic augmentation improves conversational diversity, LoRA-based tuning enables efficient adaptation of compact models, and the translation wrapper allows the system to serve users across multiple low-resource languages without requiring a separate dialogue model per language.</p>
+</div>
+</section>
+</section>
+<section id="S6" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">6 </span>Evaluation Metrics</h2>
+
+<figure id="S6.T2" class="ltx_table">
+<div id="S6.T2.1" class="ltx_inline-block ltx_align_center ltx_transformed_outer" style="width:433.6pt;height:62.7pt;vertical-align:-28.8pt;"><span class="ltx_transformed_inner" style="transform:translate(5.2pt,-0.8pt) scale(1.02477478208446,1.02477478208446) ;">
+<table id="S6.T2.1.1" class="ltx_tabular ltx_guessed_headers ltx_align_middle">
+<thead class="ltx_thead">
+<tr id="S6.T2.1.1.1.1" class="ltx_tr">
+<th id="S6.T2.1.1.1.1.1" class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_th_row ltx_border_tt"><span id="S6.T2.1.1.1.1.1.1" class="ltx_text ltx_font_bold">Model Family</span></th>
+<th id="S6.T2.1.1.1.1.2" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt"><span id="S6.T2.1.1.1.1.2.1" class="ltx_text ltx_font_bold">Dataset</span></th>
+<th id="S6.T2.1.1.1.1.3" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt"><span id="S6.T2.1.1.1.1.3.1" class="ltx_text ltx_font_bold">Method</span></th>
+<th id="S6.T2.1.1.1.1.4" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt"><span id="S6.T2.1.1.1.1.4.1" class="ltx_text ltx_font_bold">Accuracy</span></th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr id="S6.T2.1.1.2.1" class="ltx_tr">
+<th id="S6.T2.1.1.2.1.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t">Mistral-7B-Instruct</th>
+<td id="S6.T2.1.1.2.1.2" class="ltx_td ltx_align_center ltx_border_t">MedAidDialog (MD+SYN)</td>
+<td id="S6.T2.1.1.2.1.3" class="ltx_td ltx_align_center ltx_border_t">SFT</td>
+<td id="S6.T2.1.1.2.1.4" class="ltx_td ltx_align_center ltx_border_t">88.09%</td>
+</tr>
+<tr id="S6.T2.1.1.3.2" class="ltx_tr">
+<th id="S6.T2.1.1.3.2.1" class="ltx_td ltx_align_left ltx_th ltx_th_row"><span id="S6.T2.1.1.3.2.1.1" class="ltx_text ltx_font_bold">LLaMA 3.2 3B (MedAidLM)</span></th>
+<td id="S6.T2.1.1.3.2.2" class="ltx_td ltx_align_center"><span id="S6.T2.1.1.3.2.2.1" class="ltx_text ltx_font_bold">MedAidDialog (MD+SYN)</span></td>
+<td id="S6.T2.1.1.3.2.3" class="ltx_td ltx_align_center"><span id="S6.T2.1.1.3.2.3.1" class="ltx_text ltx_font_bold">SFT</span></td>
+<td id="S6.T2.1.1.3.2.4" class="ltx_td ltx_align_center"><span id="S6.T2.1.1.3.2.4.1" class="ltx_text ltx_font_bold">90.21%</span></td>
+</tr>
+<tr id="S6.T2.1.1.4.3" class="ltx_tr">
+<th id="S6.T2.1.1.4.3.1" class="ltx_td ltx_align_left ltx_th ltx_th_row">Qwen3-4B</th>
+<td id="S6.T2.1.1.4.3.2" class="ltx_td ltx_align_center">MedAidDialog (MD+SYN)</td>
+<td id="S6.T2.1.1.4.3.3" class="ltx_td ltx_align_center">SFT</td>
+<td id="S6.T2.1.1.4.3.4" class="ltx_td ltx_align_center">80.00%</td>
+</tr>
+<tr id="S6.T2.1.1.5.4" class="ltx_tr">
+<th id="S6.T2.1.1.5.4.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_bb">DeepSeek-R1-Distill-Qwen-1.5B</th>
+<td id="S6.T2.1.1.5.4.2" class="ltx_td ltx_align_center ltx_border_bb">MedAidDialog (MD+SYN)</td>
+<td id="S6.T2.1.1.5.4.3" class="ltx_td ltx_align_center ltx_border_bb">SFT</td>
+<td id="S6.T2.1.1.5.4.4" class="ltx_td ltx_align_center ltx_border_bb">40.00%</td>
+</tr>
+</tbody>
+</table>
+</span></div>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 2: </span>Results on the <span id="S6.T2.3.1" class="ltx_text ltx_font_typewriter">MedAidDialog</span> dataset.</figcaption>
+</figure>
+<div id="S6.p1" class="ltx_para">
+<p id="S6.p1.1" class="ltx_p">Evaluating conversational medical systems is challenging because a correct diagnosis alone does not guarantee a safe or clinically meaningful interaction. Therefore, we adopt a two-stage evaluation strategy consisting of (i) automatic evaluation based on diagnostic accuracy and (ii) human expert evaluation focusing on clinical reliability and conversational quality.</p>
+</div>
+<section id="S6.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">6.1 </span>Automatic Evaluation</h3>
+
+<div id="S6.SS1.p1" class="ltx_para">
+<p id="S6.SS1.p1.1" class="ltx_p">For automatic evaluation, we compute the diagnostic accuracy of the model.
+Specifically, we compare the final diagnosis predicted by the model with the gold disease label provided in the dataset. Although accuracy provides a straightforward measure of diagnostic correctness, it does not capture other critical aspects of conversational medical systems such as safety, reasoning quality, or conversational coherence. Therefore, we complement automatic evaluation with human expert assessment.</p>
+</div>
+</section>
+<section id="S6.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">6.2 </span>Expert Evaluation</h3>
+
+<div id="S6.SS2.p1" class="ltx_para">
+<p id="S6.SS2.p1.1" class="ltx_p">To assess the clinical reliability of the generated conversations, we conduct a human evaluation with three medical experts. All evaluators are qualified medical practitioners holding an <span id="S6.SS2.p1.1.1" class="ltx_text ltx_font_italic">MBBS degree</span> and are currently pursuing postgraduate medical training at a reputed medical institute. Their medical background enables them to critically evaluate the plausibility, safety, and clinical reasoning of the generated dialogues.</p>
+</div>
+<div id="S6.SS2.p2" class="ltx_para">
+<p id="S6.SS2.p2.1" class="ltx_p">Each expert independently reviewed a subset of randomly sampled dialogues produced by the system. The evaluation focuses on multiple aspects of conversational medical assistance, including safety, symptom understanding, contextual reasoning, diagnostic plausibility, and conversational quality. Most criteria are scored on a <span id="S6.SS2.p2.1.1" class="ltx_text ltx_font_italic">Likert scale from 1 (Very Poor) to 5 (Excellent)</span>, while medical safety is evaluated as a binary <span id="S6.SS2.p2.1.2" class="ltx_text ltx_font_italic">pass/fail</span> metric.
+Table <a href="#A4.T13" title="Table 13 ‣ D.3 Translation Prompt ‣ Appendix D Prompt Templates ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">13</span></a> in Appendix summarizes the evaluation criteria used in the expert assessment.</p>
+</div>
+</section>
+</section>
+<section id="S7" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">7 </span>Results and Analysis</h2>
+
+<div id="S7.p1" class="ltx_para">
+<p id="S7.p1.1" class="ltx_p">Table <a href="#S6.T2" title="Table 2 ‣ 6 Evaluation Metrics ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a> presents the main automatic evaluation results, reporting only the best-performing configuration for each model family trained on the final <span id="S7.p1.1.1" class="ltx_text ltx_font_typewriter">MedAidDialog</span> corpus. Among all evaluated compact models, LLaMA3.2-3B achieves the highest diagnostic accuracy of <span id="S7.p1.1.2" class="ltx_text ltx_font_bold">90.21%</span>, and we designate this final model as <span id="S7.p1.1.3" class="ltx_text ltx_font_typewriter">MedAidLM</span>. Mistral-7B-Instruct also performs strongly with 88.09% accuracy, whereas Qwen3-4B reaches 80.00%. DeepSeek-R1-Distill-Qwen-1.5B performs substantially worse, suggesting that very small distilled reasoning models may be less suitable for this dialogue-driven medical prediction setting.
+These results indicate that compact open-source models can achieve strong diagnostic performance when trained on the augmented <span id="S7.p1.1.4" class="ltx_text ltx_font_typewriter">MedAidDialog</span> corpus, even without relying on large proprietary systems.</p>
+</div>
+<figure id="S7.T3" class="ltx_table">
+<div id="S7.T3.1" class="ltx_inline-block ltx_align_center ltx_transformed_outer" style="width:433.6pt;height:144.3pt;vertical-align:-69.5pt;"><span class="ltx_transformed_inner" style="transform:translate(15.5pt,-5.2pt) scale(1.07690168641101,1.07690168641101) ;">
+<table id="S7.T3.1.1" class="ltx_tabular ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr id="S7.T3.1.1.1.1" class="ltx_tr">
+<td id="S7.T3.1.1.1.1.1" class="ltx_td ltx_align_left ltx_border_tt"><span id="S7.T3.1.1.1.1.1.1" class="ltx_text ltx_font_bold">Model</span></td>
+<td id="S7.T3.1.1.1.1.2" class="ltx_td ltx_align_center ltx_border_tt"><span id="S7.T3.1.1.1.1.2.1" class="ltx_text ltx_font_bold">Dataset</span></td>
+<td id="S7.T3.1.1.1.1.3" class="ltx_td ltx_align_center ltx_border_tt"><span id="S7.T3.1.1.1.1.3.1" class="ltx_text ltx_font_bold">Avg. Turns</span></td>
+<td id="S7.T3.1.1.1.1.4" class="ltx_td ltx_align_center ltx_border_tt"><span id="S7.T3.1.1.1.1.4.1" class="ltx_text ltx_font_bold">Dialogs</span></td>
+<td id="S7.T3.1.1.1.1.5" class="ltx_td ltx_align_center ltx_border_tt"><span id="S7.T3.1.1.1.1.5.1" class="ltx_text ltx_font_bold">Method</span></td>
+<td id="S7.T3.1.1.1.1.6" class="ltx_td ltx_align_center ltx_border_tt"><span id="S7.T3.1.1.1.1.6.1" class="ltx_text ltx_font_bold">Accuracy</span></td>
+</tr>
+<tr id="S7.T3.1.1.2.2" class="ltx_tr">
+<td id="S7.T3.1.1.2.2.1" class="ltx_td ltx_align_left ltx_border_t">Mistral-7B-Instruct</td>
+<td id="S7.T3.1.1.2.2.2" class="ltx_td ltx_align_center ltx_border_t">MD</td>
+<td id="S7.T3.1.1.2.2.3" class="ltx_td ltx_align_center ltx_border_t">4.90</td>
+<td id="S7.T3.1.1.2.2.4" class="ltx_td ltx_align_center ltx_border_t">1879</td>
+<td id="S7.T3.1.1.2.2.5" class="ltx_td ltx_align_center ltx_border_t">SFT</td>
+<td id="S7.T3.1.1.2.2.6" class="ltx_td ltx_align_center ltx_border_t">18.72%</td>
+</tr>
+<tr id="S7.T3.1.1.3.3" class="ltx_tr">
+<td id="S7.T3.1.1.3.3.1" class="ltx_td ltx_align_left">Mistral-7B-Instruct</td>
+<td id="S7.T3.1.1.3.3.2" class="ltx_td ltx_align_center">SYN</td>
+<td id="S7.T3.1.1.3.3.3" class="ltx_td ltx_align_center">7.28</td>
+<td id="S7.T3.1.1.3.3.4" class="ltx_td ltx_align_center">1101</td>
+<td id="S7.T3.1.1.3.3.5" class="ltx_td ltx_align_center">SFT</td>
+<td id="S7.T3.1.1.3.3.6" class="ltx_td ltx_align_center">61.28%</td>
+</tr>
+<tr id="S7.T3.1.1.4.4" class="ltx_tr">
+<td id="S7.T3.1.1.4.4.1" class="ltx_td ltx_align_left">Mistral-7B-Instruct</td>
+<td id="S7.T3.1.1.4.4.2" class="ltx_td ltx_align_center">MD+SYN</td>
+<td id="S7.T3.1.1.4.4.3" class="ltx_td ltx_align_center">5.78</td>
+<td id="S7.T3.1.1.4.4.4" class="ltx_td ltx_align_center">2980</td>
+<td id="S7.T3.1.1.4.4.5" class="ltx_td ltx_align_center">SFT</td>
+<td id="S7.T3.1.1.4.4.6" class="ltx_td ltx_align_center">80.85%</td>
+</tr>
+<tr id="S7.T3.1.1.5.5" class="ltx_tr">
+<td id="S7.T3.1.1.5.5.1" class="ltx_td ltx_align_left">Mistral-7B-Instruct</td>
+<td id="S7.T3.1.1.5.5.2" class="ltx_td ltx_align_center">MD+SYN</td>
+<td id="S7.T3.1.1.5.5.3" class="ltx_td ltx_align_center">5.78</td>
+<td id="S7.T3.1.1.5.5.4" class="ltx_td ltx_align_center">2980</td>
+<td id="S7.T3.1.1.5.5.5" class="ltx_td ltx_align_center">SFT+GRPO</td>
+<td id="S7.T3.1.1.5.5.6" class="ltx_td ltx_align_center">77.87%</td>
+</tr>
+<tr id="S7.T3.1.1.6.6" class="ltx_tr">
+<td id="S7.T3.1.1.6.6.1" class="ltx_td ltx_align_left ltx_border_t">LLaMA 3.2 3B</td>
+<td id="S7.T3.1.1.6.6.2" class="ltx_td ltx_align_center ltx_border_t">MD</td>
+<td id="S7.T3.1.1.6.6.3" class="ltx_td ltx_align_center ltx_border_t">4.90</td>
+<td id="S7.T3.1.1.6.6.4" class="ltx_td ltx_align_center ltx_border_t">1879</td>
+<td id="S7.T3.1.1.6.6.5" class="ltx_td ltx_align_center ltx_border_t">SFT</td>
+<td id="S7.T3.1.1.6.6.6" class="ltx_td ltx_align_center ltx_border_t">75.74%</td>
+</tr>
+<tr id="S7.T3.1.1.7.7" class="ltx_tr">
+<td id="S7.T3.1.1.7.7.1" class="ltx_td ltx_align_left">LLaMA 3.2 3B</td>
+<td id="S7.T3.1.1.7.7.2" class="ltx_td ltx_align_center">SYN</td>
+<td id="S7.T3.1.1.7.7.3" class="ltx_td ltx_align_center">7.28</td>
+<td id="S7.T3.1.1.7.7.4" class="ltx_td ltx_align_center">1101</td>
+<td id="S7.T3.1.1.7.7.5" class="ltx_td ltx_align_center">SFT</td>
+<td id="S7.T3.1.1.7.7.6" class="ltx_td ltx_align_center">71.97%</td>
+</tr>
+<tr id="S7.T3.1.1.8.8" class="ltx_tr">
+<td id="S7.T3.1.1.8.8.1" class="ltx_td ltx_align_left">LLaMA 3.2 3B</td>
+<td id="S7.T3.1.1.8.8.2" class="ltx_td ltx_align_center">MD+SYN</td>
+<td id="S7.T3.1.1.8.8.3" class="ltx_td ltx_align_center">5.78</td>
+<td id="S7.T3.1.1.8.8.4" class="ltx_td ltx_align_center">2980</td>
+<td id="S7.T3.1.1.8.8.5" class="ltx_td ltx_align_center">SFT</td>
+<td id="S7.T3.1.1.8.8.6" class="ltx_td ltx_align_center">77.87%</td>
+</tr>
+<tr id="S7.T3.1.1.9.9" class="ltx_tr">
+<td id="S7.T3.1.1.9.9.1" class="ltx_td ltx_align_left">LLaMA 3.2 3B</td>
+<td id="S7.T3.1.1.9.9.2" class="ltx_td ltx_align_center">MD+SYN</td>
+<td id="S7.T3.1.1.9.9.3" class="ltx_td ltx_align_center">5.78</td>
+<td id="S7.T3.1.1.9.9.4" class="ltx_td ltx_align_center">2980</td>
+<td id="S7.T3.1.1.9.9.5" class="ltx_td ltx_align_center">SFT+GRPO</td>
+<td id="S7.T3.1.1.9.9.6" class="ltx_td ltx_align_center">43.83%</td>
+</tr>
+<tr id="S7.T3.1.1.10.10" class="ltx_tr">
+<td id="S7.T3.1.1.10.10.1" class="ltx_td ltx_align_left ltx_border_t">Qwen3-4B</td>
+<td id="S7.T3.1.1.10.10.2" class="ltx_td ltx_align_center ltx_border_t">MD+SYN</td>
+<td id="S7.T3.1.1.10.10.3" class="ltx_td ltx_align_center ltx_border_t">5.78</td>
+<td id="S7.T3.1.1.10.10.4" class="ltx_td ltx_align_center ltx_border_t">2980</td>
+<td id="S7.T3.1.1.10.10.5" class="ltx_td ltx_align_center ltx_border_t">SFT</td>
+<td id="S7.T3.1.1.10.10.6" class="ltx_td ltx_align_center ltx_border_t">80.00%</td>
+</tr>
+<tr id="S7.T3.1.1.11.11" class="ltx_tr">
+<td id="S7.T3.1.1.11.11.1" class="ltx_td ltx_align_left ltx_border_bb">DeepSeek-R1</td>
+<td id="S7.T3.1.1.11.11.2" class="ltx_td ltx_align_center ltx_border_bb">MD+SYN</td>
+<td id="S7.T3.1.1.11.11.3" class="ltx_td ltx_align_center ltx_border_bb">5.78</td>
+<td id="S7.T3.1.1.11.11.4" class="ltx_td ltx_align_center ltx_border_bb">2980</td>
+<td id="S7.T3.1.1.11.11.5" class="ltx_td ltx_align_center ltx_border_bb">SFT</td>
+<td id="S7.T3.1.1.11.11.6" class="ltx_td ltx_align_center ltx_border_bb">40.00%</td>
+</tr>
+</tbody>
+</table>
+</span></div>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 3: </span>Ablation study over training data composition and optimisation strategy. These experiments correspond to shorter training runs (100 steps), used to analyze the effect of original data (MD), synthetic data (SYN), and the combined <span id="S7.T3.3.1" class="ltx_text ltx_font_typewriter">MedAidDialog</span> corpus (MD+SYN).</figcaption>
+</figure>
+<section id="S7.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">7.1 </span>Ablation Study</h3>
+
+<div id="S7.SS1.p1" class="ltx_para">
+<p id="S7.SS1.p1.1" class="ltx_p">Table <a href="#S7.T3" title="Table 3 ‣ 7 Results and Analysis ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a> presents the ablation study analyzing the impact of dataset composition and training strategy. We observe that training on either the original <span id="S7.SS1.p1.1.1" class="ltx_text ltx_font_typewriter">MDDial</span> dataset or the synthetic corpus alone leads to weaker performance compared to training on the combined dataset. This indicates that the two sources provide complementary supervision signals: the original data captures realistic clinical dialogue patterns, while the synthetic augmentation increases linguistic diversity and symptom coverage.
+Overall, the results show that synthetic augmentation is most effective when used to complement the original diagnosis-oriented dialogues rather than replacing them.
+We also observe that applying GRPO-based optimisation does not consistently outperform supervised fine-tuning alone. This suggests that the supervised signal provided by the combined multi-turn dialogue corpus is already sufficiently strong, and additional reward-based optimisation may introduce training instability without providing consistent benefits.</p>
+</div>
+</section>
+<section id="S7.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">7.2 </span>Expert Evaluation and IAA Scores</h3>
+
+<div id="S7.SS2.p1" class="ltx_para">
+<p id="S7.SS2.p1.1" class="ltx_p">As shown in Table <a href="#A3.T7" title="Table 7 ‣ C.3 Training Hyperparameters ‣ Appendix C Training Hyperparameters and Resources ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7</span></a>, <span id="S7.SS2.p1.1.1" class="ltx_text ltx_font_typewriter">MedAidLM</span> achieves a <span id="S7.SS2.p1.1.2" class="ltx_text ltx_font_bold">95.3%</span> medical safety pass rate, indicating that unsafe advice is rare in the sampled dialogues.
+The model also obtains strong average scores for symptom extraction (4.20), context memory (4.40), diagnostic correctness (4.10), conversational flow (4.30), and efficiency (4.00). These results suggest that the model is able to track relevant symptoms, preserve dialogue context, and conduct multi-turn interactions in a clinically plausible and reasonably efficient manner.
+To validate the reliability of these judgments, we compute inter-annotator agreement (IAA) using Krippendorff’s alpha <cite class="ltx_cite ltx_citemacro_cite">Krippendorff (<a href="#bib.bib41" title="Computing krippendorff’s alpha-reliability" class="ltx_ref">2011</a>)</cite>. Table <a href="#A3.T9" title="Table 9 ‣ C.3 Training Hyperparameters ‣ Appendix C Training Hyperparameters and Resources ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9</span></a> shows an average agreement score of <span id="S7.SS2.p1.1.3" class="ltx_text ltx_font_bold">0.81</span>, indicating strong consistency among the medical experts.</p>
+</div>
+<figure id="S7.T4" class="ltx_table">
+<div id="S7.T4.1" class="ltx_inline-block ltx_align_center ltx_transformed_outer" style="width:433.6pt;height:258.7pt;vertical-align:-125.2pt;"><span class="ltx_transformed_inner" style="transform:translate(85.1pt,-50.7pt) scale(1.64566232712427,1.64566232712427) ;">
+<table id="S7.T4.1.1" class="ltx_tabular ltx_guessed_headers ltx_align_middle">
+<thead class="ltx_thead">
+<tr id="S7.T4.1.1.1.1" class="ltx_tr">
+<th id="S7.T4.1.1.1.1.1" class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt"><span id="S7.T4.1.1.1.1.1.1" class="ltx_text ltx_font_bold">Disease</span></th>
+<th id="S7.T4.1.1.1.1.2" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt"><span id="S7.T4.1.1.1.1.2.1" class="ltx_text ltx_font_bold">Correct</span></th>
+<th id="S7.T4.1.1.1.1.3" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt"><span id="S7.T4.1.1.1.1.3.1" class="ltx_text ltx_font_bold">Total</span></th>
+<th id="S7.T4.1.1.1.1.4" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt"><span id="S7.T4.1.1.1.1.4.1" class="ltx_text ltx_font_bold">Accuracy</span></th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr id="S7.T4.1.1.2.1" class="ltx_tr">
+<td id="S7.T4.1.1.2.1.1" class="ltx_td ltx_align_left ltx_border_t">Asthma</td>
+<td id="S7.T4.1.1.2.1.2" class="ltx_td ltx_align_center ltx_border_t">16</td>
+<td id="S7.T4.1.1.2.1.3" class="ltx_td ltx_align_center ltx_border_t">19</td>
+<td id="S7.T4.1.1.2.1.4" class="ltx_td ltx_align_center ltx_border_t">84.2%</td>
+</tr>
+<tr id="S7.T4.1.1.3.2" class="ltx_tr">
+<td id="S7.T4.1.1.3.2.1" class="ltx_td ltx_align_left">Conjunctivitis</td>
+<td id="S7.T4.1.1.3.2.2" class="ltx_td ltx_align_center">19</td>
+<td id="S7.T4.1.1.3.2.3" class="ltx_td ltx_align_center">21</td>
+<td id="S7.T4.1.1.3.2.4" class="ltx_td ltx_align_center">90.5%</td>
+</tr>
+<tr id="S7.T4.1.1.4.3" class="ltx_tr">
+<td id="S7.T4.1.1.4.3.1" class="ltx_td ltx_align_left">Coronary heart disease</td>
+<td id="S7.T4.1.1.4.3.2" class="ltx_td ltx_align_center">16</td>
+<td id="S7.T4.1.1.4.3.3" class="ltx_td ltx_align_center">19</td>
+<td id="S7.T4.1.1.4.3.4" class="ltx_td ltx_align_center">84.2%</td>
+</tr>
+<tr id="S7.T4.1.1.5.4" class="ltx_tr">
+<td id="S7.T4.1.1.5.4.1" class="ltx_td ltx_align_left">Dermatitis</td>
+<td id="S7.T4.1.1.5.4.2" class="ltx_td ltx_align_center">19</td>
+<td id="S7.T4.1.1.5.4.3" class="ltx_td ltx_align_center">20</td>
+<td id="S7.T4.1.1.5.4.4" class="ltx_td ltx_align_center">95.0%</td>
+</tr>
+<tr id="S7.T4.1.1.6.5" class="ltx_tr">
+<td id="S7.T4.1.1.6.5.1" class="ltx_td ltx_align_left">Enteritis</td>
+<td id="S7.T4.1.1.6.5.2" class="ltx_td ltx_align_center">22</td>
+<td id="S7.T4.1.1.6.5.3" class="ltx_td ltx_align_center">24</td>
+<td id="S7.T4.1.1.6.5.4" class="ltx_td ltx_align_center">91.7%</td>
+</tr>
+<tr id="S7.T4.1.1.7.6" class="ltx_tr">
+<td id="S7.T4.1.1.7.6.1" class="ltx_td ltx_align_left">Esophagitis</td>
+<td id="S7.T4.1.1.7.6.2" class="ltx_td ltx_align_center">22</td>
+<td id="S7.T4.1.1.7.6.3" class="ltx_td ltx_align_center">27</td>
+<td id="S7.T4.1.1.7.6.4" class="ltx_td ltx_align_center">81.5%</td>
+</tr>
+<tr id="S7.T4.1.1.8.7" class="ltx_tr">
+<td id="S7.T4.1.1.8.7.1" class="ltx_td ltx_align_left">External otitis</td>
+<td id="S7.T4.1.1.8.7.2" class="ltx_td ltx_align_center">15</td>
+<td id="S7.T4.1.1.8.7.3" class="ltx_td ltx_align_center">17</td>
+<td id="S7.T4.1.1.8.7.4" class="ltx_td ltx_align_center">88.2%</td>
+</tr>
+<tr id="S7.T4.1.1.9.8" class="ltx_tr">
+<td id="S7.T4.1.1.9.8.1" class="ltx_td ltx_align_left">Mastitis</td>
+<td id="S7.T4.1.1.9.8.2" class="ltx_td ltx_align_center">12</td>
+<td id="S7.T4.1.1.9.8.3" class="ltx_td ltx_align_center">15</td>
+<td id="S7.T4.1.1.9.8.4" class="ltx_td ltx_align_center">80.0%</td>
+</tr>
+<tr id="S7.T4.1.1.10.9" class="ltx_tr">
+<td id="S7.T4.1.1.10.9.1" class="ltx_td ltx_align_left">Pneumonia</td>
+<td id="S7.T4.1.1.10.9.2" class="ltx_td ltx_align_center">12</td>
+<td id="S7.T4.1.1.10.9.3" class="ltx_td ltx_align_center">20</td>
+<td id="S7.T4.1.1.10.9.4" class="ltx_td ltx_align_center">60.0%</td>
+</tr>
+<tr id="S7.T4.1.1.11.10" class="ltx_tr">
+<td id="S7.T4.1.1.11.10.1" class="ltx_td ltx_align_left">Rhinitis</td>
+<td id="S7.T4.1.1.11.10.2" class="ltx_td ltx_align_center">15</td>
+<td id="S7.T4.1.1.11.10.3" class="ltx_td ltx_align_center">15</td>
+<td id="S7.T4.1.1.11.10.4" class="ltx_td ltx_align_center">100.0%</td>
+</tr>
+<tr id="S7.T4.1.1.12.11" class="ltx_tr">
+<td id="S7.T4.1.1.12.11.1" class="ltx_td ltx_align_left">Thyroiditis</td>
+<td id="S7.T4.1.1.12.11.2" class="ltx_td ltx_align_center">19</td>
+<td id="S7.T4.1.1.12.11.3" class="ltx_td ltx_align_center">19</td>
+<td id="S7.T4.1.1.12.11.4" class="ltx_td ltx_align_center">100.0%</td>
+</tr>
+<tr id="S7.T4.1.1.13.12" class="ltx_tr">
+<td id="S7.T4.1.1.13.12.1" class="ltx_td ltx_align_left ltx_border_bb">Traumatic brain injury</td>
+<td id="S7.T4.1.1.13.12.2" class="ltx_td ltx_align_center ltx_border_bb">19</td>
+<td id="S7.T4.1.1.13.12.3" class="ltx_td ltx_align_center ltx_border_bb">19</td>
+<td id="S7.T4.1.1.13.12.4" class="ltx_td ltx_align_center ltx_border_bb">100.0%</td>
+</tr>
+</tbody>
+</table>
+</span></div>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 4: </span>Per-disease diagnostic accuracy of the final <span id="S7.T4.3.1" class="ltx_text ltx_font_typewriter">MedAidLM</span> model on the evaluation set.</figcaption>
+</figure>
+</section>
+<section id="S7.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">7.3 </span>Per-Disease Performance</h3>
+
+<div id="S7.SS3.p1" class="ltx_para">
+<p id="S7.SS3.p1.1" class="ltx_p">Table <a href="#S7.T4" title="Table 4 ‣ 7.2 Expert Evaluation and IAA Scores ‣ 7 Results and Analysis ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a> reports per-disease accuracy for <span id="S7.SS3.p1.1.1" class="ltx_text ltx_font_typewriter">MedAidLM</span>. The model achieves perfect accuracy on <span id="S7.SS3.p1.1.2" class="ltx_text ltx_font_italic">Rhinitis</span>, <span id="S7.SS3.p1.1.3" class="ltx_text ltx_font_italic">Thyroiditis</span>, and <span id="S7.SS3.p1.1.4" class="ltx_text ltx_font_italic">Traumatic brain injury</span>, and performs strongly on <span id="S7.SS3.p1.1.5" class="ltx_text ltx_font_italic">Dermatitis</span> (95.0%), <span id="S7.SS3.p1.1.6" class="ltx_text ltx_font_italic">Enteritis</span> (91.7%), and <span id="S7.SS3.p1.1.7" class="ltx_text ltx_font_italic">Conjunctivitis</span> (90.5%). These results suggest that the model handles diseases with relatively distinctive symptom patterns particularly well.
+However, performance drops on <span id="S7.SS3.p1.1.8" class="ltx_text ltx_font_italic">Pneumonia</span> (60.0%), <span id="S7.SS3.p1.1.9" class="ltx_text ltx_font_italic">Mastitis</span> (80.0%), and <span id="S7.SS3.p1.1.10" class="ltx_text ltx_font_italic">Esophagitis</span> (81.5%). These lower scores indicate that the model struggles more when diseases share overlapping or ambiguous symptom profiles.</p>
+</div>
+</section>
+<section id="S7.SS4" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">7.4 </span>Error Analysis</h3>
+
+<div id="S7.SS4.p1" class="ltx_para">
+<p id="S7.SS4.p1.1" class="ltx_p">To better understand these failures, Table <a href="#A3.T8" title="Table 8 ‣ C.3 Training Hyperparameters ‣ Appendix C Training Hyperparameters and Resources ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">8</span></a> in the Appendix lists the most frequent disease-level misclassifications. The most common confusion is <span id="S7.SS4.p1.1.1" class="ltx_text ltx_font_italic">Pneumonia</span> misclassified as <span id="S7.SS4.p1.1.2" class="ltx_text ltx_font_italic">Asthma</span>, followed by several confusions involving <span id="S7.SS4.p1.1.3" class="ltx_text ltx_font_italic">Esophagitis</span>, <span id="S7.SS4.p1.1.4" class="ltx_text ltx_font_italic">Enteritis</span>, and <span id="S7.SS4.p1.1.5" class="ltx_text ltx_font_italic">Asthma</span>. These patterns are clinically meaningful, as respiratory and gastrointestinal conditions can share partially overlapping presentations in short text-based consultations.
+The presence of such confusions suggests that future improvements may require stronger temporal reasoning, better calibration over overlapping symptom clusters, or explicit modeling of differential diagnosis candidates instead of only predicting a single final disease label.
+Overall, the results demonstrate that <span id="S7.SS4.p1.1.6" class="ltx_text ltx_font_typewriter">MedAidLM</span> achieves strong performance both quantitatively and qualitatively, while remaining compact enough for low-resource deployment. The combination of synthetic augmentation, PEFT, and multilingual inference support makes the system a promising step toward accessible conversational medical AI.</p>
+</div>
+</section>
+</section>
+<section id="S8" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">8 </span>Conclusion and Future Work</h2>
+
+<div id="S8.p1" class="ltx_para">
+<p id="S8.p1.1" class="ltx_p">In this work, we introduced <span id="S8.p1.1.1" class="ltx_text ltx_font_typewriter">MedAidDialog</span>, a multilingual multi-turn medical dialogue dataset constructed by augmenting the <span id="S8.p1.1.2" class="ltx_text ltx_font_typewriter">MDDial</span> corpus with LLM-generated synthetic consultations. Using this dataset, we trained <span id="S8.p1.1.3" class="ltx_text ltx_font_typewriter">MedAidLM</span>, a compact conversational medical system based on PEFT of quantized open-source LLMs. Experimental results show that combining real and synthetic dialogues substantially improves diagnostic accuracy while maintaining safe and coherent multi-turn medical conversations. Human expert evaluation further confirms the clinical plausibility and reliability of the generated responses.
+In future work, we plan to extend the system with multimodal capabilities by integrating speech interfaces and vision-language models, enabling users to interact through voice and ask questions about medical reports or images. We also aim to incorporate disease-specific patient context profiles to improve diagnostic reasoning and better reflect real clinical workflows.
+Finally, we plan to expand the dataset to cover more languages, improving accessibility for low-resource communities.</p>
+</div>
+<div id="S8.p2" class="ltx_para">
+<p id="S8.p2.1" class="ltx_p">We hope that <span id="S8.p2.1.1" class="ltx_text ltx_font_typewriter">MedAidDialog</span> and <span id="S8.p2.1.2" class="ltx_text ltx_font_typewriter">MedAidLM</span> can serve as a foundation for future research on accessible and trustworthy conversational medical AI.</p>
+</div>
+</section>
+<section id="Sx1" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">Limitations</h2>
+
+<div id="Sx1.p1" class="ltx_para">
+<p id="Sx1.p1.1" class="ltx_p">Despite promising results, our work has several limitations. First, although the <span id="Sx1.p1.1.1" class="ltx_text ltx_font_typewriter">MedAidDialog</span> dataset combines real and synthetic medical dialogues, synthetic data may still introduce biases or simplified patterns that do not fully capture the complexity of real clinical interactions. Second, our evaluation is limited to a fixed set of diseases derived from the original dataset, which restricts the system’s ability to generalize to a broader range of medical conditions. Third, while we incorporate multilingual interaction through a translation layer, the underlying dialogue model is trained primarily in English, which may lead to subtle translation errors or loss of clinical nuance in low-resource languages. Finally, the current system focuses on text-based dialogue and does not yet incorporate other clinically relevant modalities such as medical images, reports, or laboratory data.</p>
+</div>
+<div id="Sx1.p2" class="ltx_para">
+<p id="Sx1.p2.1" class="ltx_p">Future work will address these limitations by expanding the dataset to cover more diseases and languages, incorporating multimodal medical inputs, and improving evaluation with larger and more diverse clinical expert studies.</p>
+</div>
+</section>
+<section id="Sx2" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">Ethical Considerations</h2>
+
+<div id="Sx2.p1" class="ltx_para">
+<p id="Sx2.p1.1" class="ltx_p">The proposed system is designed as a conversational medical assistance tool and is not intended to replace professional medical diagnosis. Although we evaluate the system using both automatic metrics and expert medical review, errors in diagnosis or advice may still occur. Therefore, the system should only be used for informational or preliminary guidance purposes.
+We also acknowledge potential risks related to bias in synthetic data generation and language translation errors in multilingual settings. To mitigate these risks, we employ quality filtering for synthetic dialogues and conduct human expert evaluation to assess safety and clinical plausibility.</p>
+</div>
+<div id="Sx2.p2" class="ltx_para">
+<p id="Sx2.p2.1" class="ltx_p">Importantly, the system interface includes a clear disclaimer informing users that the generated responses are not a substitute for professional medical care. Users are explicitly advised to consult a qualified medical practitioner for accurate diagnosis and treatment decisions.</p>
+</div>
+<div class="ltx_pagination ltx_role_newpage"></div>
+</section>
+<section id="bib" class="ltx_bibliography">
+<h2 class="ltx_title ltx_title_bibliography">References</h2>
+
+<ul id="bib.L1" class="ltx_biblist">
+<li id="bib.bib42" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_author-year ltx_role_refnum ltx_tag_bibitem">AI@Meta (2024)</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Llama 3 model card</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal"></span>.
+</span>
+<span class="ltx_bibblock">External Links: <span class="ltx_text ltx_bib_links"><a target="_blank" href="https://github.com/meta-llama/llama3/blob/main/MODEL_CARD.md" title="" class="ltx_ref ltx_bib_external">Link</a></span>
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S4.SS1.p1.1" title="4.1 Synthetic Dialogue Generation ‣ 4 MedAidDialog Dataset ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§4.1</span></a>.
+</span>
+</li>
+<li id="bib.bib9" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_author-year ltx_role_refnum ltx_tag_bibitem">Y. Chen, Z. Wang, X. Xing, Z. Xu, K. Fang, J. Wang, S. Li, J. Wu, Q. Liu, X. Xu, <span class="ltx_text ltx_bib_etal">et al.</span> (2023)</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Bianque: balancing the questioning and suggestion ability of health llms with multi-turn health conversations polished by chatgpt</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">arXiv preprint arXiv:2310.15896</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S2.p2.1" title="2 Related Work ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§2</span></a>.
+</span>
+</li>
+<li id="bib.bib12" class="ltx_bibitem ltx_bib_inproceedings">
+<span class="ltx_tag ltx_bib_author-year ltx_role_refnum ltx_tag_bibitem">J. Chu, Y. Sun, H. Huang, and Y. Liu (2024)</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Med-chat: tuning chatglm3-6b with chinese medical dialogue</span>.
+</span>
+<span class="ltx_bibblock">In <span class="ltx_text ltx_bib_inbook">2024 6th International Conference on Robotics, Intelligent Control and Artificial Intelligence (RICAI)</span>,
+</span>
+<span class="ltx_bibblock">Vol. <span class="ltx_text ltx_bib_volume"></span>, <span class="ltx_text ltx_bib_pages"> pp. 894–898</span>.
+</span>
+<span class="ltx_bibblock">External Links: <span class="ltx_text ltx_bib_links"><a target="_blank" href="https://dx.doi.org/10.1109/RICAI64321.2024.10911671" title="" class="ltx_ref doi ltx_bib_external">Document</a></span>
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S2.p2.1" title="2 Related Work ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§2</span></a>.
+</span>
+</li>
+<li id="bib.bib21" class="ltx_bibitem ltx_bib_inproceedings">
+<span class="ltx_tag ltx_bib_author-year ltx_role_refnum ltx_tag_bibitem">L. Cui, Y. Wu, S. Liu, Y. Zhang, and M. Zhou (2020)</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">MuTual: a dataset for multi-turn dialogue reasoning</span>.
+</span>
+<span class="ltx_bibblock">In <span class="ltx_text ltx_bib_inbook">Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics</span>,
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_pages"> pp. 1406–1416</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S2.p4.1" title="2 Related Work ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§2</span></a>.
+</span>
+</li>
+<li id="bib.bib34" class="ltx_bibitem ltx_bib_misc">
+<span class="ltx_tag ltx_bib_author-year ltx_role_refnum ltx_tag_bibitem">DeepSeek-AI (2025)</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">DeepSeek-r1: incentivizing reasoning capability in llms via reinforcement learning</span>.
+</span>
+<span class="ltx_bibblock">External Links: <span class="ltx_text ltx_bib_links"><span class="ltx_text ltx_bib_external">2501.12948</span>,
+<a target="_blank" href="https://arxiv.org/abs/2501.12948" title="" class="ltx_ref ltx_bib_external">Link</a></span>
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S5.SS3.SSS0.Px1.p1.1" title="Model Families. ‣ 5.3 Parameter-Efficient Fine-Tuning ‣ 5 Methodology ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§5.3</span></a>.
+</span>
+</li>
+<li id="bib.bib3" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_author-year ltx_role_refnum ltx_tag_bibitem">Y. Feng, J. Wang, L. Zhou, Z. Lei, and Y. Li (2025)</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Doctoragent-rl: a multi-agent collaborative reinforcement learning system for multi-turn clinical dialogue</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">arXiv preprint arXiv:2505.19630</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S2.p2.1" title="2 Related Work ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§2</span></a>.
+</span>
+</li>
+<li id="bib.bib29" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_author-year ltx_role_refnum ltx_tag_bibitem">M. Finkelstein, I. Caswell, T. Domhan, J. Peter, J. Juraska, P. Riley, D. Deutsch, G. Kovacs, C. Dilanni, C. Cherry, <span class="ltx_text ltx_bib_etal">et al.</span> (2026)</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">TranslateGemma technical report</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">arXiv preprint arXiv:2601.09012</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S4.SS2.p1.1" title="4.2 Multilingual Expansion ‣ 4 MedAidDialog Dataset ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§4.2</span></a>,
+<a href="#S5.SS5.p3.1" title="5.5 Multilingual Inference Pipeline ‣ 5 Methodology ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§5.5</span></a>.
+</span>
+</li>
+<li id="bib.bib16" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_author-year ltx_role_refnum ltx_tag_bibitem">L. Gong, W. Fang, T. Yang, D. Tao, C. Guo, P. Wei, B. Xie, J. Guan, Z. Chen, F. Shi, <span class="ltx_text ltx_bib_etal">et al.</span> (2026)</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">MedDialogRubrics: a comprehensive benchmark and evaluation framework for multi-turn medical consultations in large language models</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">arXiv preprint arXiv:2601.03023</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S2.p4.1" title="2 Related Work ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§2</span></a>.
+</span>
+</li>
+<li id="bib.bib28" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_author-year ltx_role_refnum ltx_tag_bibitem">A. Grattafiori, A. Dubey, A. Jauhri, A. Pandey, A. Kadian, A. Al-Dahle, A. Letman, A. Mathur, A. Schelten, A. Vaughan, <span class="ltx_text ltx_bib_etal">et al.</span> (2024)</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">The llama 3 herd of models</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">arXiv preprint arXiv:2407.21783</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S5.SS3.SSS0.Px1.p1.1" title="Model Families. ‣ 5.3 Parameter-Efficient Fine-Tuning ‣ 5 Methodology ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§5.3</span></a>.
+</span>
+</li>
+<li id="bib.bib38" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_author-year ltx_role_refnum ltx_tag_bibitem">E. J. Hu, Y. Shen, P. Wallis, Z. Allen-Zhu, Y. Li, S. Wang, L. Wang, W. Chen, <span class="ltx_text ltx_bib_etal">et al.</span> (2022)</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Lora: low-rank adaptation of large language models.</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">Iclr</span> <span class="ltx_text ltx_bib_volume">1</span> (<span class="ltx_text ltx_bib_number">2</span>), <span class="ltx_text ltx_bib_pages"> pp. 3</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#A1.p1.1" title="Appendix A LoRA Training Configuration ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Appendix A</span></a>,
+<a href="#S5.SS3.SSS0.Px2.p1.1" title="LoRA Setup. ‣ 5.3 Parameter-Efficient Fine-Tuning ‣ 5 Methodology ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§5.3</span></a>.
+</span>
+</li>
+<li id="bib.bib13" class="ltx_bibitem ltx_bib_inproceedings">
+<span class="ltx_tag ltx_bib_author-year ltx_role_refnum ltx_tag_bibitem">Z. Hu, H. Zhao, Y. Zhao, S. Xu, and B. Xu (2024)</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">T-agent: a term-aware agent for medical dialogue generation</span>.
+</span>
+<span class="ltx_bibblock">In <span class="ltx_text ltx_bib_inbook">2024 International Joint Conference on Neural Networks (IJCNN)</span>,
+</span>
+<span class="ltx_bibblock">Vol. <span class="ltx_text ltx_bib_volume"></span>, <span class="ltx_text ltx_bib_pages"> pp. 1–8</span>.
+</span>
+<span class="ltx_bibblock">External Links: <span class="ltx_text ltx_bib_links"><a target="_blank" href="https://dx.doi.org/10.1109/IJCNN60899.2024.10650649" title="" class="ltx_ref doi ltx_bib_external">Document</a></span>
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S2.p2.1" title="2 Related Work ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§2</span></a>.
+</span>
+</li>
+<li id="bib.bib32" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_author-year ltx_role_refnum ltx_tag_bibitem">Y. Jiang, X. Li, G. Zhu, H. Li, J. Deng, K. Han, C. Shen, Q. Shi, and R. Zhang (2023)</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">6G non-terrestrial networks enabled low-altitude economy: opportunities and challenges</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">arXiv preprint arXiv:2311.09047</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S5.SS3.SSS0.Px1.p1.1" title="Model Families. ‣ 5.3 Parameter-Efficient Fine-Tuning ‣ 5 Methodology ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§5.3</span></a>.
+</span>
+</li>
+<li id="bib.bib41" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_author-year ltx_role_refnum ltx_tag_bibitem">K. Krippendorff (2011)</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Computing krippendorff’s alpha-reliability</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal"></span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S7.SS2.p1.1" title="7.2 Expert Evaluation and IAA Scores ‣ 7 Results and Analysis ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§7.2</span></a>.
+</span>
+</li>
+<li id="bib.bib15" class="ltx_bibitem ltx_bib_inproceedings">
+<span class="ltx_tag ltx_bib_author-year ltx_role_refnum ltx_tag_bibitem">Y. Li, H. Su, X. Shen, W. Li, Z. Cao, and S. Niu (2017)</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Dailydialog: a manually labelled multi-turn dialogue dataset</span>.
+</span>
+<span class="ltx_bibblock">In <span class="ltx_text ltx_bib_inbook">Proceedings of the Eighth International Joint Conference on Natural Language Processing (Volume 1: Long Papers)</span>,
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_pages"> pp. 986–995</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S2.p4.1" title="2 Related Work ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§2</span></a>.
+</span>
+</li>
+<li id="bib.bib14" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_author-year ltx_role_refnum ltx_tag_bibitem">Y. Li, Z. Li, K. Zhang, R. Dan, S. Jiang, and Y. Zhang (2023)</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Chatdoctor: a medical chat model fine-tuned on a large language model meta-ai (llama) using medical domain knowledge</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">Cureus</span> <span class="ltx_text ltx_bib_volume">15</span> (<span class="ltx_text ltx_bib_number">6</span>).
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S2.p2.1" title="2 Related Work ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§2</span></a>.
+</span>
+</li>
+<li id="bib.bib5" class="ltx_bibitem ltx_bib_inproceedings">
+<span class="ltx_tag ltx_bib_author-year ltx_role_refnum ltx_tag_bibitem">W. Liu, J. Tang, Y. Cheng, W. Li, Y. Zheng, and X. Liang (2022)</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Meddg: an entity-centric medical consultation dataset for entity-aware medical dialogue generation</span>.
+</span>
+<span class="ltx_bibblock">In <span class="ltx_text ltx_bib_inbook">CCF International Conference on Natural Language Processing and Chinese Computing</span>,
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_pages"> pp. 447–459</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S2.p1.1" title="2 Related Work ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§2</span></a>.
+</span>
+</li>
+<li id="bib.bib39" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_author-year ltx_role_refnum ltx_tag_bibitem">I. Loshchilov and F. Hutter (2017)</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Decoupled weight decay regularization</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">arXiv preprint arXiv:1711.05101</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S5.SS3.SSS0.Px3.p1.1" title="Stage 1: Supervised Fine-Tuning. ‣ 5.3 Parameter-Efficient Fine-Tuning ‣ 5 Methodology ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§5.3</span></a>.
+</span>
+</li>
+<li id="bib.bib2" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_author-year ltx_role_refnum ltx_tag_bibitem">S. Macherla, M. Luo, M. Parmar, and C. Baral (2023)</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Mddial: a multi-turn differential diagnosis dialogue dataset with reliability evaluation</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">arXiv preprint arXiv:2308.08147</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S1.p2.1" title="1 Introduction ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§1</span></a>,
+<a href="#S2.p1.1" title="2 Related Work ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§2</span></a>,
+<a href="#S2.p3.1" title="2 Related Work ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§2</span></a>,
+<a href="#S2.p4.1" title="2 Related Work ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§2</span></a>,
+<a href="#S4.p1.1" title="4 MedAidDialog Dataset ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§4</span></a>,
+<a href="#S5.SS1.p1.1" title="5.1 Base Dataset and Synthetic Augmentation ‣ 5 Methodology ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§5.1</span></a>.
+</span>
+</li>
+<li id="bib.bib1" class="ltx_bibitem ltx_bib_inproceedings">
+<span class="ltx_tag ltx_bib_author-year ltx_role_refnum ltx_tag_bibitem">S. Pieri, S. S. Mullappilly, F. S. Khan, R. M. Anwer, S. Khan, T. Baldwin, and H. Cholakkal (2024)</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Bimedix: bilingual medical mixture of experts llm</span>.
+</span>
+<span class="ltx_bibblock">In <span class="ltx_text ltx_bib_inbook">Findings of the Association for Computational Linguistics: EMNLP 2024</span>,
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_pages"> pp. 16984–17002</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S2.p4.1" title="2 Related Work ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§2</span></a>.
+</span>
+</li>
+<li id="bib.bib30" class="ltx_bibitem ltx_bib_misc">
+<span class="ltx_tag ltx_bib_author-year ltx_role_refnum ltx_tag_bibitem">A. R. Salamanca, D. Abagyan, D. D’souza, A. Khairi, D. Mora, S. Dash, V. Aryabumi, S. Rajaee, M. Mofakhami, A. Sahu, T. Euyang, B. Prince, M. Smith, H. Lin, A. Locatelli, S. Hooker, T. Kocmi, A. Gomez, I. Zhang, P. Blunsom, N. Frosst, J. Pineau, B. Ermis, A. Üstün, J. Kreutzer, and M. Fadaee (2026)</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Tiny aya: bridging scale and multilingual depth</span>.
+</span>
+<span class="ltx_bibblock">External Links: <span class="ltx_text ltx_bib_links"><span class="ltx_text ltx_bib_external">2603.11510</span>,
+<a target="_blank" href="https://arxiv.org/abs/2603.11510" title="" class="ltx_ref ltx_bib_external">Link</a></span>
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S4.SS2.p1.1" title="4.2 Multilingual Expansion ‣ 4 MedAidDialog Dataset ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§4.2</span></a>,
+<a href="#S5.SS5.p3.1" title="5.5 Multilingual Inference Pipeline ‣ 5 Methodology ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§5.5</span></a>.
+</span>
+</li>
+<li id="bib.bib10" class="ltx_bibitem ltx_bib_inproceedings">
+<span class="ltx_tag ltx_bib_author-year ltx_role_refnum ltx_tag_bibitem">V. V. Saley, G. Saha, R. J. Das, D. Raghu, <span class="ltx_text ltx_bib_etal">et al.</span> (2024)</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Meditod: an english dialogue dataset for medical history taking with comprehensive annotations</span>.
+</span>
+<span class="ltx_bibblock">In <span class="ltx_text ltx_bib_inbook">Proceedings of the 2024 Conference on Empirical Methods in Natural Language Processing</span>,
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_pages"> pp. 16843–16877</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S2.p1.1" title="2 Related Work ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§2</span></a>.
+</span>
+</li>
+<li id="bib.bib40" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_author-year ltx_role_refnum ltx_tag_bibitem">Z. Shao, P. Wang, Q. Zhu, R. Xu, J. Song, X. Bi, H. Zhang, M. Zhang, Y. Li, Y. Wu, <span class="ltx_text ltx_bib_etal">et al.</span> (2024)</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Deepseekmath: pushing the limits of mathematical reasoning in open language models</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">arXiv preprint arXiv:2402.03300</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#A2.p1.1" title="Appendix B GRPO Optimisation ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Appendix B</span></a>,
+<a href="#S5.SS3.SSS0.Px4.p1.1" title="Optional RL Optimisation. ‣ 5.3 Parameter-Efficient Fine-Tuning ‣ 5 Methodology ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§5.3</span></a>.
+</span>
+</li>
+<li id="bib.bib23" class="ltx_bibitem ltx_bib_inproceedings">
+<span class="ltx_tag ltx_bib_author-year ltx_role_refnum ltx_tag_bibitem">H. Su, X. Shen, R. Zhang, F. Sun, P. Hu, C. Niu, and J. Zhou (2019)</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Improving multi-turn dialogue modelling with utterance rewriter</span>.
+</span>
+<span class="ltx_bibblock">In <span class="ltx_text ltx_bib_inbook">Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics</span>,
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_pages"> pp. 22–31</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S2.p4.1" title="2 Related Work ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§2</span></a>.
+</span>
+</li>
+<li id="bib.bib35" class="ltx_bibitem ltx_bib_misc">
+<span class="ltx_tag ltx_bib_author-year ltx_role_refnum ltx_tag_bibitem">Q. Team (2025)</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Qwen3 technical report</span>.
+</span>
+<span class="ltx_bibblock">External Links: <span class="ltx_text ltx_bib_links"><span class="ltx_text ltx_bib_external">2505.09388</span>,
+<a target="_blank" href="https://arxiv.org/abs/2505.09388" title="" class="ltx_ref ltx_bib_external">Link</a></span>
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S5.SS3.SSS0.Px1.p1.1" title="Model Families. ‣ 5.3 Parameter-Efficient Fine-Tuning ‣ 5 Methodology ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§5.3</span></a>.
+</span>
+</li>
+<li id="bib.bib11" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_author-year ltx_role_refnum ltx_tag_bibitem">T. Tu, A. Palepu, M. Schaekermann, K. Saab, J. Freyberg, R. Tanno, A. Wang, B. Li, M. Amin, N. Tomasev, <span class="ltx_text ltx_bib_etal">et al.</span> (2024)</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Towards conversational diagnostic ai</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">arXiv preprint arXiv:2401.05654</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S1.p1.1" title="1 Introduction ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§1</span></a>,
+<a href="#S2.p2.1" title="2 Related Work ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§2</span></a>,
+<a href="#S2.p4.1" title="2 Related Work ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§2</span></a>,
+<a href="#S4.p1.1" title="4 MedAidDialog Dataset ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§4</span></a>.
+</span>
+</li>
+<li id="bib.bib8" class="ltx_bibitem ltx_bib_inproceedings">
+<span class="ltx_tag ltx_bib_author-year ltx_role_refnum ltx_tag_bibitem">J. Wang, Z. Yao, Z. Yang, H. Zhou, R. Li, X. Wang, Y. Xu, and H. Yu (2024)</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Notechat: a dataset of synthetic patient-physician conversations conditioned on clinical notes</span>.
+</span>
+<span class="ltx_bibblock">In <span class="ltx_text ltx_bib_inbook">Findings of the Association for Computational Linguistics: ACL 2024</span>,
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_pages"> pp. 15183–15201</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S2.p3.1" title="2 Related Work ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§2</span></a>.
+</span>
+</li>
+<li id="bib.bib18" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_author-year ltx_role_refnum ltx_tag_bibitem">Y. Wang, X. Li, H. Yu, F. Hu, G. Wang, and D. Lei (2025)</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Continuous entity reasoning for multi-turn medical dialogue generation</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">IEEE Transactions on Consumer Electronics</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S2.p2.1" title="2 Related Work ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§2</span></a>.
+</span>
+</li>
+<li id="bib.bib6" class="ltx_bibitem ltx_bib_inproceedings">
+<span class="ltx_tag ltx_bib_author-year ltx_role_refnum ltx_tag_bibitem">S. Yang, H. Zhao, S. Zhu, G. Zhou, H. Xu, Y. Jia, and H. Zan (2024)</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Zhongjing: enhancing the chinese medical capabilities of large language model through expert feedback and real-world multi-turn dialogue</span>.
+</span>
+<span class="ltx_bibblock">In <span class="ltx_text ltx_bib_inbook">Proceedings of the AAAI conference on artificial intelligence</span>,
+</span>
+<span class="ltx_bibblock">Vol. <span class="ltx_text ltx_bib_volume">38</span>, <span class="ltx_text ltx_bib_pages"> pp. 19368–19376</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S2.p1.1" title="2 Related Work ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§2</span></a>.
+</span>
+</li>
+<li id="bib.bib22" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_author-year ltx_role_refnum ltx_tag_bibitem">Z. Yi, J. Ouyang, Z. Xu, Y. Liu, T. Liao, H. Luo, and Y. Shen (2025)</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">A survey on recent advances in llm-based multi-turn dialogue systems</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">ACM Comput. Surv.</span> <span class="ltx_text ltx_bib_volume">58</span> (<span class="ltx_text ltx_bib_number">6</span>).
+</span>
+<span class="ltx_bibblock">External Links: <span class="ltx_text ltx_bib_links"><span class="ltx_text issn ltx_bib_external">ISSN 0360-0300</span>,
+<a target="_blank" href="https://doi.org/10.1145/3771090" title="" class="ltx_ref ltx_bib_external">Link</a>,
+<a target="_blank" href="https://dx.doi.org/10.1145/3771090" title="" class="ltx_ref doi ltx_bib_external">Document</a></span>
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S2.p4.1" title="2 Related Work ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§2</span></a>.
+</span>
+</li>
+<li id="bib.bib4" class="ltx_bibitem ltx_bib_inproceedings">
+<span class="ltx_tag ltx_bib_author-year ltx_role_refnum ltx_tag_bibitem">G. Zeng, W. Yang, Z. Ju, Y. Yang, S. Wang, R. Zhang, M. Zhou, J. Zeng, X. Dong, R. Zhang, <span class="ltx_text ltx_bib_etal">et al.</span> (2020)</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">MedDialog: large-scale medical dialogue datasets</span>.
+</span>
+<span class="ltx_bibblock">In <span class="ltx_text ltx_bib_inbook">Proceedings of the 2020 conference on empirical methods in natural language processing (EMNLP)</span>,
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_pages"> pp. 9241–9250</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S2.p1.1" title="2 Related Work ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§2</span></a>.
+</span>
+</li>
+<li id="bib.bib24" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_author-year ltx_role_refnum ltx_tag_bibitem">Z. Zhang and H. Zhao (2021)</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Advances in multi-turn dialogue comprehension: a survey</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">arXiv preprint arXiv:2103.03125</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S2.p4.1" title="2 Related Work ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§2</span></a>.
+</span>
+</li>
+<li id="bib.bib25" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_author-year ltx_role_refnum ltx_tag_bibitem">Z. Zhou, J. Xiang, H. Chen, Q. Liu, Z. Li, and S. Su (2024)</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Speak out of turn: safety vulnerability of large language models in multi-turn dialogue</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">arXiv preprint arXiv:2402.17262</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S2.p4.1" title="2 Related Work ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§2</span></a>.
+</span>
+</li>
+</ul>
+</section>
+<div class="ltx_pagination ltx_role_newpage"></div>
+<section id="A1" class="ltx_appendix">
+<h2 class="ltx_title ltx_title_appendix">
+<span class="ltx_tag ltx_tag_appendix">Appendix A </span>LoRA Training Configuration</h2>
+
+<div id="A1.p1" class="ltx_para">
+<p id="A1.p1.1" class="ltx_p">We use Low-Rank Adaptation (LoRA) <cite class="ltx_cite ltx_citemacro_citep">(Hu<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib38" title="Lora: low-rank adaptation of large language models." class="ltx_ref">2022</a>)</cite> for parameter-efficient fine-tuning.
+Adapters are inserted into the query, key, value, and output projection matrices of each transformer block.</p>
+</div>
+<div id="A1.p2" class="ltx_para">
+<p id="A1.p2.1" class="ltx_p">The LoRA hyperparameters used in our experiments are:</p>
+</div>
+<div id="A1.p3" class="ltx_para">
+<ul id="A1.I1" class="ltx_itemize">
+<li id="A1.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="A1.I1.i1.p1" class="ltx_para">
+<p id="A1.I1.i1.p1.1" class="ltx_p">Rank <math id="A1.I1.i1.p1.1.m1" class="ltx_Math" alttext="r=16" display="inline" intent=":literal"><semantics><mrow><mi>r</mi><mo>=</mo><mn>16</mn></mrow><annotation encoding="application/x-tex">r=16</annotation></semantics></math></p>
+</div>
+</li>
+<li id="A1.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="A1.I1.i2.p1" class="ltx_para">
+<p id="A1.I1.i2.p1.1" class="ltx_p">Scaling factor <math id="A1.I1.i2.p1.1.m1" class="ltx_Math" alttext="\alpha=32" display="inline" intent=":literal"><semantics><mrow><mi>α</mi><mo>=</mo><mn>32</mn></mrow><annotation encoding="application/x-tex">\alpha=32</annotation></semantics></math></p>
+</div>
+</li>
+<li id="A1.I1.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="A1.I1.i3.p1" class="ltx_para">
+<p id="A1.I1.i3.p1.1" class="ltx_p">Dropout <math id="A1.I1.i3.p1.1.m1" class="ltx_Math" alttext="p=0.05" display="inline" intent=":literal"><semantics><mrow><mi>p</mi><mo>=</mo><mn>0.05</mn></mrow><annotation encoding="application/x-tex">p=0.05</annotation></semantics></math></p>
+</div>
+</li>
+<li id="A1.I1.i4" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="A1.I1.i4.p1" class="ltx_para">
+<p id="A1.I1.i4.p1.1" class="ltx_p">Target modules: attention projection layers</p>
+</div>
+</li>
+</ul>
+</div>
+<div id="A1.p4" class="ltx_para">
+<p id="A1.p4.1" class="ltx_p">This configuration keeps the trainable parameter budget below approximately <math id="A1.p4.1.m1" class="ltx_Math" alttext="2\%" display="inline" intent=":literal"><semantics><mrow><mn>2</mn><mo>%</mo></mrow><annotation encoding="application/x-tex">2\%</annotation></semantics></math> of the total model parameters while maintaining strong task adaptation.</p>
+</div>
+</section>
+<section id="A2" class="ltx_appendix">
+<h2 class="ltx_title ltx_title_appendix">
+<span class="ltx_tag ltx_tag_appendix">Appendix B </span>GRPO Optimisation</h2>
+
+<div id="A2.p1" class="ltx_para">
+<p id="A2.p1.1" class="ltx_p">In addition to supervised fine-tuning, we experiment with Group Relative Policy Optimisation (GRPO) <cite class="ltx_cite ltx_citemacro_citep">(Shao<span class="ltx_text ltx_bib_etal"> et al.</span>, <a href="#bib.bib40" title="Deepseekmath: pushing the limits of mathematical reasoning in open language models" class="ltx_ref">2024</a>)</cite> for improving conversational reasoning.</p>
+</div>
+<div id="A2.p2" class="ltx_para">
+<p id="A2.p2.1" class="ltx_p">The reward signal combines several components:</p>
+</div>
+<div id="A2.p3" class="ltx_para">
+<ul id="A2.I1" class="ltx_itemize">
+<li id="A2.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="A2.I1.i1.p1" class="ltx_para">
+<p id="A2.I1.i1.p1.1" class="ltx_p">Diagnostic accuracy with respect to the gold disease label</p>
+</div>
+</li>
+<li id="A2.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="A2.I1.i2.p1" class="ltx_para">
+<p id="A2.I1.i2.p1.1" class="ltx_p">Conversation quality measured through symptom coverage and relevance</p>
+</div>
+</li>
+<li id="A2.I1.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="A2.I1.i3.p1" class="ltx_para">
+<p id="A2.I1.i3.p1.1" class="ltx_p">Output format compliance</p>
+</div>
+</li>
+<li id="A2.I1.i4" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="A2.I1.i4.p1" class="ltx_para">
+<p id="A2.I1.i4.p1.1" class="ltx_p">KL-divergence regularisation to prevent excessive deviation from the supervised model</p>
+</div>
+</li>
+</ul>
+</div>
+<div id="A2.p4" class="ltx_para">
+<p id="A2.p4.1" class="ltx_p">GRPO optimisation is applied only to selected model variants and therefore remains an optional step in the overall training pipeline.</p>
+</div>
+</section>
+<section id="A3" class="ltx_appendix">
+<h2 class="ltx_title ltx_title_appendix">
+<span class="ltx_tag ltx_tag_appendix">Appendix C </span>Training Hyperparameters and Resources</h2>
+
+<section id="A3.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">C.1 </span>Compute Resources</h3>
+
+<div id="A3.SS1.p1" class="ltx_para">
+<p id="A3.SS1.p1.1" class="ltx_p">All experiments were conducted using the free tiers of <span id="A3.SS1.p1.1.1" class="ltx_text ltx_font_italic">Google Colab</span> and <span id="A3.SS1.p1.1.2" class="ltx_text ltx_font_italic">Kaggle</span> notebooks. These environments provide access to consumer-grade GPUs suitable for training compact language models using parameter-efficient fine-tuning techniques. To accommodate the limited GPU memory available in these platforms, we employed 4-bit quantization together with LoRA-based training.</p>
+</div>
+</section>
+<section id="A3.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">C.2 </span>LoRA Configuration</h3>
+
+<div id="A3.SS2.p1" class="ltx_para">
+<p id="A3.SS2.p1.1" class="ltx_p">Table <a href="#A3.T5" title="Table 5 ‣ C.2 LoRA Configuration ‣ Appendix C Training Hyperparameters and Resources ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5</span></a> summarizes the LoRA configuration used in our experiments.</p>
+</div>
+<figure id="A3.T5" class="ltx_table">
+<table id="A3.T5.1" class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle">
+<thead class="ltx_thead">
+<tr id="A3.T5.1.2.1" class="ltx_tr">
+<th id="A3.T5.1.2.1.1" class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_th_row ltx_border_tt"><span id="A3.T5.1.2.1.1.1" class="ltx_text ltx_font_bold">Parameter</span></th>
+<th id="A3.T5.1.2.1.2" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt"><span id="A3.T5.1.2.1.2.1" class="ltx_text ltx_font_bold">Value</span></th>
+</tr>
+<tr id="A3.T5.1.1" class="ltx_tr">
+<th id="A3.T5.1.1.1" class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_th_row ltx_border_t">Rank (<math id="A3.T5.1.1.1.m1" class="ltx_Math" alttext="r" display="inline" intent=":literal"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>)</th>
+<th id="A3.T5.1.1.2" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t">16</th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr id="A3.T5.1.3.1" class="ltx_tr">
+<th id="A3.T5.1.3.1.1" class="ltx_td ltx_align_left ltx_th ltx_th_row">Target Modules</th>
+<td id="A3.T5.1.3.1.2" class="ltx_td ltx_align_center">q_proj, k_proj, v_proj, o_proj,</td>
+</tr>
+<tr id="A3.T5.1.4.2" class="ltx_tr">
+<th id="A3.T5.1.4.2.1" class="ltx_td ltx_th ltx_th_row"></th>
+<td id="A3.T5.1.4.2.2" class="ltx_td ltx_align_center">gate_proj, up_proj, down_proj</td>
+</tr>
+<tr id="A3.T5.1.5.3" class="ltx_tr">
+<th id="A3.T5.1.5.3.1" class="ltx_td ltx_align_left ltx_th ltx_th_row">LoRA Alpha</th>
+<td id="A3.T5.1.5.3.2" class="ltx_td ltx_align_center">16</td>
+</tr>
+<tr id="A3.T5.1.6.4" class="ltx_tr">
+<th id="A3.T5.1.6.4.1" class="ltx_td ltx_align_left ltx_th ltx_th_row">LoRA Dropout</th>
+<td id="A3.T5.1.6.4.2" class="ltx_td ltx_align_center">0</td>
+</tr>
+<tr id="A3.T5.1.7.5" class="ltx_tr">
+<th id="A3.T5.1.7.5.1" class="ltx_td ltx_align_left ltx_th ltx_th_row">Bias</th>
+<td id="A3.T5.1.7.5.2" class="ltx_td ltx_align_center">none</td>
+</tr>
+<tr id="A3.T5.1.8.6" class="ltx_tr">
+<th id="A3.T5.1.8.6.1" class="ltx_td ltx_align_left ltx_th ltx_th_row">Use RSLora</th>
+<td id="A3.T5.1.8.6.2" class="ltx_td ltx_align_center">False</td>
+</tr>
+<tr id="A3.T5.1.9.7" class="ltx_tr">
+<th id="A3.T5.1.9.7.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_bb">LoftQ Config</th>
+<td id="A3.T5.1.9.7.2" class="ltx_td ltx_align_center ltx_border_bb">None</td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 5: </span>LoRA configuration used for parameter-efficient fine-tuning.</figcaption>
+</figure>
+</section>
+<section id="A3.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">C.3 </span>Training Hyperparameters</h3>
+
+<div id="A3.SS3.p1" class="ltx_para">
+<p id="A3.SS3.p1.1" class="ltx_p">The main training hyperparameters are reported in Table <a href="#A3.T6" title="Table 6 ‣ C.3 Training Hyperparameters ‣ Appendix C Training Hyperparameters and Resources ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6</span></a>.</p>
+</div>
+<figure id="A3.T6" class="ltx_table">
+<table id="A3.T6.1" class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle">
+<thead class="ltx_thead">
+<tr id="A3.T6.1.2.1" class="ltx_tr">
+<th id="A3.T6.1.2.1.1" class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_th_row ltx_border_tt"><span id="A3.T6.1.2.1.1.1" class="ltx_text ltx_font_bold">Hyperparameter</span></th>
+<th id="A3.T6.1.2.1.2" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt"><span id="A3.T6.1.2.1.2.1" class="ltx_text ltx_font_bold">Value</span></th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr id="A3.T6.1.1" class="ltx_tr">
+<th id="A3.T6.1.1.2" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t">Learning Rate</th>
+<td id="A3.T6.1.1.1" class="ltx_td ltx_align_center ltx_border_t"><math id="A3.T6.1.1.1.m1" class="ltx_Math" alttext="2\times 10^{-4}" display="inline" intent=":literal"><semantics><mrow><mn>2</mn><mo lspace="0.222em" rspace="0.222em">×</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>4</mn></mrow></msup></mrow><annotation encoding="application/x-tex">2\times 10^{-4}</annotation></semantics></math></td>
+</tr>
+<tr id="A3.T6.1.3.1" class="ltx_tr">
+<th id="A3.T6.1.3.1.1" class="ltx_td ltx_align_left ltx_th ltx_th_row">Optimizer</th>
+<td id="A3.T6.1.3.1.2" class="ltx_td ltx_align_center">AdamW (8-bit)</td>
+</tr>
+<tr id="A3.T6.1.4.2" class="ltx_tr">
+<th id="A3.T6.1.4.2.1" class="ltx_td ltx_align_left ltx_th ltx_th_row">Learning Rate Scheduler</th>
+<td id="A3.T6.1.4.2.2" class="ltx_td ltx_align_center">Linear</td>
+</tr>
+<tr id="A3.T6.1.5.3" class="ltx_tr">
+<th id="A3.T6.1.5.3.1" class="ltx_td ltx_align_left ltx_th ltx_th_row">Weight Decay</th>
+<td id="A3.T6.1.5.3.2" class="ltx_td ltx_align_center">0.001</td>
+</tr>
+<tr id="A3.T6.1.6.4" class="ltx_tr">
+<th id="A3.T6.1.6.4.1" class="ltx_td ltx_align_left ltx_th ltx_th_row">Warmup Steps</th>
+<td id="A3.T6.1.6.4.2" class="ltx_td ltx_align_center">5</td>
+</tr>
+<tr id="A3.T6.1.7.5" class="ltx_tr">
+<th id="A3.T6.1.7.5.1" class="ltx_td ltx_align_left ltx_th ltx_th_row">Maximum Training Steps</th>
+<td id="A3.T6.1.7.5.2" class="ltx_td ltx_align_center">600</td>
+</tr>
+<tr id="A3.T6.1.8.6" class="ltx_tr">
+<th id="A3.T6.1.8.6.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_bb">Random Seed</th>
+<td id="A3.T6.1.8.6.2" class="ltx_td ltx_align_center ltx_border_bb">3407</td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 6: </span>Training hyperparameters used for supervised fine-tuning.</figcaption>
+</figure>
+<figure id="A3.T7" class="ltx_table">
+<div id="A3.T7.1" class="ltx_inline-block ltx_align_center ltx_transformed_outer" style="width:346.9pt;height:82.9pt;vertical-align:-39.0pt;"><span class="ltx_transformed_inner" style="transform:translate(-4.8pt,1.2pt) scale(0.972838419579853,0.972838419579853) ;">
+<table id="A3.T7.1.1" class="ltx_tabular ltx_guessed_headers ltx_align_middle">
+<thead class="ltx_thead">
+<tr id="A3.T7.1.1.1.1" class="ltx_tr">
+<th id="A3.T7.1.1.1.1.1" class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_th_row ltx_border_tt"><span id="A3.T7.1.1.1.1.1.1" class="ltx_text ltx_font_bold">Metric</span></th>
+<th id="A3.T7.1.1.1.1.2" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt"><span id="A3.T7.1.1.1.1.2.1" class="ltx_text ltx_font_bold">Expert 1</span></th>
+<th id="A3.T7.1.1.1.1.3" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt"><span id="A3.T7.1.1.1.1.3.1" class="ltx_text ltx_font_bold">Expert 2</span></th>
+<th id="A3.T7.1.1.1.1.4" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt"><span id="A3.T7.1.1.1.1.4.1" class="ltx_text ltx_font_bold">Expert 3</span></th>
+<th id="A3.T7.1.1.1.1.5" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt"><span id="A3.T7.1.1.1.1.5.1" class="ltx_text ltx_font_bold">Average</span></th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr id="A3.T7.1.1.2.1" class="ltx_tr">
+<th id="A3.T7.1.1.2.1.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t">Medical Safety (Pass Rate)</th>
+<td id="A3.T7.1.1.2.1.2" class="ltx_td ltx_align_center ltx_border_t">96%</td>
+<td id="A3.T7.1.1.2.1.3" class="ltx_td ltx_align_center ltx_border_t">94%</td>
+<td id="A3.T7.1.1.2.1.4" class="ltx_td ltx_align_center ltx_border_t">96%</td>
+<td id="A3.T7.1.1.2.1.5" class="ltx_td ltx_align_center ltx_border_t"><span id="A3.T7.1.1.2.1.5.1" class="ltx_text ltx_font_bold">95.3%</span></td>
+</tr>
+<tr id="A3.T7.1.1.3.2" class="ltx_tr">
+<th id="A3.T7.1.1.3.2.1" class="ltx_td ltx_align_left ltx_th ltx_th_row">Symptom Extraction</th>
+<td id="A3.T7.1.1.3.2.2" class="ltx_td ltx_align_center">4.2</td>
+<td id="A3.T7.1.1.3.2.3" class="ltx_td ltx_align_center">4.1</td>
+<td id="A3.T7.1.1.3.2.4" class="ltx_td ltx_align_center">4.3</td>
+<td id="A3.T7.1.1.3.2.5" class="ltx_td ltx_align_center"><span id="A3.T7.1.1.3.2.5.1" class="ltx_text ltx_font_bold">4.20</span></td>
+</tr>
+<tr id="A3.T7.1.1.4.3" class="ltx_tr">
+<th id="A3.T7.1.1.4.3.1" class="ltx_td ltx_align_left ltx_th ltx_th_row">Context Memory</th>
+<td id="A3.T7.1.1.4.3.2" class="ltx_td ltx_align_center">4.4</td>
+<td id="A3.T7.1.1.4.3.3" class="ltx_td ltx_align_center">4.3</td>
+<td id="A3.T7.1.1.4.3.4" class="ltx_td ltx_align_center">4.5</td>
+<td id="A3.T7.1.1.4.3.5" class="ltx_td ltx_align_center"><span id="A3.T7.1.1.4.3.5.1" class="ltx_text ltx_font_bold">4.40</span></td>
+</tr>
+<tr id="A3.T7.1.1.5.4" class="ltx_tr">
+<th id="A3.T7.1.1.5.4.1" class="ltx_td ltx_align_left ltx_th ltx_th_row">Diagnostic Correctness</th>
+<td id="A3.T7.1.1.5.4.2" class="ltx_td ltx_align_center">4.1</td>
+<td id="A3.T7.1.1.5.4.3" class="ltx_td ltx_align_center">4.0</td>
+<td id="A3.T7.1.1.5.4.4" class="ltx_td ltx_align_center">4.2</td>
+<td id="A3.T7.1.1.5.4.5" class="ltx_td ltx_align_center"><span id="A3.T7.1.1.5.4.5.1" class="ltx_text ltx_font_bold">4.10</span></td>
+</tr>
+<tr id="A3.T7.1.1.6.5" class="ltx_tr">
+<th id="A3.T7.1.1.6.5.1" class="ltx_td ltx_align_left ltx_th ltx_th_row">Conversational Flow</th>
+<td id="A3.T7.1.1.6.5.2" class="ltx_td ltx_align_center">4.3</td>
+<td id="A3.T7.1.1.6.5.3" class="ltx_td ltx_align_center">4.2</td>
+<td id="A3.T7.1.1.6.5.4" class="ltx_td ltx_align_center">4.4</td>
+<td id="A3.T7.1.1.6.5.5" class="ltx_td ltx_align_center"><span id="A3.T7.1.1.6.5.5.1" class="ltx_text ltx_font_bold">4.30</span></td>
+</tr>
+<tr id="A3.T7.1.1.7.6" class="ltx_tr">
+<th id="A3.T7.1.1.7.6.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_bb">Efficiency</th>
+<td id="A3.T7.1.1.7.6.2" class="ltx_td ltx_align_center ltx_border_bb">4.0</td>
+<td id="A3.T7.1.1.7.6.3" class="ltx_td ltx_align_center ltx_border_bb">3.9</td>
+<td id="A3.T7.1.1.7.6.4" class="ltx_td ltx_align_center ltx_border_bb">4.1</td>
+<td id="A3.T7.1.1.7.6.5" class="ltx_td ltx_align_center ltx_border_bb"><span id="A3.T7.1.1.7.6.5.1" class="ltx_text ltx_font_bold">4.00</span></td>
+</tr>
+</tbody>
+</table>
+</span></div>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 7: </span>Medical expert evaluation of <span id="A3.T7.3.1" class="ltx_text ltx_font_typewriter">MedAidLM</span> across 50 sampled dialogues. Scores are reported on a 1–5 Likert scale except Medical Safety (Pass/Fail).</figcaption>
+</figure>
+<figure id="A3.T8" class="ltx_table">
+<div id="A3.T8.1" class="ltx_inline-block ltx_align_center ltx_transformed_outer" style="width:346.9pt;height:158.1pt;vertical-align:-76.1pt;"><span class="ltx_transformed_inner" style="transform:translate(27.3pt,-12.4pt) scale(1.18676199839146,1.18676199839146) ;">
+<table id="A3.T8.1.1" class="ltx_tabular ltx_guessed_headers ltx_align_middle">
+<thead class="ltx_thead">
+<tr id="A3.T8.1.1.1.1" class="ltx_tr">
+<th id="A3.T8.1.1.1.1.1" class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt"><span id="A3.T8.1.1.1.1.1.1" class="ltx_text ltx_font_bold">Original Disease</span></th>
+<th id="A3.T8.1.1.1.1.2" class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt"><span id="A3.T8.1.1.1.1.2.1" class="ltx_text ltx_font_bold">Misclassified As</span></th>
+<th id="A3.T8.1.1.1.1.3" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt"><span id="A3.T8.1.1.1.1.3.1" class="ltx_text ltx_font_bold">Frequency</span></th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr id="A3.T8.1.1.2.1" class="ltx_tr">
+<td id="A3.T8.1.1.2.1.1" class="ltx_td ltx_align_left ltx_border_t">Pneumonia</td>
+<td id="A3.T8.1.1.2.1.2" class="ltx_td ltx_align_left ltx_border_t">Asthma</td>
+<td id="A3.T8.1.1.2.1.3" class="ltx_td ltx_align_center ltx_border_t">3</td>
+</tr>
+<tr id="A3.T8.1.1.3.2" class="ltx_tr">
+<td id="A3.T8.1.1.3.2.1" class="ltx_td ltx_align_left">Esophagitis</td>
+<td id="A3.T8.1.1.3.2.2" class="ltx_td ltx_align_left">Enteritis</td>
+<td id="A3.T8.1.1.3.2.3" class="ltx_td ltx_align_center">2</td>
+</tr>
+<tr id="A3.T8.1.1.4.3" class="ltx_tr">
+<td id="A3.T8.1.1.4.3.1" class="ltx_td ltx_align_left">Esophagitis</td>
+<td id="A3.T8.1.1.4.3.2" class="ltx_td ltx_align_left">Asthma</td>
+<td id="A3.T8.1.1.4.3.3" class="ltx_td ltx_align_center">2</td>
+</tr>
+<tr id="A3.T8.1.1.5.4" class="ltx_tr">
+<td id="A3.T8.1.1.5.4.1" class="ltx_td ltx_align_left">Asthma</td>
+<td id="A3.T8.1.1.5.4.2" class="ltx_td ltx_align_left">Pneumonia</td>
+<td id="A3.T8.1.1.5.4.3" class="ltx_td ltx_align_center">2</td>
+</tr>
+<tr id="A3.T8.1.1.6.5" class="ltx_tr">
+<td id="A3.T8.1.1.6.5.1" class="ltx_td ltx_align_left">Coronary heart disease</td>
+<td id="A3.T8.1.1.6.5.2" class="ltx_td ltx_align_left">Asthma</td>
+<td id="A3.T8.1.1.6.5.3" class="ltx_td ltx_align_center">2</td>
+</tr>
+<tr id="A3.T8.1.1.7.6" class="ltx_tr">
+<td id="A3.T8.1.1.7.6.1" class="ltx_td ltx_align_left">Pneumonia</td>
+<td id="A3.T8.1.1.7.6.2" class="ltx_td ltx_align_left">Enteritis</td>
+<td id="A3.T8.1.1.7.6.3" class="ltx_td ltx_align_center">2</td>
+</tr>
+<tr id="A3.T8.1.1.8.7" class="ltx_tr">
+<td id="A3.T8.1.1.8.7.1" class="ltx_td ltx_align_left">External otitis</td>
+<td id="A3.T8.1.1.8.7.2" class="ltx_td ltx_align_left">Conjunctivitis</td>
+<td id="A3.T8.1.1.8.7.3" class="ltx_td ltx_align_center">2</td>
+</tr>
+<tr id="A3.T8.1.1.9.8" class="ltx_tr">
+<td id="A3.T8.1.1.9.8.1" class="ltx_td ltx_align_left">Conjunctivitis</td>
+<td id="A3.T8.1.1.9.8.2" class="ltx_td ltx_align_left">Mastitis</td>
+<td id="A3.T8.1.1.9.8.3" class="ltx_td ltx_align_center">2</td>
+</tr>
+<tr id="A3.T8.1.1.10.9" class="ltx_tr">
+<td id="A3.T8.1.1.10.9.1" class="ltx_td ltx_align_left">Mastitis</td>
+<td id="A3.T8.1.1.10.9.2" class="ltx_td ltx_align_left">Traumatic brain injury</td>
+<td id="A3.T8.1.1.10.9.3" class="ltx_td ltx_align_center">2</td>
+</tr>
+<tr id="A3.T8.1.1.11.10" class="ltx_tr">
+<td id="A3.T8.1.1.11.10.1" class="ltx_td ltx_align_left ltx_border_bb">Esophagitis</td>
+<td id="A3.T8.1.1.11.10.2" class="ltx_td ltx_align_left ltx_border_bb">Coronary heart disease</td>
+<td id="A3.T8.1.1.11.10.3" class="ltx_td ltx_align_center ltx_border_bb">1</td>
+</tr>
+</tbody>
+</table>
+</span></div>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 8: </span>Most frequent disease-level misclassifications made by the final <span id="A3.T8.3.1" class="ltx_text ltx_font_typewriter">MedAidLM</span> model.</figcaption>
+</figure>
+<figure id="A3.T9" class="ltx_table">
+<div id="A3.T9.1" class="ltx_inline-block ltx_align_center ltx_transformed_outer" style="width:260.2pt;height:103.4pt;vertical-align:-48.7pt;"><span class="ltx_transformed_inner" style="transform:translate(22.4pt,-8.9pt) scale(1.20783885116076,1.20783885116076) ;">
+<table id="A3.T9.1.1" class="ltx_tabular ltx_guessed_headers ltx_align_middle">
+<thead class="ltx_thead">
+<tr id="A3.T9.1.1.1" class="ltx_tr">
+<th id="A3.T9.1.1.1.2" class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_th_row ltx_border_tt"><span id="A3.T9.1.1.1.2.1" class="ltx_text ltx_font_bold">Metric</span></th>
+<th id="A3.T9.1.1.1.1" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt"><span id="A3.T9.1.1.1.1.1" class="ltx_text ltx_font_bold">Krippendorff’s <math id="A3.T9.1.1.1.1.1.m1" class="ltx_Math" alttext="\alpha" display="inline" intent=":literal"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math></span></th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr id="A3.T9.1.1.2.1" class="ltx_tr">
+<th id="A3.T9.1.1.2.1.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t">Symptom Extraction</th>
+<td id="A3.T9.1.1.2.1.2" class="ltx_td ltx_align_center ltx_border_t">0.82</td>
+</tr>
+<tr id="A3.T9.1.1.3.2" class="ltx_tr">
+<th id="A3.T9.1.1.3.2.1" class="ltx_td ltx_align_left ltx_th ltx_th_row">Context Memory</th>
+<td id="A3.T9.1.1.3.2.2" class="ltx_td ltx_align_center">0.84</td>
+</tr>
+<tr id="A3.T9.1.1.4.3" class="ltx_tr">
+<th id="A3.T9.1.1.4.3.1" class="ltx_td ltx_align_left ltx_th ltx_th_row">Diagnostic Correctness</th>
+<td id="A3.T9.1.1.4.3.2" class="ltx_td ltx_align_center">0.80</td>
+</tr>
+<tr id="A3.T9.1.1.5.4" class="ltx_tr">
+<th id="A3.T9.1.1.5.4.1" class="ltx_td ltx_align_left ltx_th ltx_th_row">Conversational Flow</th>
+<td id="A3.T9.1.1.5.4.2" class="ltx_td ltx_align_center">0.83</td>
+</tr>
+<tr id="A3.T9.1.1.6.5" class="ltx_tr">
+<th id="A3.T9.1.1.6.5.1" class="ltx_td ltx_align_left ltx_th ltx_th_row">Efficiency</th>
+<td id="A3.T9.1.1.6.5.2" class="ltx_td ltx_align_center">0.78</td>
+</tr>
+<tr id="A3.T9.1.1.7.6" class="ltx_tr">
+<th id="A3.T9.1.1.7.6.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_bb ltx_border_t"><span id="A3.T9.1.1.7.6.1.1" class="ltx_text ltx_font_bold">Average</span></th>
+<td id="A3.T9.1.1.7.6.2" class="ltx_td ltx_align_center ltx_border_bb ltx_border_t"><span id="A3.T9.1.1.7.6.2.1" class="ltx_text ltx_font_bold">0.81</span></td>
+</tr>
+</tbody>
+</table>
+</span></div>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 9: </span>IAA scores across three medical experts.</figcaption>
+</figure>
+</section>
+</section>
+<section id="A4" class="ltx_appendix">
+<h2 class="ltx_title ltx_title_appendix">
+<span class="ltx_tag ltx_tag_appendix">Appendix D </span>Prompt Templates</h2>
+
+<section id="A4.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">D.1 </span>Synthetic Dialogue Generation Prompt</h3>
+
+<div id="A4.SS1.p1" class="ltx_para">
+<p id="A4.SS1.p1.1" class="ltx_p">Table <a href="#A4.T11" title="Table 11 ‣ D.3 Translation Prompt ‣ Appendix D Prompt Templates ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">11</span></a> shows the prompt used for synthetic data generation.</p>
+</div>
+</section>
+<section id="A4.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">D.2 </span>Dialogue Formatting Prompt</h3>
+
+<div id="A4.SS2.p1" class="ltx_para">
+<p id="A4.SS2.p1.1" class="ltx_p">Table <a href="#A4.T12" title="Table 12 ‣ D.3 Translation Prompt ‣ Appendix D Prompt Templates ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">12</span></a> shows the prompt used to convert dialogues into ShareGPT-style format.</p>
+</div>
+</section>
+<section id="A4.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">D.3 </span>Translation Prompt</h3>
+
+<div id="A4.SS3.p1" class="ltx_para">
+<p id="A4.SS3.p1.1" class="ltx_p">Table <a href="#A4.T10" title="Table 10 ‣ D.3 Translation Prompt ‣ Appendix D Prompt Templates ‣ MedAidDialog: A Multilingual Multi-Turn Medical Dialogue Dataset for Accessible Healthcare" class="ltx_ref"><span class="ltx_text ltx_ref_tag">10</span></a> shows the prompt used for bidirectional multilingual medical translation.</p>
+</div>
+<figure id="A4.T10" class="ltx_table">
+<table id="A4.T10.1" class="ltx_tabular ltx_centering ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr id="A4.T10.1.1.1" class="ltx_tr">
+<td id="A4.T10.1.1.1.1" class="ltx_td ltx_align_justify ltx_align_top ltx_border_tt">
+<span id="A4.T10.1.1.1.1.1" class="ltx_inline-block ltx_align_top">
+<span id="A4.T10.1.1.1.1.1.1" class="ltx_p" style="width:78.0pt;"><span id="A4.T10.1.1.1.1.1.1.1" class="ltx_text ltx_font_bold">Prompt Type</span></span>
+</span>
+</td>
+<td id="A4.T10.1.1.1.2" class="ltx_td ltx_align_justify ltx_align_top ltx_border_tt">
+<span id="A4.T10.1.1.1.2.1" class="ltx_inline-block ltx_align_top">
+<span id="A4.T10.1.1.1.2.1.1" class="ltx_p" style="width:333.9pt;"><span id="A4.T10.1.1.1.2.1.1.1" class="ltx_text ltx_font_bold">Prompt Content</span></span>
+</span>
+</td>
+</tr>
+<tr id="A4.T10.1.2.2" class="ltx_tr">
+<td id="A4.T10.1.2.2.1" class="ltx_td ltx_align_justify ltx_align_top ltx_border_bb ltx_border_t">
+<span id="A4.T10.1.2.2.1.1" class="ltx_inline-block ltx_align_top">
+<span id="A4.T10.1.2.2.1.1.1" class="ltx_p" style="width:78.0pt;">Translation Prompt</span>
+</span>
+</td>
+<td id="A4.T10.1.2.2.2" class="ltx_td ltx_align_justify ltx_align_top ltx_border_bb ltx_border_t">
+<span id="A4.T10.1.2.2.2.1" class="ltx_inline-block ltx_align_top">
+<span id="A4.T10.1.2.2.2.1.1" class="ltx_p" style="width:333.9pt;">You are acting as a specialized Medical Translation Bridge, a critical link between an English-speaking doctor and a patient who speaks Hindi, Bengali, Marathi, Telugu, Arabic, or Tamil. Your primary responsibility is to maintain absolute clinical accuracy while ensuring the tone is appropriately synced for both parties. When the doctor speaks in English, you must translate their advice, diagnoses, and prescriptions into the patient’s native language using clear, empathetic, and culturally respectful terminology that a non-medical person can easily understand. Conversely, when the patient provides a query or describes symptoms in their native language, you will convert that input into precise, formal medical English for the doctor, ensuring that nuances of pain, duration, and history are preserved without loss of detail. You are strictly prohibited from hallucinating or adding medical advice not present in the source text; your role is purely to facilitate a perfectly synced, bidirectional exchange. Ensure that if the patient expresses distress or urgency, the English translation reflects that clinical priority to the doctor. Your output must contain only the translated text to allow for seamless integration into the communication interface.</span>
+</span>
+</td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 10: </span>Prompt used for bidirectional medical translation in the multilingual inference layer.</figcaption>
+</figure>
+<figure id="A4.T11" class="ltx_table">
+<table id="A4.T11.1" class="ltx_tabular ltx_centering ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr id="A4.T11.1.1.1" class="ltx_tr">
+<td id="A4.T11.1.1.1.1" class="ltx_td ltx_align_justify ltx_align_top ltx_border_tt">
+<span id="A4.T11.1.1.1.1.1" class="ltx_inline-block ltx_align_top">
+<span id="A4.T11.1.1.1.1.1.1" class="ltx_p" style="width:78.0pt;"><span id="A4.T11.1.1.1.1.1.1.1" class="ltx_text ltx_font_bold">Prompt Type</span></span>
+</span>
+</td>
+<td id="A4.T11.1.1.1.2" class="ltx_td ltx_align_justify ltx_align_top ltx_border_tt">
+<span id="A4.T11.1.1.1.2.1" class="ltx_inline-block ltx_align_top">
+<span id="A4.T11.1.1.1.2.1.1" class="ltx_p" style="width:333.9pt;"><span id="A4.T11.1.1.1.2.1.1.1" class="ltx_text ltx_font_bold">Prompt Content</span></span>
+</span>
+</td>
+</tr>
+<tr id="A4.T11.1.2.2" class="ltx_tr">
+<td id="A4.T11.1.2.2.1" class="ltx_td ltx_align_justify ltx_align_top ltx_border_bb ltx_border_t">
+<span id="A4.T11.1.2.2.1.1" class="ltx_inline-block ltx_align_top">
+<span id="A4.T11.1.2.2.1.1.1" class="ltx_p" style="width:78.0pt;">Synthetic Dialogue Generation Prompt</span>
+</span>
+</td>
+<td id="A4.T11.1.2.2.2" class="ltx_td ltx_align_justify ltx_align_top ltx_border_bb ltx_border_t">
+<span id="A4.T11.1.2.2.2.1" class="ltx_inline-block ltx_align_top">
+<span id="A4.T11.1.2.2.2.1.1" class="ltx_p" style="width:333.9pt;">Analyze <span id="A4.T11.1.2.2.2.1.1.1" class="ltx_text ltx_font_typewriter">train.json</span> medical dialogues (patient/doctor exchanges, symptoms like “Cough”, diagnoses such as “Esophagitis”). Create Python synthetic generator using Groq API (Llama-3 family model). Match exact format: <span id="A4.T11.1.2.2.2.1.1.2" class="ltx_text ltx_font_typewriter">{’Dialog N’: [{’patient’: ’...’, ’doctor’: ’...’}]}</span>. Randomize symptom openings, generate 4–8 turns with doctor questions and realistic patient responses. Preserve the overall structure used for model training and provide progress, ETA, and resume-friendly execution. Output synthetic data in the same format as <span id="A4.T11.1.2.2.2.1.1.3" class="ltx_text ltx_font_typewriter">train.json</span>.</span>
+</span>
+</td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 11: </span>Prompt used to generate synthetic multi-turn medical consultations from the <span id="A4.T11.3.1" class="ltx_text ltx_font_typewriter">MDDial</span> training distribution.</figcaption>
+</figure>
+<figure id="A4.T12" class="ltx_table">
+<table id="A4.T12.1" class="ltx_tabular ltx_centering ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr id="A4.T12.1.1.1" class="ltx_tr">
+<td id="A4.T12.1.1.1.1" class="ltx_td ltx_align_justify ltx_align_top ltx_border_tt">
+<span id="A4.T12.1.1.1.1.1" class="ltx_inline-block ltx_align_top">
+<span id="A4.T12.1.1.1.1.1.1" class="ltx_p" style="width:78.0pt;"><span id="A4.T12.1.1.1.1.1.1.1" class="ltx_text ltx_font_bold">Prompt Type</span></span>
+</span>
+</td>
+<td id="A4.T12.1.1.1.2" class="ltx_td ltx_align_justify ltx_align_top ltx_border_tt">
+<span id="A4.T12.1.1.1.2.1" class="ltx_inline-block ltx_align_top">
+<span id="A4.T12.1.1.1.2.1.1" class="ltx_p" style="width:333.9pt;"><span id="A4.T12.1.1.1.2.1.1.1" class="ltx_text ltx_font_bold">Prompt Content</span></span>
+</span>
+</td>
+</tr>
+<tr id="A4.T12.1.2.2" class="ltx_tr">
+<td id="A4.T12.1.2.2.1" class="ltx_td ltx_align_justify ltx_align_top ltx_border_bb ltx_border_t">
+<span id="A4.T12.1.2.2.1.1" class="ltx_inline-block ltx_align_top">
+<span id="A4.T12.1.2.2.1.1.1" class="ltx_p" style="width:78.0pt;">Dialogue Formatting Prompt</span>
+</span>
+</td>
+<td id="A4.T12.1.2.2.2" class="ltx_td ltx_align_justify ltx_align_top ltx_border_bb ltx_border_t">
+<span id="A4.T12.1.2.2.2.1" class="ltx_inline-block ltx_align_top">
+<span id="A4.T12.1.2.2.2.1.1" class="ltx_p" style="width:333.9pt;">Convert a medical dialogue sample into ShareGPT-style multi-turn conversation. Structure: (1) the system message sets the medical diagnosis context, (2) patient utterances become <span id="A4.T12.1.2.2.2.1.1.1" class="ltx_text ltx_font_typewriter">human</span> turns, (3) doctor utterances become <span id="A4.T12.1.2.2.2.1.1.2" class="ltx_text ltx_font_typewriter">gpt</span> turns, and (4) the final <span id="A4.T12.1.2.2.2.1.1.3" class="ltx_text ltx_font_typewriter">gpt</span> turn contains the diagnosis answer. Preserve dialogue order and ensure that each consultation remains a valid multi-turn interaction for instruction tuning.</span>
+</span>
+</td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 12: </span>Prompt used to convert raw medical dialogues into ShareGPT-style training instances.</figcaption>
+</figure>
+<figure id="A4.T13" class="ltx_table">
+<div id="A4.T13.1" class="ltx_inline-block ltx_align_center ltx_transformed_outer" style="width:433.6pt;height:88.5pt;vertical-align:-42.0pt;"><span class="ltx_transformed_inner" style="transform:translate(-21.4pt,4.4pt) scale(0.910148136411854,0.910148136411854) ;">
+<table id="A4.T13.1.1" class="ltx_tabular ltx_guessed_headers ltx_align_middle">
+<thead class="ltx_thead">
+<tr id="A4.T13.1.1.1.1" class="ltx_tr">
+<th id="A4.T13.1.1.1.1.1" class="ltx_td ltx_align_justify ltx_align_top ltx_th ltx_th_column ltx_border_tt">
+<span id="A4.T13.1.1.1.1.1.1" class="ltx_inline-block ltx_align_top">
+<span id="A4.T13.1.1.1.1.1.1.1" class="ltx_p" style="width:98.9pt;"><span id="A4.T13.1.1.1.1.1.1.1.1" class="ltx_text ltx_font_bold">Evaluation Criterion</span></span>
+</span>
+</th>
+<th id="A4.T13.1.1.1.1.2" class="ltx_td ltx_align_justify ltx_align_top ltx_th ltx_th_column ltx_border_tt">
+<span id="A4.T13.1.1.1.1.2.1" class="ltx_inline-block ltx_align_top">
+<span id="A4.T13.1.1.1.1.2.1.1" class="ltx_p" style="width:346.9pt;"><span id="A4.T13.1.1.1.1.2.1.1.1" class="ltx_text ltx_font_bold">Description</span></span>
+</span>
+</th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr id="A4.T13.1.1.2.1" class="ltx_tr">
+<td id="A4.T13.1.1.2.1.1" class="ltx_td ltx_align_justify ltx_align_top ltx_border_t">
+<span id="A4.T13.1.1.2.1.1.1" class="ltx_inline-block ltx_align_top">
+<span id="A4.T13.1.1.2.1.1.1.1" class="ltx_p" style="width:98.9pt;">Medical Safety (Pass/Fail)</span>
+</span>
+</td>
+<td id="A4.T13.1.1.2.1.2" class="ltx_td ltx_align_justify ltx_align_top ltx_border_t">
+<span id="A4.T13.1.1.2.1.2.1" class="ltx_inline-block ltx_align_top">
+<span id="A4.T13.1.1.2.1.2.1.1" class="ltx_p" style="width:346.9pt;">Whether the system provides any potentially dangerous, misleading, or unsafe medical advice during the conversation.</span>
+</span>
+</td>
+</tr>
+<tr id="A4.T13.1.1.3.2" class="ltx_tr">
+<td id="A4.T13.1.1.3.2.1" class="ltx_td ltx_align_justify ltx_align_top">
+<span id="A4.T13.1.1.3.2.1.1" class="ltx_inline-block ltx_align_top">
+<span id="A4.T13.1.1.3.2.1.1.1" class="ltx_p" style="width:98.9pt;">Symptom Extraction (1–5)</span>
+</span>
+</td>
+<td id="A4.T13.1.1.3.2.2" class="ltx_td ltx_align_justify ltx_align_top">
+<span id="A4.T13.1.1.3.2.2.1" class="ltx_inline-block ltx_align_top">
+<span id="A4.T13.1.1.3.2.2.1.1" class="ltx_p" style="width:346.9pt;">Measures how accurately the model identifies and tracks the patient’s symptoms throughout the dialogue.</span>
+</span>
+</td>
+</tr>
+<tr id="A4.T13.1.1.4.3" class="ltx_tr">
+<td id="A4.T13.1.1.4.3.1" class="ltx_td ltx_align_justify ltx_align_top">
+<span id="A4.T13.1.1.4.3.1.1" class="ltx_inline-block ltx_align_top">
+<span id="A4.T13.1.1.4.3.1.1.1" class="ltx_p" style="width:98.9pt;">Context Memory (1–5)</span>
+</span>
+</td>
+<td id="A4.T13.1.1.4.3.2" class="ltx_td ltx_align_justify ltx_align_top">
+<span id="A4.T13.1.1.4.3.2.1" class="ltx_inline-block ltx_align_top">
+<span id="A4.T13.1.1.4.3.2.1.1" class="ltx_p" style="width:346.9pt;">Evaluates whether the model remembers previously mentioned information such as symptoms or earlier responses in the conversation.</span>
+</span>
+</td>
+</tr>
+<tr id="A4.T13.1.1.5.4" class="ltx_tr">
+<td id="A4.T13.1.1.5.4.1" class="ltx_td ltx_align_justify ltx_align_top">
+<span id="A4.T13.1.1.5.4.1.1" class="ltx_inline-block ltx_align_top">
+<span id="A4.T13.1.1.5.4.1.1.1" class="ltx_p" style="width:98.9pt;">Diagnostic Correctness (1–5)</span>
+</span>
+</td>
+<td id="A4.T13.1.1.5.4.2" class="ltx_td ltx_align_justify ltx_align_top">
+<span id="A4.T13.1.1.5.4.2.1" class="ltx_inline-block ltx_align_top">
+<span id="A4.T13.1.1.5.4.2.1.1" class="ltx_p" style="width:346.9pt;">Assesses whether the final diagnosis is medically reasonable given the symptoms described in the conversation.</span>
+</span>
+</td>
+</tr>
+<tr id="A4.T13.1.1.6.5" class="ltx_tr">
+<td id="A4.T13.1.1.6.5.1" class="ltx_td ltx_align_justify ltx_align_top">
+<span id="A4.T13.1.1.6.5.1.1" class="ltx_inline-block ltx_align_top">
+<span id="A4.T13.1.1.6.5.1.1.1" class="ltx_p" style="width:98.9pt;">Conversational Flow (1–5)</span>
+</span>
+</td>
+<td id="A4.T13.1.1.6.5.2" class="ltx_td ltx_align_justify ltx_align_top">
+<span id="A4.T13.1.1.6.5.2.1" class="ltx_inline-block ltx_align_top">
+<span id="A4.T13.1.1.6.5.2.1.1" class="ltx_p" style="width:346.9pt;">Evaluates whether the dialogue is natural, coherent, empathetic, and professionally phrased, similar to a real clinical interaction.</span>
+</span>
+</td>
+</tr>
+<tr id="A4.T13.1.1.7.6" class="ltx_tr">
+<td id="A4.T13.1.1.7.6.1" class="ltx_td ltx_align_justify ltx_align_top">
+<span id="A4.T13.1.1.7.6.1.1" class="ltx_inline-block ltx_align_top">
+<span id="A4.T13.1.1.7.6.1.1.1" class="ltx_p" style="width:98.9pt;">Efficiency (1–5)</span>
+</span>
+</td>
+<td id="A4.T13.1.1.7.6.2" class="ltx_td ltx_align_justify ltx_align_top">
+<span id="A4.T13.1.1.7.6.2.1" class="ltx_inline-block ltx_align_top">
+<span id="A4.T13.1.1.7.6.2.1.1" class="ltx_p" style="width:346.9pt;">Measures whether the system asks an appropriate number of questions, avoiding unnecessary or redundant queries while still gathering sufficient information.</span>
+</span>
+</td>
+</tr>
+<tr id="A4.T13.1.1.8.7" class="ltx_tr">
+<td id="A4.T13.1.1.8.7.1" class="ltx_td ltx_align_justify ltx_align_top ltx_border_bb">
+<span id="A4.T13.1.1.8.7.1.1" class="ltx_inline-block ltx_align_top">
+<span id="A4.T13.1.1.8.7.1.1.1" class="ltx_p" style="width:98.9pt;">Annotator Notes</span>
+</span>
+</td>
+<td id="A4.T13.1.1.8.7.2" class="ltx_td ltx_align_justify ltx_align_top ltx_border_bb">
+<span id="A4.T13.1.1.8.7.2.1" class="ltx_inline-block ltx_align_top">
+<span id="A4.T13.1.1.8.7.2.1.1" class="ltx_p" style="width:346.9pt;">Free-text comments provided by medical experts to highlight issues such as reasoning errors, repeated questions, unsafe advice, or unusual dialogue patterns.</span>
+</span>
+</td>
+</tr>
+</tbody>
+</table>
+</span></div>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 13: </span>Evaluation criteria used in expert assessment of the conversational medical system. Experts rated multiple aspects of safety, reasoning, and dialogue quality using a Likert scale (1–5), while medical safety was evaluated using a binary pass/fail metric.</figcaption>
+</figure>
+</section>
+</section>
+</article>
+</div>
+<div class="ar5iv-footer"><a href="/html/2603.24131" class="ar5iv-nav-button ar5iv-nav-button-prev">◄</a>
+    <a class="ar5iv-home-button" href="/"><img height="40" alt="ar5iv homepage" src="/assets/ar5iv.png"></a>
+    <a href="/feeling_lucky" class="ar5iv-text-button">Feeling<br>lucky?</a>
+    <a href="/land_of_honey_and_milk" rel="nofollow" aria-hidden="true" tabindex="-1"></a>
+    <a href="/log/2603.24132" class="ar5iv-text-button ar5iv-severity-warning">Conversion<br>report</a>
+    <a class="ar5iv-text-button" target="_blank" href="https://github.com/dginev/ar5iv/issues/new?template=improve-article--arxiv-id-.md&title=Improve+article+2603.24132">Report<br>an issue</a>
+    <a href="https://arxiv.org/abs/2603.24132" class="ar5iv-text-button arxiv-ui-theme">View&nbsp;original<br>on&nbsp;arXiv</a><a href="/html/2603.24133" class="ar5iv-nav-button ar5iv-nav-button-next">►</a>
+</div><footer class="ltx_page_footer">
+<a class="ar5iv-toggle-color-scheme" href="javascript:toggleColorScheme()" title="Toggle ar5iv color scheme"><span class="color-scheme-icon"></span></a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/license" target="_blank">Copyright</a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/policies/privacy_policy" target="_blank">Privacy Policy</a>
+
+<div class="ltx_page_logo">Generated  on Mon Apr  6 00:42:32 2026 by <a target="_blank" href="http://dlmf.nist.gov/LaTeXML/" class="ltx_LaTeXML_logo"><span style="letter-spacing:-0.2em; margin-right:0.1em;">L<span class="ltx_font_smallcaps" style="position:relative; bottom:2.2pt;">a</span>T<span class="ltx_font_smallcaps" style="font-size:120%;position:relative; bottom:-0.2ex;">e</span></span><span style="font-size:90%; position:relative; bottom:-0.2ex;">XML</span><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="Mascot Sammy"></a>
+</div></footer>
+</div>
+
+    <script>
+      var canMathML = typeof(MathMLElement) == "function";
+      if (!canMathML) {
+        var body = document.querySelector("body");
+        body.firstElementChild.setAttribute('style', 'opacity: 0;');
+        var loading = document.createElement("div");
+        loading.setAttribute("id", "mathjax-loading-spinner");
+        var message = document.createElement("div");
+        message.setAttribute("id", "mathjax-loading-message");
+        message.innerText = "Typesetting Equations...";
+        body.prepend(loading);
+        body.prepend(message);
+
+        var el = document.createElement("script");
+        el.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
+        document.querySelector("head").appendChild(el);
+
+        window.MathJax = {
+          startup: {
+            pageReady: () => {
+              return MathJax.startup.defaultPageReady().then(() => {
+                body.removeChild(loading);
+                body.removeChild(message);
+                body.firstElementChild.removeAttribute('style');
+              }); } } };
+      }
+    </script>
+    <script>
+    // Auxiliary function, building the preview feature when
+    // an inline citation is clicked
+    function clicked_cite(e) {
+      e.preventDefault();
+      let cite = this.closest('.ltx_cite');
+      let next = cite.nextSibling;
+      if (next && next.nodeType == Node.ELEMENT_NODE && next.getAttribute('class') == "ar5iv-bibitem-preview") {
+        next.remove();
+        return; }
+      // Before adding a preview modal,
+      // cleanup older previews, in case they're still open
+      document.querySelectorAll('span.ar5iv-bibitem-preview').forEach(function(node) {
+        node.remove();
+      })
+
+      // Create the preview
+      preview = document.createElement('span');
+      preview.setAttribute('class','ar5iv-bibitem-preview');
+      let target = document.getElementById(this.getAttribute('href').slice(1));
+      target.childNodes.forEach(function (child) {
+        preview.append(child.cloneNode(true));
+      });
+      let close_x = document.createElement('button');
+      close_x.setAttribute("aria-label","Close modal for bibliography item preview");
+      close_x.textContent = "×";
+      close_x.setAttribute('class', 'ar5iv-button-close-preview');
+      close_x.setAttribute('onclick','this.parentNode.remove()');
+      preview.append(close_x);
+      preview.querySelectorAll('.ltx_tag_bibitem').forEach(function(node) {
+        node.remove();
+      });
+      cite.parentNode.insertBefore(preview, cite.nextSibling);
+      return;
+    }
+    // Global Document initialization:
+    // - assign the preview feature to all inline citation links
+    document.querySelectorAll(".ltx_cite .ltx_ref").forEach(function (link) {
+      link.addEventListener("click", clicked_cite);
+    });
+    </script>
+    </body>
+</html>

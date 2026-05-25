@@ -1,0 +1,5 @@
+Variable,Total Obs.,Unique Patients,Mean,SD (Between),Range
+Sex (Female = 1),"188,436","15,703",0.52,0.50,"[0, 1]"
+Age (years),"188,436","15,703",79.57,10.84,"[16, 112]"
+Comorbidity Index (MCDS),"188,436","15,703",4.02,1.58,"[1, 6]"
+Deprivation Index (1–5),"177,741","14,814",2.90,1.45,"[1, 5]"

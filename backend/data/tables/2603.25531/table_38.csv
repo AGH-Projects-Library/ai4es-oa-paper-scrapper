@@ -1,0 +1,2 @@
+,"( w , t ) ⊧ φ 1 ​ 𝒰 [ a , b ] ​ φ 2 ⇔ ∃ t 1 ∈ [ t + a , t + b ] : ( w , t 1 ) ⊧ φ 2 ​ and \displaystyle(w,t)\models\varphi_{1}\mathcal{U}_{[a,b]}\varphi_{2}\iff\exists t_{1}\in[t+a,t+b]:(w,t_{1})\models\varphi_{2}\text{ and }",
+,"∀ t 2 ∈ [ t , t 1 ) : ( w , t 2 ) ⊧ φ 1 \displaystyle\forall t_{2}\in[t,t_{1}):(w,t_{2})\models\varphi_{1}",

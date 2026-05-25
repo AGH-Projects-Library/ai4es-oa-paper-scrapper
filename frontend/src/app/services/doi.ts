@@ -105,6 +105,14 @@ export class Doi {
       .pipe(catchError((error) => this.handleHttpError(error)));
   }
 
+  batchExport(paperIds: number[]): Observable<Blob> {
+    return this.http.post(
+      `${this.baseUrl}/batch-export/`,
+      { paper_ids: paperIds },
+      { responseType: 'blob' },
+    );
+  }
+
   private handleHttpError(error: HttpErrorResponse) {
     const payload = error.error as Partial<ApiErrorResponse> | null;
 

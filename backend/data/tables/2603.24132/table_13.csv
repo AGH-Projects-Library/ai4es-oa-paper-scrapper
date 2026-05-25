@@ -1,0 +1,2 @@
+Prompt Type,Prompt Content
+Dialogue Formatting Prompt,"Convert a medical dialogue sample into ShareGPT-style multi-turn conversation. Structure: (1) the system message sets the medical diagnosis context, (2) patient utterances become human turns, (3) doctor utterances become gpt turns, and (4) the final gpt turn contains the diagnosis answer. Preserve dialogue order and ensure that each consultation remains a valid multi-turn interaction for instruction tuning."

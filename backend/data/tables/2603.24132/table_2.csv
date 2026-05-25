@@ -1,0 +1,7 @@
+,Dialogue Turns,Average Words
+Dataset,Avg,Total
+,Turns,Dialogues
+MDDial (MD),4.9,1879
+Synthetic (SYN),6.6,1101
+MD + SYN,5.7,2980
+MDDial Test,5.9,237

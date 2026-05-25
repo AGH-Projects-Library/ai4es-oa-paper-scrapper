@@ -1,0 +1,3 @@
+## Data statement
+
+ Data used in this study were obtained from the administrative datasets of the LHA of Romagna. The anonymized dataset covers the health consumption of CHF patients who were residents in the LHA of Romagna between 2017 and 2023 and provides information on patients’ characteristics, hospital services, ambulatory services, pharmaceutical consumption and general practitioners (GPs). This information is collected quarterly, and includes 17835 individuals, with 495936 observations across an average of 27.80 quarters. Data are not publicly available, but were made available to the authors, under license, from the LHA of Romagna after anonymization.

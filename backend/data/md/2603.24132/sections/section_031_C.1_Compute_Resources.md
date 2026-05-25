@@ -1,0 +1,3 @@
+## C.1 Compute Resources
+
+ All experiments were conducted using the free tiers of Google Colab and Kaggle notebooks. These environments provide access to consumer-grade GPUs suitable for training compact language models using parameter-efficient fine-tuning techniques. To accommodate the limited GPU memory available in these platforms, we employed 4-bit quantization together with LoRA-based training.
