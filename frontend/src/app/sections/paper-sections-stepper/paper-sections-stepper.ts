@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, signal } from '@angular/core';
+import { Component, ViewChild, effect, signal } from '@angular/core';
 import {
   FormBuilder,
   FormControl,
@@ -9,6 +9,7 @@ import {
 } from '@angular/forms';
 
 import { Doi } from '../../services/doi';
+import { PaperSelectionService } from '../../services/paper-selection.service';
 import { ApiRequestError } from '../../models/api-error.model';
 import { ResolvedPaper, SectionResult } from '../../models/paper.model';
 import { MatButtonModule } from '@angular/material/button';
@@ -50,6 +51,8 @@ type ResultState = 'idle' | 'loading' | 'success' | 'error';
   styleUrl: './paper-sections-stepper.scss',
 })
 export class PaperSectionsStepper {
+  @ViewChild('stepper') private stepperEl!: MatStepper;
+
   readonly doiForm: FormGroup<{
     doi: FormControl<string>;
   }>;
@@ -69,7 +72,20 @@ export class PaperSectionsStepper {
 
   readonly tabsVisited = signal<Set<number>>(new Set([0]));
 
-  constructor(private fb: FormBuilder, private doi: Doi) {
+  constructor(
+    private fb: FormBuilder,
+    private doi: Doi,
+    private selectionService: PaperSelectionService,
+  ) {
+    // When the paper list selects a cached paper, pre-fill the DOI and trigger lookup.
+    effect(() => {
+      const doi = this.selectionService.pendingDoi();
+      if (!doi) return;
+      this.doiControl.setValue(doi);
+      this.selectionService.clear();
+      this.lookupPaper(this.stepperEl);
+    });
+
     // Source: new feature — regex extended to accept arXiv identifiers (e.g. 2410.00123)
     this.doiForm = this.fb.nonNullable.group({
       doi: this.fb.nonNullable.control('', [

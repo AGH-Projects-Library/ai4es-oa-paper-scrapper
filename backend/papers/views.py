@@ -5,6 +5,7 @@ import os
 import zipfile
 
 from django.conf import settings
+from django.db.models import Q
 from django.http import FileResponse, HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .services.resolve_doi import resolve_doi_to_paper, fetch_sections_for_doi
@@ -687,4 +688,75 @@ def batch_process_upload_view(request):
         return JsonResponse({"error": {"code": "EMPTY_FILE", "message": "No DOIs found in the uploaded file."}}, status=400)
 
     return _run_batch(dois)
+
+
+# ---------------------------------------------------------------------------
+# Phase 4 — Search and ROB sub-endpoints
+# ---------------------------------------------------------------------------
+
+# Source: notebooks/scraper/export_reader.py — search_papers()
+def search_view(request):
+    """
+    GET /search/?q=<query>[&source=pmc|arxiv]
+
+    Searches title and authors (case-insensitive).  The optional 'source'
+    parameter restricts results to 'pmc' or 'arxiv'.  Returns the same shape
+    as GET /papers/.
+    """
+    if request.method != "GET":
+        return JsonResponse({"error": {"code": "METHOD_NOT_ALLOWED", "message": "Use GET."}}, status=405)
+
+    q = request.GET.get("q", "").strip()
+    source = request.GET.get("source", "").strip().lower()
+
+    papers = ResolvedPaper.objects.all().order_by("-processed_at")
+
+    # Source: notebooks/scraper/export_reader.py — search_papers(): title and authors fields
+    if q:
+        # authors is a JSONField; __icontains on SQLite searches the serialised text
+        papers = papers.filter(Q(title__icontains=q) | Q(authors__icontains=q))
+
+    if source in ("pmc", "arxiv"):
+        papers = papers.filter(source=source)
+
+    return JsonResponse({
+        "status": "success",
+        "papers": [
+            {
+                "id": p.id,
+                "doi": p.doi,
+                "title": p.title,
+                "source": p.source,
+                "authors": p.authors,
+                "num_sections": len(p.available_sections),
+                "num_tables": p.tables.count(),
+                "num_images": p.images.count(),
+                "processed_at": p.processed_at.isoformat(),
+            }
+            for p in papers
+        ],
+    })
+
+
+# Source: backend/papers/services/rob_extraction.py — table artifact structure
+def paper_rob_tables_view(request, pk):
+    """
+    GET /papers/<pk>/rob/tables/
+
+    Returns only the table and ocr_table ROB artifacts for this paper
+    (subset of GET /papers/<pk>/rob/).
+    """
+    if request.method != "GET":
+        return JsonResponse({"error": {"code": "METHOD_NOT_ALLOWED", "message": "Use GET."}}, status=405)
+
+    try:
+        paper = ResolvedPaper.objects.get(pk=pk)
+    except ResolvedPaper.DoesNotExist:
+        return JsonResponse({"status": "not_found", "message": "Paper not found."}, status=404)
+
+    table_artifacts = [
+        a for a in (paper.rob_artifacts or [])
+        if a.get("artifact_type") in ("table", "ocr_table")
+    ]
+    return JsonResponse({"status": "success", "rob_table_artifacts": table_artifacts})
 

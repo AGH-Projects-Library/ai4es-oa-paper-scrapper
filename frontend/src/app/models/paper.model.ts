@@ -83,3 +83,20 @@ export interface ResolvedPaper {
   availableSections: PaperSection[];
   robArtifacts: RobArtifact[];
 }
+
+export interface PaperListItem {
+  id: number;
+  doi: string;
+  title: string;
+  source: string;
+  authors: string[];
+  num_sections: number;
+  num_tables: number;
+  num_images: number;
+  processed_at: string;
+}
+
+export interface GetPapersResponse {
+  status: 'success';
+  papers: PaperListItem[];
+}

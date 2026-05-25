@@ -15,6 +15,8 @@ from .views import (
     batch_export_view,
     batch_process_view,
     batch_process_upload_view,
+    search_view,
+    paper_rob_tables_view,
 )
 
 urlpatterns = [
@@ -35,4 +37,7 @@ urlpatterns = [
     # Phase 3 — batch processing
     path("batch-process/",                             batch_process_view,          name="batch-process"),
     path("batch-process/upload/",                      batch_process_upload_view,   name="batch-process-upload"),
+    # Phase 4 — search and ROB sub-endpoints
+    path("search/",                                    search_view,                 name="search"),
+    path("papers/<int:pk>/rob/tables/",                paper_rob_tables_view,       name="paper-rob-tables"),
 ]
