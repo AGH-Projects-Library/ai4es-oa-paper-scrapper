@@ -603,3 +603,88 @@ def batch_export_view(request):
     response["Content-Disposition"] = 'attachment; filename="batch_export.zip"'
     return response
 
+
+# ---------------------------------------------------------------------------
+# Batch processing
+# ---------------------------------------------------------------------------
+
+# Source: notebooks/to_json.ipynb — MAIN section batch processing loop
+def _run_batch(dois):
+    """
+    Call resolve_doi_to_paper() for each DOI and return a unified results dict.
+    Individual failures are captured per-DOI; they never abort the whole batch.
+    """
+    results = []
+    n_success = n_not_found = n_error = 0
+
+    for doi in dois:
+        doi = doi.strip()
+        if not doi:
+            continue
+        try:
+            outcome = resolve_doi_to_paper(doi)
+            status = outcome.get("status", "error")
+            if status == "success":
+                n_success += 1
+                results.append({"doi": doi, "status": "success", "paper": outcome["paper"]})
+            else:
+                n_not_found += 1
+                results.append({"doi": doi, "status": "not_found", "message": outcome.get("message", "")})
+        except Exception as exc:
+            n_error += 1
+            results.append({"doi": doi, "status": "error", "message": str(exc)})
+
+    return JsonResponse({
+        "status": "success",
+        "results": results,
+        "summary": {
+            "total": len(results),
+            "success": n_success,
+            "not_found": n_not_found,
+            "error": n_error,
+        },
+    })
+
+
+# Source: notebooks/to_json.ipynb — MAIN section batch processing loop
+@csrf_exempt
+def batch_process_view(request):
+    """POST /batch-process/ — {"dois": [...]} → per-DOI results."""
+    if request.method != "POST":
+        return JsonResponse({"error": {"code": "METHOD_NOT_ALLOWED", "message": "Use POST."}}, status=405)
+
+    try:
+        body = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"error": {"code": "INVALID_JSON", "message": "Request body must be valid JSON."}}, status=400)
+
+    dois = body.get("dois")
+    if not isinstance(dois, list) or not dois:
+        return JsonResponse({"error": {"code": "MISSING_DOIS", "message": "Provide a non-empty 'dois' list."}}, status=400)
+
+    return _run_batch(dois)
+
+
+# Source: notebooks/to_json.ipynb — file-reading pattern (one DOI per line)
+@csrf_exempt
+def batch_process_upload_view(request):
+    """POST /batch-process/upload/ — multipart .txt file (one DOI per line)."""
+    if request.method != "POST":
+        return JsonResponse({"error": {"code": "METHOD_NOT_ALLOWED", "message": "Use POST."}}, status=405)
+
+    uploaded = request.FILES.get("file")
+    if not uploaded:
+        return JsonResponse({"error": {"code": "MISSING_FILE", "message": "Attach a 'file' field containing a plain-text file."}}, status=400)
+
+    try:
+        text = uploaded.read().decode("utf-8")
+    except Exception as exc:
+        return JsonResponse({"error": {"code": "UNREADABLE_FILE", "message": f"Could not read the uploaded file: {exc}"}}, status=400)
+
+    # Source: notebooks/to_json.ipynb — one DOI per line, skip blanks and comments
+    dois = [line.strip() for line in text.splitlines() if line.strip() and not line.strip().startswith("#")]
+    if not dois:
+        return JsonResponse({"error": {"code": "EMPTY_FILE", "message": "No DOIs found in the uploaded file."}}, status=400)
+
+    return _run_batch(dois)
+

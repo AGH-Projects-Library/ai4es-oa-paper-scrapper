@@ -13,6 +13,8 @@ from .views import (
     paper_export_csv_view,
     paper_export_json_view,
     batch_export_view,
+    batch_process_view,
+    batch_process_upload_view,
 )
 
 urlpatterns = [
@@ -30,4 +32,7 @@ urlpatterns = [
     path("papers/<int:pk>/export/csv/",                paper_export_csv_view,       name="paper-export-csv"),
     path("papers/<int:pk>/export/json/",               paper_export_json_view,      name="paper-export-json"),
     path("batch-export/",                              batch_export_view,           name="batch-export"),
+    # Phase 3 — batch processing
+    path("batch-process/",                             batch_process_view,          name="batch-process"),
+    path("batch-process/upload/",                      batch_process_upload_view,   name="batch-process-upload"),
 ]
