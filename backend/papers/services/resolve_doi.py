@@ -35,6 +35,33 @@ def _save_to_db(doi, doc, title, rob_artifacts):
         {"id": _make_section_id(s.heading), "name": s.heading}
         for s in doc.sections if s.heading
     ]
+
+    tables_metadata = []
+    images_metadata = []
+    img_idx = 0
+    for s in doc.sections:
+        if not s.heading:
+            continue
+        sid = _make_section_id(s.heading)
+        for tbl in (s.tables or []):
+            tables_metadata.append({
+                "global_index": tbl.global_index,
+                "section_id": sid,
+                "section_name": s.heading,
+                "table_index": tbl.table_index,
+                "csv_path": tbl.csv_path or "",
+            })
+        for img in (s.images or []):
+            images_metadata.append({
+                "idx": img_idx,
+                "section_id": sid,
+                "section_name": s.heading,
+                "placeholder": img.placeholder,
+                "caption": img.caption,
+                "path": img.path or "",
+            })
+            img_idx += 1
+
     paper, _ = ResolvedPaper.objects.update_or_create(
         doi=doi,
         defaults={
@@ -49,6 +76,8 @@ def _save_to_db(doi, doc, title, rob_artifacts):
             "pdf_path": getattr(doc, "pdf_path", "") or "",
             "rob_artifacts": rob_artifacts,
             "available_sections": available_sections,
+            "tables_metadata": tables_metadata,
+            "images_metadata": images_metadata,
         },
     )
     paper.sections.all().delete()

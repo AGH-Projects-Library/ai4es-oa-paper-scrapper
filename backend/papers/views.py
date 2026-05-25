@@ -1,9 +1,25 @@
-from django.shortcuts import render
+import csv
 import json
-from django.http import JsonResponse
+import os
+
+from django.conf import settings
+from django.http import FileResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-# Source: backend/papers/services/resolve_doi.py — resolve_doi_to_paper, fetch_sections_for_doi
 from .services.resolve_doi import resolve_doi_to_paper, fetch_sections_for_doi
+from .models import ResolvedPaper
+
+DATA_DIR = str(settings.SCRAPER_DATA_DIR)
+
+_IMAGE_CONTENT_TYPES = {
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".gif": "image/gif",
+    ".svg": "image/svg+xml",
+    ".tif": "image/tiff",
+    ".tiff": "image/tiff",
+    ".webp": "image/webp",
+}
 
 
 @csrf_exempt
@@ -179,4 +195,161 @@ def get_section_content_view(request, section_id):
         },
         status=405,
     )
+
+
+# Source: backend/papers/models.py — ResolvedPaper
+def papers_list_view(request):
+    if request.method != "GET":
+        return JsonResponse({"error": {"code": "METHOD_NOT_ALLOWED", "message": "Use GET."}}, status=405)
+
+    papers = ResolvedPaper.objects.all().order_by("-processed_at")
+    return JsonResponse({
+        "status": "success",
+        "papers": [
+            {
+                "id": p.id,
+                "doi": p.doi,
+                "title": p.title,
+                "source": p.source,
+                "authors": p.authors,
+                "num_sections": len(p.available_sections),
+                "num_tables": len(p.tables_metadata),
+                "num_images": len(p.images_metadata),
+                "processed_at": p.processed_at.isoformat(),
+            }
+            for p in papers
+        ],
+    })
+
+
+# Source: backend/papers/models.py — ResolvedPaper
+def paper_detail_view(request, pk):
+    try:
+        paper = ResolvedPaper.objects.get(pk=pk)
+    except ResolvedPaper.DoesNotExist:
+        return JsonResponse({"status": "not_found", "message": "Paper not found."}, status=404)
+
+    if request.method == "GET":
+        return JsonResponse({
+            "status": "success",
+            "paper": {
+                "id": paper.id,
+                "doi": paper.doi,
+                "paper_id": paper.paper_id,
+                "title": paper.title,
+                "source": paper.source,
+                "authors": paper.authors,
+                "emails": paper.emails,
+                "extraction_method": paper.extraction_method,
+                "processed_at": paper.processed_at.isoformat(),
+                "available_sections": paper.available_sections,
+                "tables_metadata": paper.tables_metadata,
+                "images_metadata": paper.images_metadata,
+                "rob_artifacts": paper.rob_artifacts,
+            },
+        })
+
+    if request.method == "DELETE":
+        paper.delete()
+        return JsonResponse({}, status=204)
+
+    return JsonResponse({"error": {"code": "METHOD_NOT_ALLOWED", "message": "Use GET or DELETE."}}, status=405)
+
+
+# Source: backend/papers/models.py — ResolvedPaper
+def paper_rob_view(request, pk):
+    if request.method != "GET":
+        return JsonResponse({"error": {"code": "METHOD_NOT_ALLOWED", "message": "Use GET."}}, status=405)
+
+    try:
+        paper = ResolvedPaper.objects.get(pk=pk)
+    except ResolvedPaper.DoesNotExist:
+        return JsonResponse({"status": "not_found", "message": "Paper not found."}, status=404)
+
+    return JsonResponse({"status": "success", "rob_artifacts": paper.rob_artifacts})
+
+
+# Source: backend/papers/models.py — ResolvedPaper
+def paper_tables_view(request, pk):
+    if request.method != "GET":
+        return JsonResponse({"error": {"code": "METHOD_NOT_ALLOWED", "message": "Use GET."}}, status=405)
+
+    try:
+        paper = ResolvedPaper.objects.get(pk=pk)
+    except ResolvedPaper.DoesNotExist:
+        return JsonResponse({"status": "not_found", "message": "Paper not found."}, status=404)
+
+    return JsonResponse({"status": "success", "tables": paper.tables_metadata})
+
+
+# Source: backend/papers/models.py — ResolvedPaper
+# Source: backend/scraper/parsers_md.py — parse_md_table() pattern (CSV variant)
+def paper_table_detail_view(request, pk, global_index):
+    if request.method != "GET":
+        return JsonResponse({"error": {"code": "METHOD_NOT_ALLOWED", "message": "Use GET."}}, status=405)
+
+    try:
+        paper = ResolvedPaper.objects.get(pk=pk)
+    except ResolvedPaper.DoesNotExist:
+        return JsonResponse({"status": "not_found", "message": "Paper not found."}, status=404)
+
+    entry = next((t for t in paper.tables_metadata if t.get("global_index") == global_index), None)
+    if not entry or not entry.get("csv_path"):
+        return JsonResponse({"status": "not_found", "message": "Table not found."}, status=404)
+
+    abs_path = os.path.join(DATA_DIR, entry["csv_path"])
+    try:
+        with open(abs_path, newline="", encoding="utf-8") as f:
+            reader = csv.reader(f)
+            rows = list(reader)
+    except FileNotFoundError:
+        return JsonResponse({"status": "not_found", "message": "CSV file missing from disk."}, status=404)
+
+    header = rows[0] if rows else []
+    data = rows[1:] if len(rows) > 1 else []
+
+    return JsonResponse({
+        "status": "success",
+        "global_index": global_index,
+        "section_id": entry.get("section_id", ""),
+        "section_name": entry.get("section_name", ""),
+        "header": header,
+        "rows": data,
+    })
+
+
+# Source: backend/papers/models.py — ResolvedPaper
+def paper_images_view(request, pk):
+    if request.method != "GET":
+        return JsonResponse({"error": {"code": "METHOD_NOT_ALLOWED", "message": "Use GET."}}, status=405)
+
+    try:
+        paper = ResolvedPaper.objects.get(pk=pk)
+    except ResolvedPaper.DoesNotExist:
+        return JsonResponse({"status": "not_found", "message": "Paper not found."}, status=404)
+
+    return JsonResponse({"status": "success", "images": paper.images_metadata})
+
+
+# Source: backend/papers/models.py — ResolvedPaper
+def paper_image_view(request, pk, idx):
+    if request.method != "GET":
+        return JsonResponse({"error": {"code": "METHOD_NOT_ALLOWED", "message": "Use GET."}}, status=405)
+
+    try:
+        paper = ResolvedPaper.objects.get(pk=pk)
+    except ResolvedPaper.DoesNotExist:
+        return JsonResponse({"status": "not_found", "message": "Paper not found."}, status=404)
+
+    entry = next((img for img in paper.images_metadata if img.get("idx") == idx), None)
+    if not entry or not entry.get("path"):
+        return JsonResponse({"status": "not_found", "message": "Image not found."}, status=404)
+
+    abs_path = os.path.join(DATA_DIR, entry["path"])
+    if not os.path.exists(abs_path):
+        return JsonResponse({"status": "not_found", "message": "Image file missing from disk."}, status=404)
+
+    ext = os.path.splitext(abs_path)[1].lower()
+    content_type = _IMAGE_CONTENT_TYPES.get(ext, "image/png")
+    return FileResponse(open(abs_path, "rb"), content_type=content_type)
 

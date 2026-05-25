@@ -16,6 +16,10 @@ class ResolvedPaper(models.Model):
     rob_artifacts = models.JSONField(default=list)
     # [{"id": "methods", "name": "Methods"}, ...]
     available_sections = models.JSONField(default=list)
+    # [{"global_index": 0, "section_id": "methods", "section_name": "Methods", "table_index": 0, "csv_path": "..."}, ...]
+    tables_metadata = models.JSONField(default=list)
+    # [{"idx": 0, "section_id": "methods", "section_name": "Methods", "placeholder": "FIG_1", "caption": "...", "path": "..."}, ...]
+    images_metadata = models.JSONField(default=list)
 
 
 class Section(models.Model):
