@@ -12,7 +12,8 @@ import os
 from django.conf import settings
 from scraper.providers import process_document
 from scraper.parsers_md import parse_markdown, normalize
-from .rob_extraction import extract_rob_artifacts_from_markdown
+from scraper.exporters import export_documents as scraper_export_documents
+from .rob_extraction import extract_rob_artifacts_from_markdown, extract_rob_from_sections_images
 from papers.models import ResolvedPaper, Section, Table, Image
 
 DATA_DIR = str(settings.SCRAPER_DATA_DIR)
@@ -99,6 +100,19 @@ def _save_to_db(doi, doc, title, rob_artifacts):
     Table.objects.bulk_create(table_rows)
     Image.objects.bulk_create(image_rows)
 
+    # Source: notebooks/scraper/exporters.py — export_documents()
+    # Write a DocumentInfo JSON snapshot so the paper can be loaded by ExportReader later.
+    try:
+        export_dir = os.path.join(DATA_DIR, "exports")
+        os.makedirs(export_dir, exist_ok=True)
+        safe_id = (paper.paper_id or doi).replace("/", "_").replace(":", "_")
+        export_abs = os.path.join(export_dir, f"{safe_id}.json")
+        scraper_export_documents([doc], export_abs)
+        paper.export_json_path = os.path.relpath(export_abs, DATA_DIR)
+        paper.save(update_fields=["export_json_path"])
+    except Exception:
+        pass  # export snapshot is best-effort; don't fail the whole scrape
+
     return paper
 
 
@@ -181,8 +195,26 @@ def resolve_doi_to_paper(doi: str) -> dict:
     # Source: notebooks/scraper/parsers_md.py — parse_markdown()
     title, _ = parse_markdown(md_text)
 
-    # Source: backend/papers/services/rob_extraction.py
+    # Source: backend/papers/services/rob_extraction.py — extract_rob_artifacts_from_markdown()
     rob_artifacts = extract_rob_artifacts_from_markdown(md_text, paper_id=doi)
+
+    # Source: backend/papers/services/rob_extraction.py — extract_rob_from_sections_images()
+    # Runs Tesseract OCR on images whose captions contain ROB keywords (no-op when pytesseract absent).
+    ocr_sections = [
+        {
+            "heading": s.heading,
+            "images": [
+                {
+                    "path": os.path.join(DATA_DIR, img.path) if img.path else "",
+                    "caption": img.caption,
+                    "placeholder": img.placeholder,
+                }
+                for img in (s.images or [])
+            ],
+        }
+        for s in doc.sections if s.heading
+    ]
+    rob_artifacts = rob_artifacts + extract_rob_from_sections_images(ocr_sections, paper_id=doi)
 
     # Persist to DB before returning
     saved_paper = _save_to_db(doi, doc, title, rob_artifacts)

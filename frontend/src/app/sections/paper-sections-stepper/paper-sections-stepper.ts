@@ -70,10 +70,11 @@ export class PaperSectionsStepper {
   readonly tabsVisited = signal<Set<number>>(new Set([0]));
 
   constructor(private fb: FormBuilder, private doi: Doi) {
+    // Source: new feature — regex extended to accept arXiv identifiers (e.g. 2410.00123)
     this.doiForm = this.fb.nonNullable.group({
       doi: this.fb.nonNullable.control('', [
         Validators.required,
-        Validators.pattern(/^10\.\S+\/\S+$/),
+        Validators.pattern(/^(\d{4}\.\d{4,5}(v\d+)?|10\.\S+\/\S+)$/),
       ]),
     });
 

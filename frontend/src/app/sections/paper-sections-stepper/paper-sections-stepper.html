@@ -21,10 +21,10 @@
               <input
                 matInput
                 formControlName="doi"
-                placeholder="e.g. 10.1000/xyz123"
+                placeholder="e.g. 10.1000/xyz123 or 2410.00123"
                 (keydown.enter)="lookupPaper(stepper)"
               />
-              <mat-hint>Example format: 10.1000/xyz123</mat-hint>
+              <mat-hint>DOI (e.g. 10.1000/xyz123) or arXiv ID (e.g. 2410.00123)</mat-hint>
 
               @if (doiControl.hasError('required') && doiControl.touched) {
                 <mat-error>Please enter a DOI.</mat-error>

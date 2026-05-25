@@ -1,9 +1,11 @@
 import csv
+import io
 import json
 import os
+import zipfile
 
 from django.conf import settings
-from django.http import FileResponse, JsonResponse
+from django.http import FileResponse, HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .services.resolve_doi import resolve_doi_to_paper, fetch_sections_for_doi
 from .models import ResolvedPaper, Table, Image
@@ -267,6 +269,24 @@ def paper_detail_view(request, pk):
         })
 
     if request.method == "DELETE":
+        # Source: new feature — delete on-disk files before removing the DB rows.
+        # Collect every file path stored on the paper and its children, then remove each one.
+        paths_to_remove = [
+            paper.md_path, paper.html_path, paper.pdf_path, paper.export_json_path,
+        ]
+        for sec in paper.sections.all():
+            paths_to_remove.append(sec.md_path)
+            for tbl in sec.tables.all():
+                paths_to_remove.append(tbl.csv_path)
+            for img in sec.images.all():
+                paths_to_remove.append(img.path)
+        for rel in paths_to_remove:
+            if rel:
+                try:
+                    os.remove(os.path.join(DATA_DIR, rel))
+                except FileNotFoundError:
+                    pass
+
         paper.delete()
         return JsonResponse({}, status=204)
 
@@ -393,4 +413,193 @@ def paper_image_view(request, pk, idx):
     ext = os.path.splitext(abs_path)[1].lower()
     content_type = _IMAGE_CONTENT_TYPES.get(ext, "image/png")
     return FileResponse(open(abs_path, "rb"), content_type=content_type)
+
+
+# ---------------------------------------------------------------------------
+# Export helpers
+# Source: notebooks/scraper/exporters.py — compress_directory() (in-memory variant)
+# ---------------------------------------------------------------------------
+
+def _zip_files(entries):
+    """
+    Build an in-memory ZIP from [(arcname, abs_path), ...].
+    Missing files are silently skipped.
+    Returns a BytesIO positioned at 0.
+    """
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        for arcname, abs_path in entries:
+            if abs_path and os.path.isfile(abs_path):
+                zf.write(abs_path, arcname=arcname)
+    buf.seek(0)
+    return buf
+
+
+# Source: notebooks/scraper/exporters.py — export_documents() + notebooks/scraper/models.py — DocumentInfo.to_dict()
+def _paper_to_document_dict(paper):
+    """Reconstruct a DocumentInfo.to_dict()-compatible structure from DB rows."""
+    sections = []
+    for sec in paper.sections.prefetch_related("tables", "images").order_by("order"):
+        sections.append({
+            "heading": sec.heading,
+            "md_path": sec.md_path,
+            "tables": [
+                {
+                    "csv_path": t.csv_path,
+                    "table_index": t.table_index,
+                    "global_index": t.global_index,
+                }
+                for t in sec.tables.all()
+            ],
+            "images": [
+                {
+                    "placeholder": img.placeholder,
+                    "caption": img.caption,
+                    "path": img.path,
+                }
+                for img in sec.images.all()
+            ],
+        })
+
+    return {
+        "paper_id": paper.paper_id or paper.doi,
+        "source": paper.source,
+        "authors": paper.authors,
+        "emails": paper.emails,
+        "extraction_method": paper.extraction_method,
+        "md_path": paper.md_path,
+        "html_path": paper.html_path,
+        "pdf_path": paper.pdf_path,
+        "sections": sections,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Export endpoints
+# ---------------------------------------------------------------------------
+
+# Source: notebooks/scraper/exporters.py — compress_directory() (in-memory variant)
+def paper_export_markdown_view(request, pk):
+    """GET /papers/<pk>/export/markdown/ — ZIP of all section .md files."""
+    if request.method != "GET":
+        return JsonResponse({"error": {"code": "METHOD_NOT_ALLOWED", "message": "Use GET."}}, status=405)
+
+    try:
+        paper = ResolvedPaper.objects.get(pk=pk)
+    except ResolvedPaper.DoesNotExist:
+        return JsonResponse({"status": "not_found", "message": "Paper not found."}, status=404)
+
+    entries = []
+    for sec in paper.sections.order_by("order"):
+        if sec.md_path:
+            arcname = f"{sec.section_id}.md"
+            entries.append((arcname, os.path.join(DATA_DIR, sec.md_path)))
+
+    if not entries:
+        return JsonResponse({"status": "not_found", "message": "No markdown files found for this paper."}, status=404)
+
+    buf = _zip_files(entries)
+    safe_id = (paper.paper_id or str(paper.id)).replace("/", "_")
+    response = HttpResponse(buf.read(), content_type="application/zip")
+    response["Content-Disposition"] = f'attachment; filename="{safe_id}_markdown.zip"'
+    return response
+
+
+# Source: notebooks/scraper/exporters.py — compress_directory() (in-memory variant)
+def paper_export_csv_view(request, pk):
+    """GET /papers/<pk>/export/csv/ — ZIP of all table .csv files."""
+    if request.method != "GET":
+        return JsonResponse({"error": {"code": "METHOD_NOT_ALLOWED", "message": "Use GET."}}, status=405)
+
+    try:
+        paper = ResolvedPaper.objects.get(pk=pk)
+    except ResolvedPaper.DoesNotExist:
+        return JsonResponse({"status": "not_found", "message": "Paper not found."}, status=404)
+
+    entries = []
+    for tbl in paper.tables.order_by("global_index"):
+        if tbl.csv_path:
+            arcname = f"table_{tbl.global_index}.csv"
+            entries.append((arcname, os.path.join(DATA_DIR, tbl.csv_path)))
+
+    if not entries:
+        return JsonResponse({"status": "not_found", "message": "No CSV files found for this paper."}, status=404)
+
+    buf = _zip_files(entries)
+    safe_id = (paper.paper_id or str(paper.id)).replace("/", "_")
+    response = HttpResponse(buf.read(), content_type="application/zip")
+    response["Content-Disposition"] = f'attachment; filename="{safe_id}_tables.zip"'
+    return response
+
+
+# Source: notebooks/scraper/exporters.py — export_documents() + notebooks/scraper/models.py — DocumentInfo.to_dict()
+def paper_export_json_view(request, pk):
+    """GET /papers/<pk>/export/json/ — DocumentInfo-style JSON download."""
+    if request.method != "GET":
+        return JsonResponse({"error": {"code": "METHOD_NOT_ALLOWED", "message": "Use GET."}}, status=405)
+
+    try:
+        paper = ResolvedPaper.objects.get(pk=pk)
+    except ResolvedPaper.DoesNotExist:
+        return JsonResponse({"status": "not_found", "message": "Paper not found."}, status=404)
+
+    # Prefer the pre-built snapshot if it exists; otherwise reconstruct from DB.
+    if paper.export_json_path:
+        abs_path = os.path.join(DATA_DIR, paper.export_json_path)
+        if os.path.isfile(abs_path):
+            safe_id = (paper.paper_id or str(paper.id)).replace("/", "_")
+            return FileResponse(
+                open(abs_path, "rb"),
+                content_type="application/json",
+                as_attachment=True,
+                filename=f"{safe_id}.json",
+            )
+
+    doc_dict = _paper_to_document_dict(paper)
+    safe_id = (paper.paper_id or str(paper.id)).replace("/", "_")
+    response = HttpResponse(
+        json.dumps([doc_dict], ensure_ascii=False, indent=2),
+        content_type="application/json",
+    )
+    response["Content-Disposition"] = f'attachment; filename="{safe_id}.json"'
+    return response
+
+
+# Source: notebooks/scraper/exporters.py — compress_directory() (in-memory variant)
+@csrf_exempt
+def batch_export_view(request):
+    """POST /batch-export/ — {"paper_ids": [...]} → ZIP of all .md and .csv files across papers."""
+    if request.method != "POST":
+        return JsonResponse({"error": {"code": "METHOD_NOT_ALLOWED", "message": "Use POST."}}, status=405)
+
+    try:
+        body = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"error": {"code": "INVALID_JSON", "message": "Request body must be valid JSON."}}, status=400)
+
+    paper_ids = body.get("paper_ids")
+    if not isinstance(paper_ids, list) or not paper_ids:
+        return JsonResponse({"error": {"code": "MISSING_PAPER_IDS", "message": "Provide a non-empty 'paper_ids' list."}}, status=400)
+
+    papers = ResolvedPaper.objects.filter(pk__in=paper_ids)
+    if not papers.exists():
+        return JsonResponse({"status": "not_found", "message": "None of the requested papers were found."}, status=404)
+
+    entries = []
+    for paper in papers:
+        safe_id = (paper.paper_id or str(paper.id)).replace("/", "_")
+        for sec in paper.sections.order_by("order"):
+            if sec.md_path:
+                entries.append((f"{safe_id}/sections/{sec.section_id}.md", os.path.join(DATA_DIR, sec.md_path)))
+        for tbl in paper.tables.order_by("global_index"):
+            if tbl.csv_path:
+                entries.append((f"{safe_id}/tables/table_{tbl.global_index}.csv", os.path.join(DATA_DIR, tbl.csv_path)))
+
+    if not entries:
+        return JsonResponse({"status": "not_found", "message": "No exportable files found for the requested papers."}, status=404)
+
+    buf = _zip_files(entries)
+    response = HttpResponse(buf.read(), content_type="application/zip")
+    response["Content-Disposition"] = 'attachment; filename="batch_export.zip"'
+    return response
 
