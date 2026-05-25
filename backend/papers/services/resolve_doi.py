@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import io
@@ -8,6 +9,9 @@ import requests
 import xml.etree.ElementTree as ET
 
 from bs4 import BeautifulSoup
+
+from .rob_extraction import extract_rob_artifacts_from_markdown, extract_rob_from_sections_images
+
 
 
 # =========================================================
@@ -535,34 +539,188 @@ def process_arxiv(doi: str):
     md_path = os.path.join(MD_DIR, f"{arxiv_id}.md")
     save_text(md, md_path)
 
-    return {
-        "paper_id": doi,
-        "source": "arxiv",
-        "arxiv_id": arxiv_id,
-        "md": md_path,
-        "authors": authors,
-        "emails": emails,
-    }
+    rob_artifacts = extract_rob_artifacts_from_markdown(md, paper_id=doi)
+    if rob_artifacts:
+        rob_path = os.path.join(MD_DIR, f"{arxiv_id}.rob.json")
+        save_text(json.dumps(rob_artifacts, ensure_ascii=False, indent=2), rob_path)
+
+    return {"paper_id": doi, "md": md_path, "rob_artifacts": rob_artifacts}
 
 
-# =========================================================
-# ROUTER + API WRAPPER
-# =========================================================
+# PUBMED
 
-def process_document(doi: str):
-    doi = (doi or "").strip()
-    if not doi:
-        return None
+def doi_to_pmcid(doi):
+    url = "https://pmc.ncbi.nlm.nih.gov/tools/idconv/api/v1/articles/"
+    params = {"ids": doi, "format": "json"}
 
-    if is_arxiv_identifier(doi):
-        return process_arxiv(doi)
-
-    pmc_result = process_pmc(doi)
-    if pmc_result:
-        return pmc_result
+    for _ in range(MAX_HTTP_RETRIES):
+        try:
+            r = requests.get(url, params=params, timeout=30)
+            return r.json()["records"][0].get("pmcid")
+        except:
+            pass
 
     return None
 
+
+def fetch_pmc_xml(pmcid):
+    pmc_num = pmcid[3:]
+
+    url = "https://pmc.ncbi.nlm.nih.gov/api/oai/v1/mh/"
+    params = {
+        "verb": "GetRecord",
+        "identifier": f"oai:pubmedcentral.nih.gov:{pmc_num}",
+        "metadataPrefix": "pmc",
+    }
+
+    for _ in range(MAX_HTTP_RETRIES):
+        try:
+            r = requests.get(url, params=params, timeout=60)
+            if r.status_code == 200:
+                return r.text
+        except:
+            pass
+
+    return None
+
+
+def textify(elem):
+    if elem is None:
+        return ""
+
+    parts = [elem.text or ""]
+    for c in elem:
+        parts.append(textify(c))
+        if c.tail:
+            parts.append(c.tail)
+
+    return normalize("".join(parts))
+
+
+def parse_xml_to_md(xml_text):
+    root = ET.fromstring(xml_text)
+    article = root.find(".//{*}article")
+
+    if article is None:
+        return None
+
+    out = []
+
+    title = article.find(".//{*}article-title")
+    if title is not None:
+        out.append(f"# {textify(title)}\n")
+
+    body = article.find("{*}body")
+    if body is not None:
+        for sec in body.findall(".//{*}sec"):
+            t = sec.find("{*}title")
+            if t is not None:
+                out.append(f"\n## {textify(t)}\n")
+
+            for p in sec.findall("{*}p"):
+                out.append(textify(p) + "\n")
+
+    return "\n".join(out)
+
+
+def process_pubmed(doi):
+    pmcid = doi_to_pmcid(doi)
+    if not pmcid:
+        return None
+
+    xml = fetch_pmc_xml(pmcid)
+    if not xml:
+        return None
+
+    md = parse_xml_to_md(xml)
+    if not md:
+        return None
+
+    md_path = os.path.join(MD_DIR, f"{pmcid}.md")
+    save_text(md, md_path)
+
+    rob_artifacts = extract_rob_artifacts_from_markdown(md, paper_id=doi)
+    if rob_artifacts:
+        rob_path = os.path.join(MD_DIR, f"{pmcid}.rob.json")
+        save_text(json.dumps(rob_artifacts, ensure_ascii=False, indent=2), rob_path)
+
+    return {"paper_id": doi, "md": md_path, "rob_artifacts": rob_artifacts}
+
+
+# MARKDOWN PARSER
+
+def parse_markdown(md_text):
+    title = ""
+    sections = []
+    current = None
+
+    for line in md_text.split("\n"):
+        raw = line
+        line = line.strip()
+
+        if not line:
+            continue
+
+        if line.startswith("# ") and not title:
+            title = normalize(line[2:])
+            continue
+
+        if re.match(r"^##+\s+", line):
+            heading = re.sub(r"^##+\s*", "", line)
+
+            if current:
+                current["text"] = normalize(current["text"])
+                sections.append(current)
+
+            current = {"heading": heading, "text": ""}
+            continue
+
+        if current:
+            current["text"] += " " + raw
+
+    if current:
+        current["text"] = normalize(current["text"])
+        sections.append(current)
+
+    return title, sections
+
+
+def clean_section_name(name):
+    name = re.sub(r"\\[a-zA-Z]+", "", name)
+    name = re.sub(r"[{}$]", "", name)
+    name = re.sub(r"^[a-zA-Z]?\d+(\.\d+)*[.)]?\s*", "", name)
+    name = normalize(name)
+
+    if name:
+        name = name[0].upper() + name[1:]
+
+    return name
+
+
+def clean_sections(sections):
+    out = []
+
+    for sec in sections:
+        content = normalize(sec["text"])
+        if not content or len(content) < 10:
+            continue
+
+        out.append({
+            "name": clean_section_name(sec["heading"]),
+            "content": content
+        })
+
+    return out
+
+
+def make_section_id(name: str) -> str:
+    return normalize(name).lower().replace(" ", "_")
+
+
+def load_text(path: str) -> str:
+    with open(path, "r", encoding="utf-8") as f:
+        return f.read()
+    
 
 def resolve_doi_to_paper(doi: str) -> dict:
     doi = normalize(doi)
@@ -603,9 +761,8 @@ def resolve_doi_to_paper(doi: str) -> dict:
         "paper": {
             "doi": doi,
             "title": title or "Untitled paper",
-            "source": doc.get("source") or "unknown",
-            "authors": doc.get("authors", []) or [],
-            "emails": doc.get("emails", []) or [],
+            "robArtifacts": result.get("rob_artifacts", []),
+            "source": source,
             "availableSections": available_sections,
         },
         "section_map": section_map,

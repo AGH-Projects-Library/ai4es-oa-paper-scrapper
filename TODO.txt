@@ -6,3 +6,4 @@
 8. Add images
 9. Add article searching
 10. Finish the entire pipeline leaving out only the risk-of-bias recognition model
+11. Remove files after the end of pipeline
