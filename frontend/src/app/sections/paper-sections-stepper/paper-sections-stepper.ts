@@ -213,6 +213,34 @@ export class PaperSectionsStepper {
     });
   }
 
+  // Source: notebooks/scraper/exporters.py — compress_directory() / export_documents()
+  private triggerDownload(blob: Blob, filename: string): void {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  downloadCsv(paperId: number): void {
+    this.doi.exportCsv(paperId).subscribe((blob) =>
+      this.triggerDownload(blob, `paper_${paperId}_tables.zip`),
+    );
+  }
+
+  downloadMarkdown(paperId: number): void {
+    this.doi.exportMarkdown(paperId).subscribe((blob) =>
+      this.triggerDownload(blob, `paper_${paperId}_markdown.zip`),
+    );
+  }
+
+  downloadJson(paperId: number): void {
+    this.doi.exportJson(paperId).subscribe((blob) =>
+      this.triggerDownload(blob, `paper_${paperId}.json`),
+    );
+  }
+
   resetFlow(stepper: MatStepper): void {
     this.doiForm.reset({ doi: '' });
     this.sectionForm.reset({ selectedSections: [] });

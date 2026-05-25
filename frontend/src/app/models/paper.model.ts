@@ -100,3 +100,21 @@ export interface GetPapersResponse {
   status: 'success';
   papers: PaperListItem[];
 }
+
+export interface BatchResult {
+  doi: string;
+  status: 'success' | 'not_found' | 'error';
+  paper?: PaperListItem;
+  message?: string;
+}
+
+export interface BatchProcessResponse {
+  status: 'success';
+  results: BatchResult[];
+  summary: {
+    total: number;
+    success: number;
+    not_found: number;
+    error: number;
+  };
+}

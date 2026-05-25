@@ -189,6 +189,21 @@
             Browse sections, risk-of-bias artifacts, tables, and images extracted from the paper.
           </p>
 
+          @if (resolvedPaper(); as paper) {
+            <div class="download-bar">
+              <span class="download-label">Download:</span>
+              <button mat-stroked-button type="button" (click)="downloadCsv(paper.id)">
+                <mat-icon>table_chart</mat-icon> CSV tables
+              </button>
+              <button mat-stroked-button type="button" (click)="downloadMarkdown(paper.id)">
+                <mat-icon>description</mat-icon> Markdown
+              </button>
+              <button mat-stroked-button type="button" (click)="downloadJson(paper.id)">
+                <mat-icon>data_object</mat-icon> JSON
+              </button>
+            </div>
+          }
+
           <mat-tab-group
             animationDuration="200ms"
             class="content-tabs"

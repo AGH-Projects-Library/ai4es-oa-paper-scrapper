@@ -1,0 +1,3 @@
+## 3 Results
+
+ The automated baffle generation and simulation workflow was applied on the pre-operateive image data of four DORV patients who had previously undergone biventricular repair with an intracardiac LV–Ao baffle. The resulting geometries, including the generated baffle surface 𝒮 baffle \displaystyle\mathcal{S}_{\text{baffle}} and reconstructed flow pathway ℳ final \displaystyle\mathcal{M}_{\text{final}} , were evaluated through hemodynamic simulations and compared with post-operative clinical measurements.

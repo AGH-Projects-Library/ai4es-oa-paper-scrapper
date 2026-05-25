@@ -34,7 +34,19 @@
     </p>
   </div>
 
+  <div class="mode-toggle-row">
+    <mat-button-toggle-group [value]="mode()" (change)="mode.set($event.value)">
+      <mat-button-toggle value="single">Single DOI</mat-button-toggle>
+      <mat-button-toggle value="batch">Batch</mat-button-toggle>
+    </mat-button-toggle-group>
+  </div>
+
   <div id="form" class="mt-4">
-    <app-paper-sections-stepper />
+    @if (mode() === 'single') {
+      <app-paper-sections-stepper />
+    }
+    @if (mode() === 'batch') {
+      <app-batch-processor />
+    }
   </div>
 </div>

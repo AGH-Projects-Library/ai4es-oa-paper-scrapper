@@ -1,0 +1,3 @@
+## Data processing and analysis
+
+ The preferred Ta was calculated based on a linear relationship between the position in the channel and Ta. A weighted average was calculated for every 5-min interval. The obtained curves of preferred Ta were smoothed by a second polynomial degree Savitzky-Golay filtering over a 30-min shifting window using Microcal Origin 5.0 software (OriginLab, Northampton, MA, USA). The Tb and preferred Ta responses were compared across treatments and time points by a two-way analysis of variance for repeated measurements followed by the Tukey test (Sigma Stat, Systat Software, Point Richmond, CA, USA). The differences were considered significant at P<0.05. The data are reported as mean±standard error.

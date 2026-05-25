@@ -1,0 +1,3 @@
+## Testing autonomic defense of body temperature
+
+ The ability of rats to defend their Tb (recorded by the dataloggers implanted in the peritoneal cavity) during heat or cold exposure was tested. These tests were performed the same way as thermal stimulation for behavioral experiments (see above). In brief, each rat was confined to a short portion of the channel near the warm (∼28°C) or cold end (∼17°C) of the thermogradient apparatus. The rats could not move to a different Ta; therefore, they were forced to regulate their Tb mostly by autonomic mechanisms.

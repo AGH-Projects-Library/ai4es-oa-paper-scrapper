@@ -1,0 +1,2 @@
+,ρ ​ ( ∂ 𝐮 ∂ t + ( 𝐮 ⋅ ∇ ) ​ 𝐮 ) \displaystyle\displaystyle\rho\left(\frac{\partial\mathbf{u}}{\partial t}+(\mathbf{u}\cdot\nabla)\mathbf{u}\right),= − ∇ p + μ ​ ∇ 2 𝐮 \displaystyle\displaystyle=-\nabla p+\mu\nabla^{2}\mathbf{u},,(9)
+,∇ ⋅ 𝐮 \displaystyle\displaystyle\nabla\cdot\mathbf{u},= 0 \displaystyle\displaystyle=0,"in ​ Ω , \displaystyle\displaystyle\text{in }\Omega,",

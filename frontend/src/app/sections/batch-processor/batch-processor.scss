@@ -1,0 +1,185 @@
+@use '../../../styles/variables' as *;
+
+.batch-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.batch-header { margin-bottom: 0; }
+
+.batch-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: $text-primary;
+  margin: 0 0 0.25rem;
+}
+
+.batch-description {
+  font-size: 0.875rem;
+  color: $text-secondary;
+  margin: 0;
+}
+
+.mode-toggle {
+  align-self: flex-start;
+
+  mat-icon {
+    font-size: 1rem;
+    width: 1rem;
+    height: 1rem;
+    vertical-align: middle;
+    margin-right: 0.25rem;
+  }
+}
+
+.doi-textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  border: 1px solid $border-soft;
+  border-radius: $radius-md;
+  background: $bg-panel;
+  color: $text-primary;
+  resize: vertical;
+  box-sizing: border-box;
+
+  &:focus {
+    outline: 2px solid $color-primary;
+    outline-offset: -1px;
+  }
+}
+
+.file-drop-area {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  border: 1.5px dashed $border-soft;
+  border-radius: $radius-md;
+  background: $bg-panel;
+
+  .file-icon { color: $text-secondary; font-size: 1.75rem; width: 1.75rem; height: 1.75rem; }
+  .file-name  { font-weight: 500; color: $text-primary; font-size: 0.9rem; flex: 1; }
+  .file-placeholder { color: $text-secondary; font-size: 0.875rem; flex: 1; }
+}
+
+.file-label {
+  cursor: pointer;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid $border-soft;
+  border-radius: $radius-md;
+  font-size: 0.875rem;
+  background: transparent;
+  color: $text-primary;
+  white-space: nowrap;
+
+  &:hover { background: rgba($color-primary, 0.06); }
+}
+
+.batch-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+
+  .primary-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+}
+
+.batch-message-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-radius: $radius-md;
+
+  mat-icon { margin-top: 2px; }
+  h4 { margin: 0 0 0.25rem; font-size: 0.9375rem; }
+  p  { margin: 0; font-size: 0.875rem; }
+}
+
+.batch-error-card {
+  background: rgba(211, 47, 47, 0.08);
+  color: #c62828;
+}
+
+.viewer-center-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem 1rem;
+  color: $text-secondary;
+}
+
+.batch-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.summary-chip {
+  padding: 0.2rem 0.65rem;
+  border-radius: 100px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+
+  &--total   { background: rgba($color-primary, 0.12); color: $color-primary; }
+  &--success { background: rgba(46, 125, 50, 0.12);   color: #2e7d32; }
+  &--warn    { background: rgba(245, 124, 0, 0.12);   color: #e65100; }
+  &--error   { background: rgba(211, 47, 47, 0.12);   color: #c62828; }
+}
+
+.results-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.result-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  border-radius: $radius-md;
+  background: $bg-panel;
+  border: 1px solid $border-soft;
+
+  &--success .result-icon { color: #2e7d32; }
+  &--not_found .result-icon { color: #e65100; }
+  &--error .result-icon { color: #c62828; }
+}
+
+.result-icon { font-size: 1.2rem; width: 1.2rem; height: 1.2rem; margin-top: 1px; flex-shrink: 0; }
+
+.result-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.result-doi {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 0.8125rem;
+  color: $text-secondary;
+}
+
+.result-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: $text-primary;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.result-message {
+  font-size: 0.8125rem;
+  color: $text-secondary;
+}
