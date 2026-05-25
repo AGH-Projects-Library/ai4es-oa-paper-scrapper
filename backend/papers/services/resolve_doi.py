@@ -11,14 +11,10 @@ import os
 import re
 
 from django.conf import settings
-
-# Source: notebooks/scraper/providers.py — process_document()
 from scraper.providers import process_document
-
-# Source: notebooks/scraper/parsers_md.py — parse_markdown(), normalize()
 from scraper.parsers_md import parse_markdown, normalize
-
 from .rob_extraction import extract_rob_artifacts_from_markdown
+from papers.models import ResolvedPaper, Section
 
 DATA_DIR = str(settings.SCRAPER_DATA_DIR)
 
@@ -33,14 +29,101 @@ def _load_text(path: str) -> str:
         return f.read()
 
 
+# Source: backend/papers/models.py — ResolvedPaper, Section
+def _save_to_db(doi, doc, title, rob_artifacts):
+    available_sections = [
+        {"id": _make_section_id(s.heading), "name": s.heading}
+        for s in doc.sections if s.heading
+    ]
+    paper, _ = ResolvedPaper.objects.update_or_create(
+        doi=doi,
+        defaults={
+            "paper_id": getattr(doc, "paper_id", "") or "",
+            "title": title or "Untitled paper",
+            "source": doc.source,
+            "authors": doc.authors,
+            "emails": doc.emails,
+            "extraction_method": getattr(doc, "extraction_method", "") or "",
+            "md_path": doc.md_path or "",
+            "html_path": getattr(doc, "html_path", "") or "",
+            "pdf_path": getattr(doc, "pdf_path", "") or "",
+            "rob_artifacts": rob_artifacts,
+            "available_sections": available_sections,
+        },
+    )
+    paper.sections.all().delete()
+    Section.objects.bulk_create([
+        Section(
+            paper=paper,
+            section_id=_make_section_id(s.heading),
+            heading=s.heading,
+            order=i,
+            md_path=s.md_path or "",
+        )
+        for i, s in enumerate(doc.sections) if s.heading
+    ])
+
+
+# Source: backend/papers/models.py — ResolvedPaper
+def _load_from_db(doi) -> dict | None:
+    try:
+        paper = ResolvedPaper.objects.get(doi=doi)
+    except ResolvedPaper.DoesNotExist:
+        return None
+    return {
+        "status": "success",
+        "paper": {
+            "doi": doi,
+            "title": paper.title,
+            "source": paper.source,
+            "authors": paper.authors,
+            "emails": paper.emails,
+            "robArtifacts": paper.rob_artifacts,
+            "availableSections": paper.available_sections,
+        },
+    }
+
+
+# Source: backend/papers/models.py — ResolvedPaper, Section
+def fetch_sections_for_doi(doi: str, requested_ids: list) -> dict | None:
+    try:
+        paper = ResolvedPaper.objects.get(doi=doi)
+    except ResolvedPaper.DoesNotExist:
+        return None
+
+    avail = {s["id"]: s["name"] for s in paper.available_sections}
+    db_sections = {s.section_id: s for s in paper.sections.all()}
+
+    out = []
+    for sec_id in requested_ids:
+        sec_id = sec_id.strip()
+        if sec_id not in avail:
+            continue
+        db_sec = db_sections.get(sec_id)
+        content = ""
+        if db_sec and db_sec.md_path:
+            try:
+                content = _load_text(os.path.join(DATA_DIR, db_sec.md_path))
+            except FileNotFoundError:
+                pass
+        out.append({"id": sec_id, "name": avail[sec_id], "content": content})
+
+    return {"status": "success", "sections": out}
+
+
 def resolve_doi_to_paper(doi: str) -> dict:
     doi = normalize(doi)
 
     if not doi:
         return {"status": "not_found", "message": "No DOI was provided."}
 
+    # Fast path: return cached result from DB
+    cached = _load_from_db(doi)
+    if cached:
+        return cached
+
     # Source: notebooks/scraper/providers.py — process_document()
-    # Runs the full pipeline: fetch → parse → split sections → save CSVs/images.
+    # Slow path: run the full scraping pipeline (fetch → parse → split sections → save files).
     doc = process_document(doi, base_dir=DATA_DIR)
 
     if not doc:
@@ -57,36 +140,13 @@ def resolve_doi_to_paper(doi: str) -> dict:
     md_text = _load_text(md_full_path)
 
     # Source: notebooks/scraper/parsers_md.py — parse_markdown()
-    # Extract the title from the H1 heading of the full document.
     title, _ = parse_markdown(md_text)
 
     # Source: backend/papers/services/rob_extraction.py
-    # Scan the full markdown for ROB tables and section keywords.
     rob_artifacts = extract_rob_artifacts_from_markdown(md_text, paper_id=doi)
 
-    # Source: notebooks/scraper/providers.py — process_sections_and_tables()
-    # doc.sections is already populated: each SectionInfo has heading + md_path
-    # (relative to DATA_DIR) pointing to the per-section markdown file on disk.
-    available_sections = []
-    section_map = {}
-
-    for section in doc.sections:
-        name = section.heading
-        if not name:
-            continue
-
-        section_id = _make_section_id(name)
-        available_sections.append({"id": section_id, "name": name})
-
-        # Load the section's markdown file written by process_sections_and_tables()
-        if section.md_path:
-            sec_full_path = os.path.join(DATA_DIR, section.md_path)
-            try:
-                section_map[section_id] = _load_text(sec_full_path)
-            except FileNotFoundError:
-                section_map[section_id] = ""
-        else:
-            section_map[section_id] = ""
+    # Persist to DB before returning
+    _save_to_db(doi, doc, title, rob_artifacts)
 
     return {
         "status": "success",
@@ -97,7 +157,9 @@ def resolve_doi_to_paper(doi: str) -> dict:
             "authors": doc.authors,
             "emails": doc.emails,
             "robArtifacts": rob_artifacts,
-            "availableSections": available_sections,
+            "availableSections": [
+                {"id": _make_section_id(s.heading), "name": s.heading}
+                for s in doc.sections if s.heading
+            ],
         },
-        "section_map": section_map,
     }

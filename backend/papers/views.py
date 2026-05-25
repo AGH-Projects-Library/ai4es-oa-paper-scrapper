@@ -2,7 +2,8 @@ from django.shortcuts import render
 import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from .services.resolve_doi import resolve_doi_to_paper
+# Source: backend/papers/services/resolve_doi.py — resolve_doi_to_paper, fetch_sections_for_doi
+from .services.resolve_doi import resolve_doi_to_paper, fetch_sections_for_doi
 
 
 @csrf_exempt
@@ -138,40 +139,23 @@ def fetch_sections_view(request):
         )
 
     try:
-        result = resolve_doi_to_paper(doi)
+        # Fast path: paper already in DB — read section files from disk without re-scraping.
+        result = fetch_sections_for_doi(doi, sections)
 
-        if result.get("status") == "not_found":
-            return JsonResponse(result, status=200)
+        if result is None:
+            # Paper not cached yet — run the full scraping pipeline, which also persists it.
+            scrape = resolve_doi_to_paper(doi)
+            if scrape.get("status") != "success":
+                return JsonResponse(scrape, status=200)
+            result = fetch_sections_for_doi(doi, sections)
 
-        if result.get("status") != "success":
+        if result is None:
             return JsonResponse(
-                {
-                    "error": {
-                        "code": "INVALID_SERVICE_RESPONSE",
-                        "message": "The DOI service returned an unexpected response.",
-                    }
-                },
-                status=500,
+                {"status": "not_found", "message": "We couldn't find a paper for this DOI."},
+                status=200,
             )
 
-        section_map = result.get("section_map", {})
-        avail = {s["id"]: s.get("name") for s in result.get("paper", {}).get("availableSections", [])}
-
-        out_sections = []
-        for sec_id in sections:
-            sec_id = sec_id.strip()
-            content = section_map.get(sec_id)
-            if content is None:
-                continue
-            out_sections.append(
-                {
-                    "id": sec_id,
-                    "name": avail.get(sec_id, sec_id),
-                    "content": content,
-                }
-            )
-
-        return JsonResponse({"status": "success", "sections": out_sections}, status=200)
+        return JsonResponse(result, status=200)
 
     except Exception as exc:
         return JsonResponse(
