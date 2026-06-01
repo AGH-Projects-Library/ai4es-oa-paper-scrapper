@@ -74,6 +74,13 @@
 .primary-btn {
   background: $ui-primary !important;
   color: $text-on-color !important;
+  white-space: nowrap;
+}
+
+.btn-spinner-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .center-state {

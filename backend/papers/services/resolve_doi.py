@@ -207,7 +207,7 @@ def resolve_doi_to_paper(doi: str) -> dict:
             "source": doc.source,
             "authors": doc.authors,
             "emails": doc.emails,
-            "robArtifacts": rob_artifacts,
+            "robArtifacts": [],
             "availableSections": [
                 {"id": _make_section_id(s.heading), "name": s.heading}
                 for s in doc.sections if s.heading

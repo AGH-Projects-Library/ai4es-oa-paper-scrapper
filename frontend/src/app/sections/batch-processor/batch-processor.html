@@ -87,11 +87,10 @@
               (click)="submit()"
             >
               @if (step1State() === 'loading') {
-                <mat-spinner diameter="18" color="accent"></mat-spinner>
-                Processing…
-              } @else if (resolveState() === 'loading') {
-                <mat-spinner diameter="18" color="accent"></mat-spinner>
-                Loading section info…
+                <span class="btn-spinner-row">
+                  <mat-spinner diameter="18" color="accent"></mat-spinner>
+                  Processing…
+                </span>
               } @else {
                 Process all
               }
@@ -106,70 +105,111 @@
     </mat-step>
 
     <!-- ────────────────────────────── STEP 2 ────────────────────────────── -->
-    <mat-step label="Select section type">
+    <mat-step label="Select sections">
       <div class="step-content">
         <mat-card class="step-card p-4">
-          <h3 class="card-title">Choose a section type</h3>
+          <h3 class="card-title">Choose section types</h3>
           <p class="card-description">
-            Select a semantic category — the system will find all matching sections across your papers.
+            Select which section types to retrieve from all papers.
+            Numbered subsections are included automatically.
           </p>
 
-          <div class="category-chips">
+          <div class="section-picker-list">
+
             @for (cat of semanticCategories; track cat.id) {
-              <button
-                class="category-chip"
-                [class.active]="selectedCategory() === cat.id"
-                type="button"
-                (click)="selectCategory(cat.id)"
+              <div
+                class="section-row"
+                [class.section-row--selected]="selectedCategories().has(cat.id)"
+                role="checkbox"
+                [attr.aria-checked]="selectedCategories().has(cat.id)"
+                (click)="toggleCategory(cat.id)"
               >
-                {{ cat.label }}
-              </button>
+                <div class="check-box" [class.check-box--checked]="selectedCategories().has(cat.id)">
+                  @if (selectedCategories().has(cat.id)) {
+                    <mat-icon>check</mat-icon>
+                  }
+                </div>
+
+                <div class="category-icon" [class.category-icon--selected]="selectedCategories().has(cat.id)">
+                  <mat-icon>{{ cat.icon }}</mat-icon>
+                </div>
+
+                <div class="section-row-main">
+                  <span class="section-row-label">{{ cat.label }}</span>
+                  <span class="section-row-desc">{{ cat.description }}</span>
+                </div>
+
+                <div class="section-row-stats">
+                  @if (resolveState() === 'done') {
+                    @let stats = getCategoryStats(cat.keyword);
+                    @if (stats.papers > 0) {
+                      <span class="stat-badge stat-badge--found">
+                        <mat-icon>check_circle</mat-icon>
+                        {{ stats.papers }}/{{ resolvedPapers().size }}
+                        &nbsp;·&nbsp;
+                        {{ stats.sections }} section{{ stats.sections !== 1 ? 's' : '' }}
+                      </span>
+                    } @else {
+                      <span class="stat-badge stat-badge--none">not found</span>
+                    }
+                  } @else {
+                    <span class="stat-skeleton"></span>
+                  }
+                </div>
+              </div>
             }
-            <button
-              class="category-chip"
-              [class.active]="selectedCategory() === ''"
-              type="button"
-              (click)="clearCategory()"
+
+            <!-- Custom keyword row -->
+            <div
+              class="section-row section-row--custom"
+              [class.section-row--selected]="showCustom()"
             >
-              Custom
-            </button>
-          </div>
+              <div
+                class="check-box"
+                [class.check-box--checked]="showCustom() && !!customKeyword().trim()"
+                (click)="toggleCustom()"
+              >
+                @if (showCustom() && customKeyword().trim()) {
+                  <mat-icon>check</mat-icon>
+                }
+              </div>
 
-          @if (selectedCategory() === '') {
-            <mat-form-field appearance="outline" class="keyword-field">
-              <mat-label>Keyword</mat-label>
-              <input
-                matInput
-                [ngModel]="customKeyword()"
-                (ngModelChange)="customKeyword.set($event)"
-                placeholder="e.g. methodology, conclusions, bias"
-              />
-              <mat-hint>Case-insensitive — matches any section name containing this word</mat-hint>
-            </mat-form-field>
-          }
+              <div class="category-icon" [class.category-icon--selected]="showCustom()">
+                <mat-icon>tune</mat-icon>
+              </div>
 
-          @if (resolveState() === 'done' && activeKeyword) {
-            @let preview = getMatchingPreview();
-            <div class="keyword-preview">
-              @if (preview.papersWithMatch > 0) {
-                <mat-icon class="preview-icon preview-icon--ok">check_circle</mat-icon>
-                <span>
-                  Found in <strong>{{ preview.papersWithMatch }} / {{ resolvedPapers().size }}</strong>
-                  paper{{ resolvedPapers().size !== 1 ? 's' : '' }}
-                  &nbsp;·&nbsp;
-                  <strong>{{ preview.totalSections }}</strong> matching section{{ preview.totalSections !== 1 ? 's' : '' }} total
-                </span>
-              } @else {
-                <mat-icon class="preview-icon preview-icon--warn">info</mat-icon>
-                <span>No sections match this keyword in the processed papers.</span>
-              }
-              @if (preview.papersWithout > 0) {
-                <span class="preview-missing">
-                  &nbsp;({{ preview.papersWithout }} paper{{ preview.papersWithout !== 1 ? 's' : '' }} will have no matched sections)
-                </span>
-              }
+              <div class="custom-row-body">
+                <span class="section-row-label" (click)="toggleCustom()">Custom keyword</span>
+                <span class="section-row-desc" (click)="toggleCustom()">Match any heading you define</span>
+                @if (showCustom()) {
+                  <input
+                    class="custom-kw-input"
+                    [ngModel]="customKeyword()"
+                    (ngModelChange)="customKeyword.set($event)"
+                    placeholder="e.g. methodology, bias"
+                    (click)="$event.stopPropagation()"
+                  />
+                }
+              </div>
+
+              <div class="section-row-stats">
+                @if (resolveState() === 'done' && showCustom() && customKeyword().trim()) {
+                  @let cStats = getCategoryStats(customKeyword().trim());
+                  @if (cStats.papers > 0) {
+                    <span class="stat-badge stat-badge--found">
+                      <mat-icon>check_circle</mat-icon>
+                      {{ cStats.papers }}/{{ resolvedPapers().size }}
+                      &nbsp;·&nbsp;
+                      {{ cStats.sections }} section{{ cStats.sections !== 1 ? 's' : '' }}
+                    </span>
+                  } @else {
+                    <span class="stat-badge stat-badge--none">not found</span>
+                  }
+                }
+              </div>
             </div>
-          }
+
+          </div>
 
           @if (contentState() === 'error') {
             <div class="message-card error-card mt-3">
@@ -191,8 +231,10 @@
               (click)="loadSectionContent()"
             >
               @if (contentState() === 'loading') {
-                <mat-spinner diameter="18" color="accent"></mat-spinner>
-                Loading…
+                <span class="btn-spinner-row">
+                  <mat-spinner diameter="18" color="accent"></mat-spinner>
+                  Loading…
+                </span>
               } @else {
                 Load sections
               }
@@ -245,7 +287,7 @@
                   <div class="paper-download-bar">
                     <span class="download-label">Download:</span>
                     <button mat-stroked-button type="button" (click)="downloadCsv(result.paper.id)">
-                      <mat-icon>table_chart</mat-icon> CSV
+                      <mat-icon>table_chart</mat-icon> CSV tables
                     </button>
                     <button mat-stroked-button type="button" (click)="downloadMarkdown(result.paper.id)">
                       <mat-icon>description</mat-icon> Markdown
@@ -255,7 +297,11 @@
                     </button>
                   </div>
 
-                  <mat-tab-group animationDuration="150ms" class="paper-tabs">
+                  <mat-tab-group
+                    animationDuration="150ms"
+                    class="paper-tabs"
+                    (selectedIndexChange)="onPaperTabChange(result.paper.id, $event)"
+                  >
 
                     <mat-tab label="Sections">
                       <div class="tab-body">
@@ -279,19 +325,25 @@
 
                     <mat-tab label="ROB Analysis">
                       <div class="tab-body">
-                        <app-rob-artifacts [artifacts]="result.paper.robArtifacts" />
+                        @if (hasVisitedTab(result.paper.id, 1)) {
+                          <app-rob-artifacts [artifacts]="result.paper.robArtifacts" />
+                        }
                       </div>
                     </mat-tab>
 
                     <mat-tab label="Tables">
                       <div class="tab-body">
-                        <app-tables-viewer [paperId]="result.paper.id" />
+                        @if (hasVisitedTab(result.paper.id, 2)) {
+                          <app-tables-viewer [paperId]="result.paper.id" />
+                        }
                       </div>
                     </mat-tab>
 
                     <mat-tab label="Images">
                       <div class="tab-body">
-                        <app-images-viewer [paperId]="result.paper.id" />
+                        @if (hasVisitedTab(result.paper.id, 3)) {
+                          <app-images-viewer [paperId]="result.paper.id" />
+                        }
                       </div>
                     </mat-tab>
 

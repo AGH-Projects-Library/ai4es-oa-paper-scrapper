@@ -105,12 +105,12 @@ export class Doi {
       .pipe(catchError((error) => this.handleHttpError(error)));
   }
 
-  batchExport(paperIds: number[]): Observable<Blob> {
-    return this.http.post(
-      `${this.baseUrl}/batch-export/`,
-      { paper_ids: paperIds },
-      { responseType: 'blob' },
-    );
+  batchExport(paperIds: number[], sectionTypes?: string[]): Observable<Blob> {
+    const body: Record<string, unknown> = { paper_ids: paperIds };
+    if (sectionTypes && sectionTypes.length > 0) {
+      body['section_types'] = sectionTypes;
+    }
+    return this.http.post(`${this.baseUrl}/batch-export/`, body, { responseType: 'blob' });
   }
 
   private handleHttpError(error: HttpErrorResponse) {

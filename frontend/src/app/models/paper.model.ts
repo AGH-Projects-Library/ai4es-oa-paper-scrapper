@@ -104,7 +104,7 @@ export interface GetPapersResponse {
 export interface BatchResult {
   doi: string;
   status: 'success' | 'not_found' | 'error';
-  paper?: PaperListItem;
+  paper?: ResolvedPaper;
   message?: string;
 }
 

@@ -64,6 +64,10 @@
 .primary-btn {
   background: $ui-primary !important;
   color: $text-on-color !important;
+  white-space: nowrap;
+}
+
+.btn-spinner-row {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -171,71 +175,190 @@
   color: #c62828;
 }
 
-// ── Step 2: section type ──────────────────────────────────────────────────────
+// ── Step 2: section picker ────────────────────────────────────────────────────
 
-.category-chips {
+.section-picker-list {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 0.5rem;
   margin-bottom: 1.25rem;
 }
 
-.category-chip {
-  padding: 0.35rem 0.9rem;
-  border-radius: 100px;
-  border: 1.5px solid $border-soft;
-  background: transparent;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: $text-primary;
-  cursor: pointer;
-  transition: 0.15s ease;
-
-  &:hover {
-    border-color: rgba($color-primary, 0.4);
-    background: rgba($color-primary, 0.05);
-  }
-
-  &.active {
-    border-color: $color-primary;
-    background: rgba($color-primary, 0.1);
-    color: $color-primary;
-    font-weight: 700;
-  }
-}
-
-.keyword-field {
-  width: 100%;
-  margin-bottom: 0.5rem;
-}
-
-.keyword-preview {
+.section-row {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  font-size: 0.875rem;
-  color: $text-secondary;
-  padding: 0.65rem 0.9rem;
+  gap: 1rem;
+  padding: 0.875rem 1.125rem;
+  cursor: pointer;
+  border: 1.5px solid $border-soft;
   border-radius: $radius-md;
-  background: rgba($color-primary, 0.05);
-  border: 1px solid rgba($color-primary, 0.12);
+  background: rgba(255, 255, 255, 0.85);
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  user-select: none;
 
-  strong { color: $text-primary; }
+  &:hover {
+    border-color: rgba($color-primary, 0.38);
+    background: rgba($color-primary, 0.025);
+  }
+
+  &--selected {
+    border-color: $ui-primary;
+    background: rgba($color-primary, 0.045);
+    box-shadow: inset 4px 0 0 $ui-primary;
+  }
+
+  &--custom { cursor: default; }
 }
 
-.preview-icon {
-  font-size: 1.1rem;
-  width: 1.1rem;
-  height: 1.1rem;
+.check-box {
   flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba($color-primary-dark, 0.28);
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.13s ease, border-color 0.13s ease;
+  cursor: pointer;
 
-  &--ok   { color: #2e7d32; }
-  &--warn { color: #e65100; }
+  mat-icon {
+    font-size: 13px;
+    width: 13px;
+    height: 13px;
+    color: white;
+  }
+
+  &--checked {
+    background: $ui-primary;
+    border-color: $ui-primary;
+  }
 }
 
-.preview-missing {
-  color: #e65100;
+.category-icon {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: rgba($color-primary, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: $ui-primary;
+    opacity: 0.7;
+    transition: opacity 0.15s ease;
+  }
+
+  &--selected {
+    background: rgba($color-primary, 0.16);
+
+    mat-icon { opacity: 1; }
+  }
+}
+
+.section-row-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.section-row-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: $text-primary;
+  cursor: pointer;
+  line-height: 1.3;
+}
+
+.section-row-desc {
+  font-size: 0.775rem;
+  color: $text-secondary;
+  line-height: 1.3;
+}
+
+.section-row-stats {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.stat-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.775rem;
+  font-weight: 600;
+  padding: 0.25rem 0.65rem;
+  border-radius: 100px;
+  white-space: nowrap;
+
+  mat-icon {
+    font-size: 13px;
+    width: 13px;
+    height: 13px;
+  }
+
+  &--found {
+    background: rgba(46, 125, 50, 0.1);
+    color: #2e7d32;
+  }
+
+  &--none {
+    background: rgba(0, 0, 0, 0.055);
+    color: $text-secondary;
+    font-weight: 500;
+  }
+}
+
+.stat-skeleton {
+  display: inline-block;
+  width: 110px;
+  height: 24px;
+  border-radius: 100px;
+  background: rgba($color-primary-dark, 0.07);
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+.custom-row-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.custom-kw-input {
+  display: block;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.875rem;
+  font-family: inherit;
+  border: 1.5px solid $border-soft;
+  border-radius: $radius-md;
+  background: white;
+  color: $text-primary;
+  width: min(240px, 100%);
+  transition: border-color 0.15s ease;
+
+  &:focus {
+    outline: none;
+    border-color: $ui-primary;
+    box-shadow: 0 0 0 3px rgba($color-primary, 0.12);
+  }
+
+  &::placeholder { color: $text-secondary; }
 }
 
 // ── Step 3: accordion results ─────────────────────────────────────────────────
@@ -246,6 +369,8 @@
   flex-wrap: wrap;
   gap: 0.5rem;
   margin-bottom: 1.25rem;
+
+  button { white-space: nowrap; }
 }
 
 .export-label {
@@ -294,9 +419,11 @@
   font-weight: 700;
   letter-spacing: 0.04em;
 
-  &--pmc   { background: rgba(50, 133, 117, 0.12); color: $color-primary; }
-  &--arxiv { background: rgba(248, 166, 82, 0.14); color: $ui-accent; }
-  &--none  { background: rgba(211, 47, 47, 0.1);   color: #c62828; }
+  &--pmc      { background: rgba(50, 133, 117, 0.12); color: $color-primary; }
+  &--arxiv   { background: rgba(248, 166, 82, 0.14); color: $ui-accent; }
+  &--medrxiv { background: rgba(62, 108, 164, 0.12); color: #3e6ca4; }
+  &--biorxiv { background: rgba(62, 108, 164, 0.12); color: #3e6ca4; }
+  &--none    { background: rgba(211, 47, 47, 0.1);   color: #c62828; }
 }
 
 .paper-panel-desc {
@@ -324,6 +451,7 @@
 
   button {
     font-size: 0.8125rem;
+    white-space: nowrap;
 
     mat-icon {
       font-size: 1rem;

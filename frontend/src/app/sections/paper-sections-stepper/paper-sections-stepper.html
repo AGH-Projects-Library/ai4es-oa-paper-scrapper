@@ -56,7 +56,10 @@
                 [disabled]="lookupState() === 'loading'"
               >
                 @if (lookupState() === 'loading') {
-                  Finding paper...
+                  <span class="btn-spinner-row">
+                    <mat-spinner diameter="18" color="accent"></mat-spinner>
+                    Finding paper…
+                  </span>
                 } @else {
                   Find paper
                 }

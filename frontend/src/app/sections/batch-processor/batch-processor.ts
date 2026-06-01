@@ -1,7 +1,7 @@
 import { Component, ViewChild, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { forkJoin, of } from 'rxjs';
+import { of, forkJoin } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 
 import { MatButtonModule } from '@angular/material/button';
@@ -9,8 +9,6 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCardModule } from '@angular/material/card';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatStepper, MatStepperModule } from '@angular/material/stepper';
 import { MatTabsModule } from '@angular/material/tabs';
@@ -23,13 +21,12 @@ import {
   PaperSection,
   ResolvedPaper,
 } from '../../models/paper.model';
-import { ResolveDoiSuccessResponse } from '../../models/resolve-doi.model';
 import { RobArtifacts } from '../paper-sections-stepper/rob-artifacts/rob-artifacts';
 import { TablesViewer } from '../paper-sections-stepper/tables-viewer/tables-viewer';
 import { ImagesViewer } from '../paper-sections-stepper/images-viewer/images-viewer';
 
 type Step1State = 'idle' | 'loading' | 'done' | 'error';
-type ResolveState = 'idle' | 'loading' | 'done';
+type ResolveState = 'idle' | 'done';
 type ContentState = 'idle' | 'loading' | 'done' | 'error';
 type InputMode = 'text' | 'file';
 
@@ -37,14 +34,16 @@ interface SemanticCategory {
   id: string;
   label: string;
   keyword: string;
+  icon: string;
+  description: string;
 }
 
 const SEMANTIC_CATEGORIES: SemanticCategory[] = [
-  { id: 'methods',    label: 'Methods',       keyword: 'method' },
-  { id: 'results',    label: 'Results',       keyword: 'result' },
-  { id: 'discussion', label: 'Discussion',    keyword: 'discussion' },
-  { id: 'rob',        label: 'Risk of Bias',  keyword: 'risk of bias' },
-  { id: 'intro',      label: 'Introduction',  keyword: 'introduction' },
+  { id: 'intro',      label: 'Introduction',  keyword: 'introduction', icon: 'article',     description: 'Background and research context' },
+  { id: 'methods',    label: 'Methods',       keyword: 'method',       icon: 'science',     description: 'Study design and procedures' },
+  { id: 'results',    label: 'Results',       keyword: 'result',       icon: 'bar_chart',   description: 'Findings and outcomes' },
+  { id: 'discussion', label: 'Discussion',    keyword: 'discussion',   icon: 'forum',       description: 'Interpretation and implications' },
+  { id: 'rob',        label: 'Risk of Bias',  keyword: 'risk of bias', icon: 'fact_check',  description: 'Bias assessment and quality' },
 ];
 
 @Component({
@@ -57,9 +56,7 @@ const SEMANTIC_CATEGORIES: SemanticCategory[] = [
     MatButtonToggleModule,
     MatCardModule,
     MatExpansionModule,
-    MatFormFieldModule,
     MatIconModule,
-    MatInputModule,
     MatProgressSpinnerModule,
     MatStepperModule,
     MatTabsModule,
@@ -90,64 +87,140 @@ export class BatchProcessor {
   readonly resolveState = signal<ResolveState>('idle');
   readonly resolvedPapers = signal<Map<string, ResolvedPaper>>(new Map());
 
-  // Step 2
-  readonly selectedCategory = signal<string>('methods');
+  // Step 2 — multi-select categories
+  readonly selectedCategories = signal<Set<string>>(new Set(['intro']));
+  readonly showCustom = signal<boolean>(false);
   readonly customKeyword = signal<string>('');
 
   // Step 3
   readonly contentState = signal<ContentState>('idle');
   readonly paperResults = signal<BatchPaperFull[]>([]);
   readonly contentError = signal('');
+  readonly visitedTabs = signal<Map<number, Set<number>>>(new Map());
 
-  // ── Step 2 helpers ────────────────────────────────────────────────────────
+  // ── Step 2: keywords & matching ───────────────────────────────────────────
 
-  get activeKeyword(): string {
-    const cat = SEMANTIC_CATEGORIES.find(c => c.id === this.selectedCategory());
-    if (cat) return cat.keyword;
-    return this.customKeyword().trim();
+  get activeKeywords(): string[] {
+    const keywords: string[] = [];
+    for (const id of this.selectedCategories()) {
+      const cat = SEMANTIC_CATEGORIES.find(c => c.id === id);
+      if (cat) keywords.push(cat.keyword);
+    }
+    const custom = this.customKeyword().trim();
+    if (custom) keywords.push(custom);
+    return keywords;
   }
 
-  selectCategory(id: string): void {
-    this.selectedCategory.set(id);
-    this.customKeyword.set('');
+  toggleCategory(id: string): void {
+    const current = new Set(this.selectedCategories());
+    if (current.has(id)) {
+      current.delete(id);
+    } else {
+      current.add(id);
+    }
+    this.selectedCategories.set(current);
   }
 
-  clearCategory(): void {
-    this.selectedCategory.set('');
+  toggleCustom(): void {
+    const next = !this.showCustom();
+    this.showCustom.set(next);
+    if (!next) this.customKeyword.set('');
   }
 
-  matchSection(sectionName: string, keyword: string): boolean {
-    if (!keyword) return false;
-    return sectionName.toLowerCase().includes(keyword.toLowerCase());
+  // Returns subsections of the section at parentIdx — sections whose name starts
+  // with "N.N" following a parent section (either unnumbered or "N Title").
+  private getSubsectionIdsInPaper(sections: PaperSection[], parentIdx: number): string[] {
+    const parent = sections[parentIdx];
+    if (/^\d+\.\d+/.test(parent.name)) return [];   // parent is itself a subsection
+
+    const parentNumMatch = parent.name.match(/^(\d+)\s/);
+    const result: string[] = [];
+
+    for (let i = parentIdx + 1; i < sections.length; i++) {
+      const s = sections[i];
+      const childNumMatch = s.name.match(/^(\d+)\.\d+/);
+      if (!childNumMatch) break;                     // non-numbered → end of block
+
+      if (parentNumMatch) {
+        if (childNumMatch[1] === parentNumMatch[1]) result.push(s.id);
+        else break;
+      } else {
+        result.push(s.id);
+      }
+    }
+    return result;
   }
 
+  private matchesByKeyword(sectionName: string, keywords: string[]): boolean {
+    if (!keywords.length) return false;
+    const lower = sectionName.toLowerCase();
+    return keywords.some(kw => lower.includes(kw.toLowerCase()));
+  }
+
+  // Sections matching any keyword + their subsections.
   getMatchingIds(paper: ResolvedPaper): string[] {
-    const kw = this.activeKeyword;
-    return paper.availableSections
-      .filter(s => this.matchSection(s.name, kw))
-      .map(s => s.id);
-  }
+    const kws = this.activeKeywords;
+    const sections = paper.availableSections;
+    const matched = new Set<string>();
 
-  getMatchingPreview(): { papersWithMatch: number; totalSections: number; papersWithout: number } {
-    const resolved = this.resolvedPapers();
-    let papersWithMatch = 0;
-    let totalSections = 0;
-    resolved.forEach(paper => {
-      const ids = this.getMatchingIds(paper);
-      if (ids.length > 0) {
-        papersWithMatch++;
-        totalSections += ids.length;
+    sections.forEach((s, idx) => {
+      if (this.matchesByKeyword(s.name, kws)) {
+        matched.add(s.id);
+        for (const subId of this.getSubsectionIdsInPaper(sections, idx)) {
+          matched.add(subId);
+        }
       }
     });
-    return {
-      papersWithMatch,
-      totalSections,
-      papersWithout: resolved.size - papersWithMatch,
-    };
+    return Array.from(matched);
+  }
+
+  // Per-category stats: how many papers and sections match a single keyword (incl. subsections).
+  getCategoryStats(keyword: string): { papers: number; sections: number } {
+    const resolved = this.resolvedPapers();
+    if (!resolved.size) return { papers: 0, sections: 0 };
+
+    let papers = 0;
+    let sections = 0;
+
+    resolved.forEach(paper => {
+      const secs = paper.availableSections;
+      const matched = new Set<string>();
+      secs.forEach((s, idx) => {
+        if (s.name.toLowerCase().includes(keyword.toLowerCase())) {
+          matched.add(s.id);
+          for (const subId of this.getSubsectionIdsInPaper(secs, idx)) {
+            matched.add(subId);
+          }
+        }
+      });
+      if (matched.size > 0) {
+        papers++;
+        sections += matched.size;
+      }
+    });
+    return { papers, sections };
   }
 
   canLoadSections(): boolean {
-    return this.activeKeyword.length > 0 && this.resolvedPapers().size > 0;
+    if (!this.activeKeywords.length || !this.resolvedPapers().size) return false;
+    for (const paper of this.resolvedPapers().values()) {
+      if (this.getMatchingIds(paper).length > 0) return true;
+    }
+    return false;
+  }
+
+  // ── Per-paper lazy tab tracking ───────────────────────────────────────────
+
+  hasVisitedTab(paperId: number, index: number): boolean {
+    return this.visitedTabs().get(paperId)?.has(index) ?? false;
+  }
+
+  onPaperTabChange(paperId: number, index: number): void {
+    const map = new Map(this.visitedTabs());
+    const set = new Set(map.get(paperId) ?? [0]);
+    set.add(index);
+    map.set(paperId, set);
+    this.visitedTabs.set(map);
   }
 
   // ── Input mode ────────────────────────────────────────────────────────────
@@ -197,12 +270,16 @@ export class BatchProcessor {
         this.batchSummary.set(res.summary);
         this.step1State.set('done');
 
-        const successDois = res.results
-          .filter(r => r.status === 'success')
-          .map(r => r.doi);
+        // Extract ResolvedPaper directly from batch results — no extra API round-trip needed
+        const map = new Map<string, ResolvedPaper>();
+        res.results
+          .filter(r => r.status === 'success' && r.paper)
+          .forEach(r => map.set(r.doi, r.paper!));
 
-        if (successDois.length > 0) {
-          this.loadResolvedPapers(successDois);
+        if (map.size > 0) {
+          this.resolvedPapers.set(map);
+          this.resolveState.set('done');
+          this.stepperEl.next();
         }
       },
       error: (err: unknown) => {
@@ -214,29 +291,6 @@ export class BatchProcessor {
     });
   }
 
-  // ── Between step 1 → 2: resolve each successful paper ─────────────────────
-
-  private loadResolvedPapers(dois: string[]): void {
-    this.resolveState.set('loading');
-
-    const calls = dois.map(doi =>
-      this.doi.resolveDoi({ doi }).pipe(
-        map(res => (res.status === 'success' ? (res as ResolveDoiSuccessResponse).paper : null)),
-        catchError(() => of(null)),
-      ),
-    );
-
-    forkJoin(calls).subscribe(papers => {
-      const map = new Map<string, ResolvedPaper>();
-      papers.forEach(p => {
-        if (p) map.set(p.doi, p);
-      });
-      this.resolvedPapers.set(map);
-      this.resolveState.set('done');
-      this.stepperEl.next();
-    });
-  }
-
   // ── Step 3: fetch section content ────────────────────────────────────────
 
   loadSectionContent(): void {
@@ -245,21 +299,22 @@ export class BatchProcessor {
     this.contentState.set('loading');
     this.contentError.set('');
     this.paperResults.set([]);
+    this.visitedTabs.set(new Map());
 
     const resolved = this.resolvedPapers();
     const entries = Array.from(resolved.values());
 
     const calls = entries.map(paper => {
+      const allMatchedIds = this.getMatchingIds(paper);
       const matchedSections: PaperSection[] = paper.availableSections.filter(s =>
-        this.matchSection(s.name, this.activeKeyword),
+        allMatchedIds.includes(s.id),
       );
-      const ids = matchedSections.map(s => s.id);
 
-      if (ids.length === 0) {
+      if (allMatchedIds.length === 0) {
         return of<BatchPaperFull>({ paper, matchedSections: [], sectionContent: [] });
       }
 
-      return this.doi.fetchSections({ doi: paper.doi, sections: ids }).pipe(
+      return this.doi.fetchSections({ doi: paper.doi, sections: allMatchedIds }).pipe(
         map(res => ({
           paper,
           matchedSections,
@@ -271,6 +326,9 @@ export class BatchProcessor {
 
     forkJoin(calls).subscribe({
       next: results => {
+        const initMap = new Map<number, Set<number>>();
+        results.forEach(r => initMap.set(r.paper.id, new Set([0])));
+        this.visitedTabs.set(initMap);
         this.paperResults.set(results);
         this.contentState.set('done');
         this.stepperEl.next();
@@ -298,7 +356,8 @@ export class BatchProcessor {
   downloadBatchExport(): void {
     const ids = this.paperResults().map(r => r.paper.id);
     if (!ids.length) return;
-    this.doi.batchExport(ids).subscribe(blob =>
+    const kws = this.activeKeywords;
+    this.doi.batchExport(ids, kws.length > 0 ? kws : undefined).subscribe(blob =>
       this.triggerDownload(blob, 'batch_export.zip'),
     );
   }
@@ -333,11 +392,13 @@ export class BatchProcessor {
     this.step1Error.set('');
     this.resolveState.set('idle');
     this.resolvedPapers.set(new Map());
-    this.selectedCategory.set('methods');
+    this.selectedCategories.set(new Set(['intro']));
+    this.showCustom.set(false);
     this.customKeyword.set('');
     this.contentState.set('idle');
     this.paperResults.set([]);
     this.contentError.set('');
+    this.visitedTabs.set(new Map());
     this.stepperEl.reset();
   }
 }

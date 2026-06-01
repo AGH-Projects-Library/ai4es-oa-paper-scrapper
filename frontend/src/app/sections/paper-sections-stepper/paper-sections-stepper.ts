@@ -121,17 +121,56 @@ export class PaperSectionsStepper {
     const current = this.selectedSectionsControl.value;
 
     if (checked) {
-      if (!current.includes(sectionId)) {
-        this.selectedSectionsControl.setValue([...current, sectionId]);
+      let updated = current.includes(sectionId) ? current : [...current, sectionId];
+      // Auto-select subsections when a parent section is checked
+      const paper = this.resolvedPaper();
+      if (paper) {
+        const subsectionIds = this.getSubsectionIds(paper.availableSections, sectionId);
+        for (const subId of subsectionIds) {
+          if (!updated.includes(subId)) updated = [...updated, subId];
+        }
       }
+      this.selectedSectionsControl.setValue(updated);
     } else {
-      this.selectedSectionsControl.setValue(
-        current.filter((id) => id !== sectionId)
-      );
+      this.selectedSectionsControl.setValue(current.filter(id => id !== sectionId));
     }
 
     this.selectedSectionsControl.markAsTouched();
     this.selectedSectionsControl.updateValueAndValidity();
+  }
+
+  private getSubsectionIds(sections: { id: string; name: string }[], parentId: string): string[] {
+    const parentIdx = sections.findIndex(s => s.id === parentId);
+    if (parentIdx === -1) return [];
+
+    const parent = sections[parentIdx];
+    // If the parent is itself a numbered subsection (e.g. "2.1 Data"), it has no children
+    if (/^\d+\.\d+/.test(parent.name)) return [];
+
+    // Extract leading number from parent name if present (e.g. "2 Methods" → "2")
+    const parentNumMatch = parent.name.match(/^(\d+)\s/);
+    const result: string[] = [];
+
+    for (let i = parentIdx + 1; i < sections.length; i++) {
+      const s = sections[i];
+      // A section is a subsection if its name starts with "N.N" or "N.N.N" pattern
+      const childNumMatch = s.name.match(/^(\d+)\.\d+/);
+      if (!childNumMatch) break;  // Non-numbered section → end of subsection block
+
+      if (parentNumMatch) {
+        // Numbered parent: only take children with the same leading number
+        if (childNumMatch[1] === parentNumMatch[1]) {
+          result.push(s.id);
+        } else {
+          break;
+        }
+      } else {
+        // Unnumbered parent (e.g. "Methods"): take all following "N.N" sections until next parent
+        result.push(s.id);
+      }
+    }
+
+    return result;
   }
 
   onTabChange(index: number): void {
