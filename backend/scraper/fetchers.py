@@ -110,23 +110,22 @@ def doi_to_arxiv_id(doi: str) -> Optional[str]:
 
 def fetch_real_html_pmc(pmcid: str) -> str:
     driver = get_driver()
-    url = f"https://pmc.ncbi.nlm.nih.gov/articles/{pmcid}/"
-
-    print(f"Opening browser for {pmcid} (Selenium Fallback)...")
-    driver.get(url)
-
-    print("Waiting for rendered content / anti-bot redirect...")
     try:
-        WebDriverWait(driver, 15).until(
-            EC.presence_of_element_located((By.XPATH, "//article | //div[contains(@class, 'article')] | //div[@id='mc']"))
-        )
-        time.sleep(2)
-    except Exception as e:
-        print(f"[Selenium] Timeout waiting for {pmcid}: {e}")
+        print(f"Opening browser for {pmcid} (Selenium Fallback)...")
+        driver.get(f"https://pmc.ncbi.nlm.nih.gov/articles/{pmcid}/")
 
-    html = driver.page_source
-    driver.quit()
-    return html
+        print("Waiting for rendered content / anti-bot redirect...")
+        try:
+            WebDriverWait(driver, 15).until(
+                EC.presence_of_element_located((By.XPATH, "//article | //div[contains(@class, 'article')] | //div[@id='mc']"))
+            )
+            time.sleep(2)
+        except Exception as e:
+            print(f"[Selenium] Timeout waiting for {pmcid}: {e}")
+
+        return driver.page_source
+    finally:
+        driver.quit()
 
 def doi_to_pmcid(doi: str) -> Optional[str]:
     url = "https://pmc.ncbi.nlm.nih.gov/tools/idconv/api/v1/articles/"

@@ -3,7 +3,7 @@ from django.db import models
 
 class ResolvedPaper(models.Model):
     doi = models.CharField(max_length=255, unique=True)
-    paper_id = models.CharField(max_length=255, blank=True)   # pmcid or arxiv_id
+    paper_id = models.CharField(max_length=255, blank=True)
     title = models.CharField(max_length=512)
     source = models.CharField(max_length=100)                 # 'pmc' | 'arxiv'
     authors = models.JSONField(default=list)

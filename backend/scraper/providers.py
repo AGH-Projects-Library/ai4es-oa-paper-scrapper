@@ -1,4 +1,4 @@
-# Source: notebooks/scraper/providers.py
+# Adapted from: notebooks/scraper/providers.py (backend-specific additions: image download loop, Django persistence, safe_filename)
 import os
 import re
 import time
@@ -105,12 +105,13 @@ def process_sections_and_tables(doc: DocumentInfo, md_text: str, base_dir: str, 
                         path=path
                     ))
             elif doc.source == "arxiv":
-                # For arxiv, 'ref' usually holds the path we injected
-                section_info.images.append(ImageInfo(
-                    placeholder=ref,
-                    caption=alt,
-                    path=ref
-                ))
+                # ref holds the relative path injected by process_arxiv(); skip if download failed
+                if not ref.startswith(("http://", "https://")):
+                    section_info.images.append(ImageInfo(
+                        placeholder=ref,
+                        caption=alt,
+                        path=ref
+                    ))
 
         # Add text content to section markdown
         section_md_lines.append(text)
@@ -166,7 +167,6 @@ def process_arxiv(doi: str, base_dir: str) -> Optional[DocumentInfo]:
 
     md_text = clean_markdown(md_text)
 
-    # Extract authors and emails from Tex
     try:
         tex_bytes = download_arxiv_source(arxiv_id)
         files = unpack_archive(tex_bytes)
@@ -212,14 +212,10 @@ def process_arxiv(doi: str, base_dir: str) -> Optional[DocumentInfo]:
         else:
             downloaded = True
 
-        # Only store relative path if successfully downloaded
         if downloaded and os.path.exists(path):
             rel_path = os.path.relpath(path, base_dir)
             updated_md_text = updated_md_text.replace(ref, rel_path)
             local_images.append(rel_path)
-        else:
-            # Keep original URL as fallback
-            local_images.append(url)
 
     if md_text != updated_md_text:
         md_text = updated_md_text

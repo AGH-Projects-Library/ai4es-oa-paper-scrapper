@@ -164,14 +164,19 @@ def fetch_sections_view(request):
         if result is None:
             # Paper not cached yet — run the full scraping pipeline, which also persists it.
             scrape = resolve_doi_to_paper(doi)
-            if scrape.get("status") != "success":
+            if scrape.get("status") == "not_found":
                 return JsonResponse(scrape, status=200)
+            if scrape.get("status") != "success":
+                return JsonResponse(
+                    {"error": {"code": "SCRAPE_FAILED", "message": "The DOI could not be processed."}},
+                    status=500,
+                )
             result = fetch_sections_for_doi(doi, sections)
 
         if result is None:
             return JsonResponse(
-                {"status": "not_found", "message": "We couldn't find a paper for this DOI."},
-                status=200,
+                {"error": {"code": "INTERNAL_ERROR", "message": "Paper was saved but could not be retrieved."}},
+                status=500,
             )
 
         return JsonResponse(result, status=200)
@@ -313,7 +318,6 @@ def paper_tables_view(request, pk):
 
 
 # Source: backend/papers/models.py — ResolvedPaper
-# Source: backend/scraper/parsers_md.py — parse_md_table() pattern (CSV variant)
 def paper_table_detail_view(request, pk, global_index):
     if request.method != "GET":
         return JsonResponse({"error": {"code": "METHOD_NOT_ALLOWED", "message": "Use GET."}}, status=405)
@@ -396,7 +400,10 @@ def paper_image_view(request, pk, idx):
 
     ext = os.path.splitext(abs_path)[1].lower()
     content_type = _IMAGE_CONTENT_TYPES.get(ext, "image/png")
-    return FileResponse(open(abs_path, "rb"), content_type=content_type)
+    try:
+        return FileResponse(open(abs_path, "rb"), content_type=content_type)
+    except OSError:
+        return JsonResponse({"status": "error", "message": "Image file could not be read."}, status=500)
 
 
 # ---------------------------------------------------------------------------
@@ -545,12 +552,15 @@ def paper_export_json_view(request, pk):
         abs_path = os.path.join(DATA_DIR, paper.export_json_path)
         if os.path.isfile(abs_path):
             safe_id = (paper.paper_id or str(paper.id)).replace("/", "_")
-            return FileResponse(
-                open(abs_path, "rb"),
-                content_type="application/json",
-                as_attachment=True,
-                filename=f"{safe_id}.json",
-            )
+            try:
+                return FileResponse(
+                    open(abs_path, "rb"),
+                    content_type="application/json",
+                    as_attachment=True,
+                    filename=f"{safe_id}.json",
+                )
+            except OSError:
+                pass  # fall through to DB reconstruction
 
     doc_dict = _paper_to_document_dict(paper)
     safe_id = (paper.paper_id or str(paper.id)).replace("/", "_")
