@@ -4,6 +4,7 @@ import { Observable, catchError, throwError } from 'rxjs';
 import { ResolveDoiRequest, ResolveDoiResponse } from '../models/resolve-doi.model';
 import { ApiErrorResponse, ApiRequestError } from '../models/api-error.model';
 import { PaperTableMeta, PaperTableData, PaperImage, PaperListItem, GetPapersResponse, BatchProcessResponse } from '../models/paper.model';
+import { environment } from '../../environments/environment';
 
 export interface FetchSectionsRequest {
   doi: string;
@@ -35,7 +36,7 @@ export interface GetImagesResponse {
 export class Doi {
   private readonly http = inject(HttpClient);
 
-  private readonly baseUrl = 'http://localhost:8000';
+  private readonly baseUrl = environment.apiUrl;
 
   resolveDoi(payload: ResolveDoiRequest): Observable<ResolveDoiResponse> {
     return this.http
