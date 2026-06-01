@@ -10,7 +10,7 @@ A full-stack pipeline for retrieving and extracting structured content from open
 
 - **Multi-source fetching** — PMC via OA API + XML, arXiv via ar5iv HTML + TeX source; Selenium fallback for PMC papers without a tar.gz link (~10%)
 - **Structured extraction** — sections, tables (CSV), images, author names and email addresses
-- **Risk of Bias detection** — regex + OCR (pytesseract) matching across 7 standard bias domains; normalized RoB 2 table records
+- **Risk of Bias detection** — planned; ROB endpoints currently return 501 (see [Planned Work](#planned-work))
 - **DB caching** — repeat lookups for the same DOI return immediately without hitting external APIs
 - **Batch processing** — submit a list of DOIs via JSON body or upload a `.txt` file; section-type filtering on exports
 - **Export formats** — per-paper or batch ZIP (Markdown, CSV), JSON snapshot
@@ -47,8 +47,7 @@ docker compose up --build
 │   │   ├── urls.py
 │   │   ├── migrations/             # 0001–0004
 │   │   └── services/
-│   │       ├── resolve_doi.py      # DOI → scrape → DB persist → response
-│   │       └── rob_extraction.py   # ROB pattern matching & OCR
+│   │       └── resolve_doi.py      # DOI → scrape → DB persist → response
 │   ├── scraper/                    # Scraping engine (mirrors notebooks/scraper/)
 │   │   ├── models.py               # DocumentInfo, SectionInfo, TableInfo, ImageInfo
 │   │   ├── fetchers.py             # HTTP, Selenium, NCBI API utilities
@@ -99,10 +98,6 @@ providers.process_document(doi, base_dir)
 parse_markdown() — split into sections, extract tables (CSV), map image refs
    │
    ▼
-extract_rob_artifacts_from_markdown() — ROB pattern matching + normalize_rob_table()
-extract_rob_from_sections_images()    — optional pytesseract OCR on figures
-   │
-   ▼
 DB persist: ResolvedPaper → Section → Table / Image rows
    │
    ▼
@@ -122,7 +117,7 @@ All routes are prefixed with `/api/`.
 | GET | `/papers/` | List all processed papers with counts |
 | GET | `/papers/<pk>/` | Full paper detail: sections, tables, images, ROB |
 | DELETE | `/papers/<pk>/` | Delete DB record and all on-disk files |
-| GET | `/papers/<pk>/rob/` | ROB artifacts list |
+| GET | `/papers/<pk>/rob/` | ROB artifacts list — **501 Not Implemented** |
 | GET | `/papers/<pk>/tables/` | Table index with section metadata |
 | GET | `/papers/<pk>/tables/<global_index>/` | Table data as `{header, rows}` JSON |
 | GET | `/papers/<pk>/images/` | Image index with captions |
@@ -147,7 +142,6 @@ All routes are prefixed with `/api/`.
   "paper": {
     "doi": "...", "title": "...", "source": "pmc",
     "authors": ["..."], "emails": ["..."],
-    "robArtifacts": [...],
     "availableSections": [{"id": "methods", "name": "Methods"}, ...]
   }
 }
@@ -286,6 +280,14 @@ npx ng serve
 2. Add a `parsers_<source>.py` module
 3. Add a `process_<source>()` function in `scraper/providers.py`
 4. Register it in the `process_document()` router
+
+---
+
+## Planned Work
+
+- **ROB extraction** — not yet implemented. The endpoints `GET /papers/<pk>/rob/` and `GET /papers/<pk>/rob/tables/` return HTTP 501. Planned approach: regex matching across 7 standard bias domains + pytesseract OCR on figures + RoB 2 table normalization.
+- **Parallel batch processing** — currently processes DOIs sequentially; `concurrent.futures` would speed up large batches significantly.
+- **Incremental exports** — skip already-processed DOIs on re-runs.
 
 ---
 
