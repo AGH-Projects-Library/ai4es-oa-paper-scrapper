@@ -1,4 +1,4 @@
-# Scrapping information from Open-Access Research Papers
+# Scraping information from Open-Access Research Papers
 
 This is not a final readme but a reminder what this project is all about.
 

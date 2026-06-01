@@ -8,6 +8,8 @@ import { Component } from '@angular/core';
 })
 export class Sidebar {
   navItems = [
-    { label: 'Navigation button', href: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' },
+    { label: 'Extract paper',    href: '#top' },
+    { label: 'Processed papers', href: '#papers' },
+    { label: 'About',            href: '#description' },
   ];
 }

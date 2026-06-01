@@ -41,13 +41,6 @@
   color: $ui-dark;
 }
 
-.login-btn {
-  background: $ui-dark !important;
-  color: $text-on-dark !important;
-  border-radius: 999px;
-  padding-inline: 1.2rem;
-}
-
 .separator {
   height: 2px;
   background: linear-gradient(to right, $ui-dark, transparent);
@@ -65,4 +58,7 @@
 .project-subtitle {
   color: $text-secondary;
   font-size: 1.05rem;
+}
+.mode-toggle-row {
+  margin-top: 1.5rem;
 }

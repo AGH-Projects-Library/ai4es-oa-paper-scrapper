@@ -1,411 +1,216 @@
+"""
+Service layer: resolve a DOI into a structured paper response.
+
+Processing is delegated entirely to scraper.providers.process_document()
+(source: notebooks/scraper/providers.py) which returns a DocumentInfo object
+whose sections already have their markdown files saved to disk.
+
+ROB extraction is handled by the existing rob_extraction module.
+"""
 import os
-import re
-import time
-import requests
-import xml.etree.ElementTree as ET
-from tqdm import tqdm
-from bs4 import BeautifulSoup
 
+from django.conf import settings
+from scraper.providers import process_document
+from scraper.parsers_md import parse_markdown, normalize
+from scraper.exporters import export_documents as scraper_export_documents
+from papers.models import ResolvedPaper, Section, Table, Image
 
-# CONFIG
+DATA_DIR = str(settings.SCRAPER_DATA_DIR)
 
-BASE = "data"
 
-PDF_DIR = os.path.join(BASE, "pdf")
-XML_DIR = os.path.join(BASE, "xml")
-MD_DIR = os.path.join(BASE, "md")
-TMP_DIR = os.path.join(BASE, "tmp")
-
-for d in [PDF_DIR, XML_DIR, MD_DIR, TMP_DIR]:
-    os.makedirs(d, exist_ok=True)
-
-SESSION = requests.Session()
-HEADERS = {"User-Agent": "Mozilla/5.0"}
-
-MAX_HTTP_RETRIES = 5
-
-
-# GENERAL HELPERS
-
-def normalize(text):
-    return re.sub(r"\s+", " ", text).strip()
-
-
-def save_text(data, path):
-    with open(path, "w", encoding="utf-8") as f:
-        f.write(data)
-
-
-# ARXIV
-
-def is_arxiv_doi(doi: str):
-    return "arxiv" in doi.lower()
-
-
-def doi_to_arxiv_id(doi):
-    m = re.search(r"arxiv[:./]?(\d+\.\d+)", doi.lower())
-    return m.group(1) if m else None
-
-
-def download_arxiv_pdf(arxiv_id):
-    url = f"https://arxiv.org/pdf/{arxiv_id}.pdf"
-
-    for _ in range(MAX_HTTP_RETRIES):
-        try:
-            r = SESSION.get(url, headers=HEADERS, timeout=60)
-            if r.status_code == 200 and r.content:
-                return r.content
-        except:
-            pass
-        time.sleep(1)
-
-    return None
-
-
-def fetch_ar5iv_html(arxiv_id):
-    url = f"https://ar5iv.org/html/{arxiv_id}"
-
-    for _ in range(MAX_HTTP_RETRIES):
-        try:
-            r = SESSION.get(url, headers=HEADERS, timeout=60)
-            if r.status_code == 200 and r.text:
-                return r.text
-        except:
-            pass
-        time.sleep(1)
-
-    return None
-
-
-def parse_table(table):
-    rows = []
-    for tr in table.find_all("tr"):
-        cols = tr.find_all(["td", "th"])
-        row = [normalize(c.get_text(" ", strip=True)) for c in cols]
-        if row:
-            rows.append(row)
-
-    if not rows:
-        return ""
-
-    header = rows[0]
-    md = []
-    md.append("| " + " | ".join(header) + " |")
-    md.append("| " + " | ".join("---" for _ in header) + " |")
-
-    for r in rows[1:]:
-        if len(r) < len(header):
-            r += [""] * (len(header) - len(r))
-        md.append("| " + " | ".join(r) + " |")
-
-    return "\n".join(md)
-
-
-def parse_figure(fig):
-    img = fig.find("img")
-    caption = fig.find("figcaption")
-
-    src = ""
-    if img and img.has_attr("src"):
-        src = img["src"]
-        if src.startswith("/"):
-            src = "https://ar5iv.org" + src
-
-    cap = caption.get_text(" ", strip=True) if caption else ""
-
-    return f"\n![{cap}]({src})\n"
-
-
-def html_to_markdown(html):
-    soup = BeautifulSoup(html, "html.parser")
-    article = soup.find("article")
-
-    if not article:
-        return None
-
-    md = []
-
-    for tag in article.find_all([
-        "h1", "h2", "h3",
-        "p", "li", "pre",
-        "figure", "table"
-    ]):
-
-        text = normalize(tag.get_text(" ", strip=True))
-
-        if tag.name == "h1":
-            md.append(f"# {text}")
-        elif tag.name == "h2":
-            md.append(f"\n## {text}")
-        elif tag.name == "h3":
-            md.append(f"\n### {text}")
-        elif tag.name == "p":
-            if text:
-                md.append(text)
-        elif tag.name == "li":
-            md.append(f"- {text}")
-        elif tag.name == "pre":
-            md.append(f"\n```\n{text}\n```")
-        elif tag.name == "figure":
-            md.append(parse_figure(tag))
-        elif tag.name == "table":
-            md.append("\n" + parse_table(tag) + "\n")
-
-    return "\n\n".join(md)
-
-
-def process_arxiv(doi):
-    arxiv_id = doi_to_arxiv_id(doi)
-    if not arxiv_id:
-        return None
-
-    pdf_bytes = download_arxiv_pdf(arxiv_id)
-
-    pdf_path = None
-    if pdf_bytes:
-        pdf_path = os.path.join(PDF_DIR, f"{arxiv_id}.pdf")
-        with open(pdf_path, "wb") as f:
-            f.write(pdf_bytes)
-
-    html = fetch_ar5iv_html(arxiv_id)
-    if not html:
-        return None
-
-    md = html_to_markdown(html)
-    if not md:
-        return None
-
-    md_path = os.path.join(MD_DIR, f"{arxiv_id}.md")
-    save_text(md, md_path)
-
-    return {"paper_id": doi, "md": md_path}
-
-
-# PUBMED
-
-def doi_to_pmcid(doi):
-    url = "https://pmc.ncbi.nlm.nih.gov/tools/idconv/api/v1/articles/"
-    params = {"ids": doi, "format": "json"}
-
-    for _ in range(MAX_HTTP_RETRIES):
-        try:
-            r = requests.get(url, params=params, timeout=30)
-            return r.json()["records"][0].get("pmcid")
-        except:
-            pass
-
-    return None
-
-
-def fetch_pmc_xml(pmcid):
-    pmc_num = pmcid[3:]
-
-    url = "https://pmc.ncbi.nlm.nih.gov/api/oai/v1/mh/"
-    params = {
-        "verb": "GetRecord",
-        "identifier": f"oai:pubmedcentral.nih.gov:{pmc_num}",
-        "metadataPrefix": "pmc",
-    }
-
-    for _ in range(MAX_HTTP_RETRIES):
-        try:
-            r = requests.get(url, params=params, timeout=60)
-            if r.status_code == 200:
-                return r.text
-        except:
-            pass
-
-    return None
-
-
-def textify(elem):
-    if elem is None:
-        return ""
-
-    parts = [elem.text or ""]
-    for c in elem:
-        parts.append(textify(c))
-        if c.tail:
-            parts.append(c.tail)
-
-    return normalize("".join(parts))
-
-
-def parse_xml_to_md(xml_text):
-    root = ET.fromstring(xml_text)
-    article = root.find(".//{*}article")
-
-    if article is None:
-        return None
-
-    out = []
-
-    title = article.find(".//{*}article-title")
-    if title is not None:
-        out.append(f"# {textify(title)}\n")
-
-    body = article.find("{*}body")
-    if body is not None:
-        for sec in body.findall(".//{*}sec"):
-            t = sec.find("{*}title")
-            if t is not None:
-                out.append(f"\n## {textify(t)}\n")
-
-            for p in sec.findall("{*}p"):
-                out.append(textify(p) + "\n")
-
-    return "\n".join(out)
-
-
-def process_pubmed(doi):
-    pmcid = doi_to_pmcid(doi)
-    if not pmcid:
-        return None
-
-    xml = fetch_pmc_xml(pmcid)
-    if not xml:
-        return None
-
-    md = parse_xml_to_md(xml)
-    if not md:
-        return None
-
-    md_path = os.path.join(MD_DIR, f"{pmcid}.md")
-    save_text(md, md_path)
-
-    return {"paper_id": doi, "md": md_path}
-
-
-# MARKDOWN PARSER
-
-def parse_markdown(md_text):
-    title = ""
-    sections = []
-    current = None
-
-    for line in md_text.split("\n"):
-        raw = line
-        line = line.strip()
-
-        if not line:
-            continue
-
-        if line.startswith("# ") and not title:
-            title = normalize(line[2:])
-            continue
-
-        if re.match(r"^##+\s+", line):
-            heading = re.sub(r"^##+\s*", "", line)
-
-            if current:
-                current["text"] = normalize(current["text"])
-                sections.append(current)
-
-            current = {"heading": heading, "text": ""}
-            continue
-
-        if current:
-            current["text"] += " " + raw
-
-    if current:
-        current["text"] = normalize(current["text"])
-        sections.append(current)
-
-    return title, sections
-
-
-def clean_section_name(name):
-    name = re.sub(r"\\[a-zA-Z]+", "", name)
-    name = re.sub(r"[{}$]", "", name)
-    name = re.sub(r"^[a-zA-Z]?\d+(\.\d+)*[.)]?\s*", "", name)
-    name = normalize(name)
-
-    if name:
-        name = name[0].upper() + name[1:]
-
-    return name
-
-
-def clean_sections(sections):
-    out = []
-
-    for sec in sections:
-        content = normalize(sec["text"])
-        if not content or len(content) < 10:
-            continue
-
-        out.append({
-            "name": clean_section_name(sec["heading"]),
-            "content": content
-        })
-
-    return out
-
-
-def make_section_id(name: str) -> str:
+# Mirrors make_section_id() from the now-removed resolve_doi_sections.py.
+# This inline copy is the authoritative version.
+def _make_section_id(name: str) -> str:
     return normalize(name).lower().replace(" ", "_")
 
 
-def load_text(path: str) -> str:
+def _load_text(path: str) -> str:
     with open(path, "r", encoding="utf-8") as f:
         return f.read()
-    
+
+
+# Source: backend/papers/models.py — ResolvedPaper, Section, Table, Image
+def _save_to_db(doi, doc, title, rob_artifacts=None):
+    available_sections = [
+        {"id": _make_section_id(s.heading), "name": s.heading}
+        for s in doc.sections if s.heading
+    ]
+
+    paper, _ = ResolvedPaper.objects.update_or_create(
+        doi=doi,
+        defaults={
+            "paper_id": getattr(doc, "paper_id", "") or "",
+            "title": title or "Untitled paper",
+            "source": doc.source,
+            "authors": doc.authors,
+            "emails": doc.emails,
+            "extraction_method": getattr(doc, "extraction_method", "") or "",
+            "md_path": doc.md_path or "",
+            "html_path": getattr(doc, "html_path", "") or "",
+            "pdf_path": getattr(doc, "pdf_path", "") or "",
+            "rob_artifacts": rob_artifacts or [],
+            "available_sections": available_sections,
+        },
+    )
+
+    # Deleting sections cascades to Table and Image rows.
+    paper.sections.all().delete()
+    Section.objects.bulk_create([
+        Section(
+            paper=paper,
+            section_id=_make_section_id(s.heading),
+            heading=s.heading,
+            order=i,
+            md_path=s.md_path or "",
+        )
+        for i, s in enumerate(doc.sections) if s.heading
+    ])
+
+    # Re-fetch sections so we have their PKs for the FK relations below.
+    section_map = {s.section_id: s for s in paper.sections.all()}
+
+    table_rows = []
+    image_rows = []
+    img_idx = 0
+    for s in doc.sections:
+        if not s.heading:
+            continue
+        db_sec = section_map.get(_make_section_id(s.heading))
+        if db_sec is None:
+            continue
+        for tbl in (s.tables or []):
+            table_rows.append(Table(
+                paper=paper,
+                section=db_sec,
+                table_index=tbl.table_index,
+                global_index=tbl.global_index,
+                csv_path=tbl.csv_path or "",
+            ))
+        for img in (s.images or []):
+            image_rows.append(Image(
+                paper=paper,
+                section=db_sec,
+                idx=img_idx,
+                placeholder=img.placeholder,
+                caption=img.caption,
+                path=img.path or "",
+            ))
+            img_idx += 1
+
+    Table.objects.bulk_create(table_rows)
+    Image.objects.bulk_create(image_rows)
+
+    # Source: notebooks/scraper/exporters.py — export_documents()
+    # Write a DocumentInfo JSON snapshot so the paper can be loaded by ExportReader later.
+    try:
+        export_dir = os.path.join(DATA_DIR, "exports")
+        os.makedirs(export_dir, exist_ok=True)
+        safe_id = (paper.paper_id or doi).replace("/", "_").replace(":", "_")
+        export_abs = os.path.join(export_dir, f"{safe_id}.json")
+        scraper_export_documents([doc], export_abs)
+        paper.export_json_path = os.path.relpath(export_abs, DATA_DIR)
+        paper.save(update_fields=["export_json_path"])
+    except Exception:
+        pass  # export snapshot is best-effort; don't fail the whole scrape
+
+    return paper
+
+
+# Source: backend/papers/models.py — ResolvedPaper
+def _load_from_db(doi) -> dict | None:
+    try:
+        paper = ResolvedPaper.objects.get(doi=doi)
+    except ResolvedPaper.DoesNotExist:
+        return None
+    return {
+        "status": "success",
+        "paper": {
+            "id": paper.id,
+            "doi": doi,
+            "title": paper.title,
+            "source": paper.source,
+            "authors": paper.authors,
+            "emails": paper.emails,
+            "robArtifacts": paper.rob_artifacts,
+            "availableSections": paper.available_sections,
+        },
+    }
+
+
+# Source: backend/papers/models.py — ResolvedPaper, Section
+def fetch_sections_for_doi(doi: str, requested_ids: list) -> dict | None:
+    try:
+        paper = ResolvedPaper.objects.get(doi=doi)
+    except ResolvedPaper.DoesNotExist:
+        return None
+
+    avail = {s["id"]: s["name"] for s in paper.available_sections}
+    db_sections = {s.section_id: s for s in paper.sections.all()}
+
+    out = []
+    for sec_id in requested_ids:
+        sec_id = sec_id.strip()
+        if sec_id not in avail:
+            continue
+        db_sec = db_sections.get(sec_id)
+        content = ""
+        if db_sec and db_sec.md_path:
+            try:
+                content = _load_text(os.path.join(DATA_DIR, db_sec.md_path))
+            except FileNotFoundError:
+                pass
+        out.append({"id": sec_id, "name": avail[sec_id], "content": content})
+
+    return {"status": "success", "sections": out}
+
 
 def resolve_doi_to_paper(doi: str) -> dict:
     doi = normalize(doi)
 
     if not doi:
-        return {
-            "status": "not_found",
-            "message": "No DOI was provided.",
-        }
+        return {"status": "not_found", "message": "No DOI was provided."}
 
-    # Decide which source pipeline to use
-    if is_arxiv_doi(doi):
-        result = process_arxiv(doi)
-        source = "arxiv"
-    else:
-        result = process_pubmed(doi)
-        source = "pubmed"
+    # Fast path: return cached result from DB
+    cached = _load_from_db(doi)
+    if cached:
+        return cached
 
-    if not result:
-        return {
-            "status": "not_found",
-            "message": "We couldnt find a paper for this DOI.",
-        }
+    # Source: notebooks/scraper/providers.py — process_document()
+    # Slow path: run the full scraping pipeline (fetch → parse → split sections → save files).
+    doc = process_document(doi, base_dir=DATA_DIR)
 
-    md_path = result.get("md")
-    if not md_path or not os.path.exists(md_path):
+    if not doc:
+        return {"status": "not_found", "message": "We couldn't find a paper for this DOI."}
+
+    # Resolve the full-document markdown path (relative stored in doc.md_path)
+    md_full_path = os.path.join(DATA_DIR, doc.md_path) if doc.md_path else None
+    if not md_full_path or not os.path.exists(md_full_path):
         return {
             "status": "not_found",
             "message": "The paper was found, but no markdown file was produced.",
         }
 
-    md_text = load_text(md_path)
+    md_text = _load_text(md_full_path)
 
-    title, raw_sections = parse_markdown(md_text)
-    cleaned = clean_sections(raw_sections)
+    # Source: notebooks/scraper/parsers_md.py — parse_markdown()
+    title, _ = parse_markdown(md_text)
 
-    available_sections = []
-    section_map = {}
-
-    for sec in cleaned:
-        section_id = make_section_id(sec["name"])
-
-        available_sections.append({
-            "id": section_id,
-            "name": sec["name"],
-        })
-
-        section_map[section_id] = sec["content"]
+    # Persist to DB before returning
+    saved_paper = _save_to_db(doi, doc, title, rob_artifacts=[])
 
     return {
         "status": "success",
         "paper": {
+            "id": saved_paper.id,
             "doi": doi,
             "title": title or "Untitled paper",
-            "source": source,
-            "availableSections": available_sections,
+            "source": doc.source,
+            "authors": doc.authors,
+            "emails": doc.emails,
+            "robArtifacts": [],
+            "availableSections": [
+                {"id": _make_section_id(s.heading), "name": s.heading}
+                for s in doc.sections if s.heading
+            ],
         },
-        "section_map": section_map,
     }

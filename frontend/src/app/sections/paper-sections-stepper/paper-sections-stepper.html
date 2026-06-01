@@ -1,16 +1,15 @@
 <div class="stepper-shell">
   <div class="stepper-header">
-    <p class="stepper-kicker">Guided workflow</p>
-    <h2 class="stepper-title">Extract paper sections</h2>
+    <h2 class="stepper-title">Extract paper content</h2>
     <p class="stepper-description">
-      Enter one DOI, review the detected paper and available sections, then view the selected section content.
+      Enter one DOI, review the detected paper and available sections, then explore sections, ROB artifacts, tables, and images.
     </p>
   </div>
 
   <mat-stepper #stepper linear class="custom-stepper">
     <mat-step [stepControl]="doiForm" label="Choose DOI">
       <div class="step-content">
-        <mat-card class="step-card">
+        <mat-card class="step-card p-4">
           <h3 class="card-title">Choose a DOI</h3>
           <p class="card-description">
             Paste a single DOI to find the paper and load its available sections.
@@ -22,28 +21,19 @@
               <input
                 matInput
                 formControlName="doi"
-                placeholder="e.g. 10.1000/xyz123"
+                placeholder="e.g. 10.1000/xyz123 or 2410.00123"
                 (keydown.enter)="lookupPaper(stepper)"
               />
-              <mat-hint>Example format: 10.1000/xyz123</mat-hint>
+              <mat-hint>DOI (e.g. 10.1000/xyz123) or arXiv ID (e.g. 2410.00123)</mat-hint>
 
               @if (doiControl.hasError('required') && doiControl.touched) {
                 <mat-error>Please enter a DOI.</mat-error>
               }
 
               @if (doiControl.hasError('pattern') && doiControl.touched) {
-                <mat-error>This doesn’t look like a valid DOI.</mat-error>
+                <mat-error>This doesn't look like a valid DOI.</mat-error>
               }
             </mat-form-field>
-
-            <div class="helper-box">
-              <mat-icon>info</mat-icon>
-              <span>
-                For testing: use <strong>10.0000/notfound</strong> for a not-found case,
-                <strong>10.0000/error</strong> for a service error,
-                or <strong>10.0000/sectionerror</strong> for a section-loading error.
-              </span>
-            </div>
 
             @if (lookupState() === 'not_found' || lookupState() === 'service_error') {
               <div class="message-card error-card">
@@ -51,7 +41,7 @@
                   <mat-icon>error</mat-icon>
                 </div>
                 <div>
-                  <h4>We couldn’t continue</h4>
+                  <h4>We couldn't continue</h4>
                   <p>{{ lookupErrorMessage() }}</p>
                 </div>
               </div>
@@ -66,7 +56,10 @@
                 [disabled]="lookupState() === 'loading'"
               >
                 @if (lookupState() === 'loading') {
-                  Finding paper...
+                  <span class="btn-spinner-row">
+                    <mat-spinner diameter="18" color="accent"></mat-spinner>
+                    Finding paper…
+                  </span>
                 } @else {
                   Find paper
                 }
@@ -79,7 +72,7 @@
 
     <mat-step [stepControl]="sectionForm" label="Choose sections">
       <div class="step-content">
-        <mat-card class="step-card">
+        <mat-card class="step-card p-4">
           <h3 class="card-title">Paper details and available sections</h3>
           <p class="card-description">
             Review the detected paper and choose the sections you want to retrieve.
@@ -116,14 +109,31 @@
               </div>
 
               <div class="summary-row">
-                <span class="summary-label">Year</span>
-                <span class="summary-value">{{ paper.year ?? 'Unavailable' }}</span>
+                <span class="summary-label">Emails</span>
+                <span class="summary-value">
+                  @if (paper.emails.length) {
+                    {{ paper.emails.join(', ') }}
+                  } @else {
+                    Unavailable
+                  }
+                </span>
               </div>
 
               <div class="summary-row">
                 <span class="summary-label">DOI</span>
                 <span class="summary-value summary-value--mono">{{ paper.doi }}</span>
               </div>
+            </div>
+
+            <div class="artifact-summary">
+              <span class="count-chip">
+                <mat-icon>psychology</mat-icon>
+                {{ paper.robArtifacts.length }} ROB artifact{{ paper.robArtifacts.length !== 1 ? 's' : '' }} found
+              </span>
+              <span class="count-chip">
+                <mat-icon>segment</mat-icon>
+                {{ paper.availableSections.length }} section{{ paper.availableSections.length !== 1 ? 's' : '' }} available
+              </span>
             </div>
 
             <div class="section-picker">
@@ -174,43 +184,92 @@
       </div>
     </mat-step>
 
-    <mat-step label="View sections">
+    <mat-step label="View content">
       <div class="step-content">
-        <mat-card class="step-card">
-          <h3 class="card-title">Selected section content</h3>
+        <mat-card class="step-card p-4">
+          <h3 class="card-title">Extracted paper content</h3>
           <p class="card-description">
-            Review the extracted content for the sections you selected.
+            Browse sections, risk-of-bias artifacts, tables, and images extracted from the paper.
           </p>
 
-          @if (resultState() === 'loading') {
-            <div class="center-state">
-              <mat-spinner diameter="48"></mat-spinner>
-              <p>Loading selected sections…</p>
+          @if (resolvedPaper(); as paper) {
+            <div class="download-bar">
+              <span class="download-label">Download:</span>
+              <button mat-stroked-button type="button" (click)="downloadCsv(paper.id)">
+                <mat-icon>table_chart</mat-icon> CSV tables
+              </button>
+              <button mat-stroked-button type="button" (click)="downloadMarkdown(paper.id)">
+                <mat-icon>description</mat-icon> Markdown
+              </button>
+              <button mat-stroked-button type="button" (click)="downloadJson(paper.id)">
+                <mat-icon>data_object</mat-icon> JSON
+              </button>
             </div>
           }
 
-          @if (resultState() === 'error') {
-            <div class="message-card error-card">
-              <div class="message-card__icon">
-                <mat-icon>error</mat-icon>
-              </div>
-              <div>
-                <h4>We couldn’t load the sections</h4>
-                <p>{{ resultErrorMessage() }}</p>
-              </div>
-            </div>
-          }
+          <mat-tab-group
+            animationDuration="200ms"
+            class="content-tabs"
+            (selectedIndexChange)="onTabChange($event)"
+          >
+            <mat-tab label="Sections">
+              <div class="tab-body">
+                @if (resultState() === 'loading') {
+                  <div class="center-state">
+                    <mat-spinner diameter="48"></mat-spinner>
+                    <p>Loading selected sections…</p>
+                  </div>
+                }
 
-          @if (resultState() === 'success' && sectionResults().length) {
-            <div class="results-list">
-              @for (item of sectionResults(); track item.id) {
-                <div class="result-card">
-                  <h4>{{ item.name }}</h4>
-                  <p>{{ item.content }}</p>
-                </div>
-              }
-            </div>
-          }
+                @if (resultState() === 'error') {
+                  <div class="message-card error-card">
+                    <div class="message-card__icon">
+                      <mat-icon>error</mat-icon>
+                    </div>
+                    <div>
+                      <h4>We couldn't load the sections</h4>
+                      <p>{{ resultErrorMessage() }}</p>
+                    </div>
+                  </div>
+                }
+
+                @if (resultState() === 'success' && sectionResults().length) {
+                  <div class="results-list">
+                    @for (item of sectionResults(); track item.id) {
+                      <div class="result-card">
+                        <h4>{{ item.name }}</h4>
+                        <p>{{ item.content }}</p>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            </mat-tab>
+
+            <mat-tab label="ROB Analysis">
+              <div class="tab-body">
+                @if (tabsVisited().has(1) && resolvedPaper(); as paper) {
+                  <app-rob-artifacts [artifacts]="paper.robArtifacts" />
+                }
+              </div>
+            </mat-tab>
+
+            <mat-tab label="Tables">
+              <div class="tab-body">
+                @if (tabsVisited().has(2) && resolvedPaper(); as paper) {
+                  <app-tables-viewer [paperId]="paper.id" />
+                }
+              </div>
+            </mat-tab>
+
+            <mat-tab label="Images">
+              <div class="tab-body">
+                @if (tabsVisited().has(3) && resolvedPaper(); as paper) {
+                  <app-images-viewer [paperId]="paper.id" />
+                }
+              </div>
+            </mat-tab>
+          </mat-tab-group>
 
           <div class="step-actions">
             <button mat-stroked-button type="button" matStepperPrevious>

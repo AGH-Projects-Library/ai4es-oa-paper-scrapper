@@ -69,34 +69,18 @@
   display: flex;
   gap: 0.75rem;
   flex-wrap: wrap;
-  margin-top: 1.25rem;
 }
 
 .primary-btn {
   background: $ui-primary !important;
   color: $text-on-color !important;
+  white-space: nowrap;
 }
 
-.helper-box {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  padding: 0.9rem 1rem;
-  border-radius: $radius-md;
-  background: rgba(50, 133, 117, 0.08);
-  color: $text-secondary;
-
-  mat-icon {
-    color: $ui-primary;
-    font-size: 20px;
-    width: 20px;
-    height: 20px;
-    margin-top: 2px;
-  }
-
-  strong {
-    color: $ui-dark;
-  }
+.btn-spinner-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .center-state {
@@ -187,8 +171,44 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
+.artifact-summary {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin: 1rem 0 0.25rem;
+}
+
+.count-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: $ui-primary;
+  padding: 0.3rem 0.75rem;
+  border-radius: 20px;
+  background: rgba(50, 133, 117, 0.1);
+  border: 1px solid rgba(50, 133, 117, 0.18);
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.content-tabs {
+  margin-bottom: 1.25rem;
+}
+
+.tab-body {
+  padding-top: 0.5rem;
+  min-height: 120px;
+}
+
 .section-picker {
   margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .section-picker-title {
@@ -226,7 +246,6 @@
 .results-list {
   display: grid;
   gap: 1rem;
-  margin-top: 1rem;
 }
 
 .result-card {
@@ -257,4 +276,29 @@
     grid-template-columns: 1fr;
     gap: 0.35rem;
   }
+}
+.download-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+
+  button {
+    font-size: 0.8125rem;
+
+    mat-icon {
+      font-size: 1rem;
+      width: 1rem;
+      height: 1rem;
+      margin-right: 0.25rem;
+      vertical-align: middle;
+    }
+  }
+}
+
+.download-label {
+  font-size: 0.8125rem;
+  color: $text-secondary;
+  margin-right: 0.25rem;
 }
