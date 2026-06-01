@@ -1,3 +1,0 @@
-## 5.6 System Summary
-
- The resulting system combines data augmentation, compact model adaptation, and multilingual inference into a single deployable pipeline. Synthetic augmentation improves conversational diversity, LoRA-based tuning enables efficient adaptation of compact models, and the translation wrapper allows the system to serve users across multiple low-resource languages without requiring a separate dialogue model per language.

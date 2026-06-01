@@ -1,3 +1,0 @@
-## Histological verification
-
- To verify the correct placement of the lesions, the rats were anesthetized and perfused through the ascending aorta (right atrium cut) with saline (50 ml, 5 min) followed by 10% formalin (50 ml, 5 min). The brains were removed, placed in phosphate-buffered (0.1 M, pH 7.4) saline containing 30% sucrose and 10% formalin, and post-fixed in this solution at 4°C for 48 h. The brains were then frozen in dry ice and sectioned (50 µm). Sections containing the structures of interest were collected, mounted on glass slides, stained either with cresyl-violet (stains the Nissl bodies in the cytoplasm of neurons purple-blue) or Klüver-Barrera stain (stains the myelinated fibers blue and the cell bodies violet), and examined under a light microscope.

@@ -1,1 +1,0 @@
-,"R i ​ t = { 1 , if ​ t < min ⁡ { T i H , T i E } ​ or ​ t ≥ max ⁡ { T i H , T i E } , 0 , otherwise . R_{it}=\begin{cases}1,&\text{if }t<\min\{T_{i}^{H},T_{i}^{E}\}\;\;\text{or}\;\;t\geq\max\{T_{i}^{H},T_{i}^{E}\},\\ 0,&\text{otherwise}.\end{cases}",

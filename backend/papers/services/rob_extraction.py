@@ -1,3 +1,15 @@
+"""
+Backend-specific Risk of Bias (ROB) extraction from markdown text and images.
+
+These functions are not derived from any of the final notebooks described in
+REFACTOR_DOCUMENTATION.md. They were written specifically for the Django API
+to populate the 'rob_artifacts' field in paper responses.
+
+Key functions:
+- extract_rob_artifacts_from_markdown(): finds ROB sections and tables in markdown
+- extract_rob_from_sections_images(): OCR fallback for ROB in image captions
+- normalize_rob_table(): converts detected tables to structured bias-domain records
+"""
 import re
 from typing import Any
 from pathlib import Path
@@ -158,15 +170,6 @@ def extract_rob_from_images(local_images: list[dict[str, Any]], section: str | N
         
         # Try to read the image file
         try:
-            # Try absolute path first, then relative from paper_pipeline_data
-            if not Path(image_path).exists():
-                # Try to construct alternative paths
-                alt_paths = [
-                    Path("/home/jgrzyb/Documents/Python/ai4es-oa-paper-scrapper") / image_path,
-                    Path("/home/jgrzyb/Documents/Python/ai4es-oa-paper-scrapper/paper_pipeline_data") / image_path,
-                ]
-                image_path = next((p for p in alt_paths if p.exists()), image_path)
-            
             if not Path(image_path).exists():
                 continue
             

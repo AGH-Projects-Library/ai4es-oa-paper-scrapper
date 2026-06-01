@@ -188,17 +188,6 @@ def fetch_sections_view(request):
             status=500,
         )
     
-def get_section_content_view(request, section_id):
-    return JsonResponse(
-        {
-            "error": {
-                "code": "METHOD_NOT_ALLOWED",
-                "message": "This endpoint was replaced by POST /api/fetch-sections/.",
-            }
-        },
-        status=405,
-    )
-
 
 # Source: backend/papers/models.py — ResolvedPaper
 def papers_list_view(request):
@@ -569,7 +558,15 @@ def paper_export_json_view(request, pk):
 # Source: notebooks/scraper/exporters.py — compress_directory() (in-memory variant)
 @csrf_exempt
 def batch_export_view(request):
-    """POST /batch-export/ — {"paper_ids": [...]} → ZIP of all .md and .csv files across papers."""
+    """
+    POST /batch-export/
+    Body: {"paper_ids": [...], "section_types": ["method", "result"]}
+
+    Returns a ZIP of .md and .csv files across the requested papers.
+    If section_types is provided, only sections whose heading contains any of
+    the supplied keywords (case-insensitive) are included, along with their tables.
+    If section_types is omitted, all sections and tables are exported (original behavior).
+    """
     if request.method != "POST":
         return JsonResponse({"error": {"code": "METHOD_NOT_ALLOWED", "message": "Use POST."}}, status=405)
 
@@ -582,6 +579,25 @@ def batch_export_view(request):
     if not isinstance(paper_ids, list) or not paper_ids:
         return JsonResponse({"error": {"code": "MISSING_PAPER_IDS", "message": "Provide a non-empty 'paper_ids' list."}}, status=400)
 
+    # Source: notebooks/inspect_clean_export.ipynb — section keyword filtering
+    # (df[df['heading'].str.contains(kw, case=False, na=False)])
+    # Translated to Django ORM: Section.objects.filter(heading__icontains=kw)
+    section_types = body.get("section_types")
+    if section_types is not None:
+        if not isinstance(section_types, list) or not section_types:
+            return JsonResponse(
+                {"error": {"code": "INVALID_SECTION_TYPES",
+                           "message": "If provided, 'section_types' must be a non-empty list of strings."}},
+                status=400,
+            )
+        if not all(isinstance(s, str) and s.strip() for s in section_types):
+            return JsonResponse(
+                {"error": {"code": "INVALID_SECTION_TYPES",
+                           "message": "'section_types' must contain only non-empty strings."}},
+                status=400,
+            )
+        section_types = [s.strip().lower() for s in section_types]
+
     papers = ResolvedPaper.objects.filter(pk__in=paper_ids)
     if not papers.exists():
         return JsonResponse({"status": "not_found", "message": "None of the requested papers were found."}, status=404)
@@ -589,15 +605,29 @@ def batch_export_view(request):
     entries = []
     for paper in papers:
         safe_id = (paper.paper_id or str(paper.id)).replace("/", "_")
-        for sec in paper.sections.order_by("order"):
+
+        if section_types:
+            q = Q()
+            for kw in section_types:
+                q |= Q(heading__icontains=kw)
+            sections_qs = paper.sections.filter(q).order_by("order")
+        else:
+            sections_qs = paper.sections.order_by("order")
+
+        for sec in sections_qs.prefetch_related("tables"):
             if sec.md_path:
                 entries.append((f"{safe_id}/sections/{sec.section_id}.md", os.path.join(DATA_DIR, sec.md_path)))
-        for tbl in paper.tables.order_by("global_index"):
-            if tbl.csv_path:
-                entries.append((f"{safe_id}/tables/table_{tbl.global_index}.csv", os.path.join(DATA_DIR, tbl.csv_path)))
+            for tbl in sec.tables.order_by("global_index"):
+                if tbl.csv_path:
+                    entries.append((f"{safe_id}/tables/table_{tbl.global_index}.csv", os.path.join(DATA_DIR, tbl.csv_path)))
 
     if not entries:
-        return JsonResponse({"status": "not_found", "message": "No exportable files found for the requested papers."}, status=404)
+        msg = (
+            "No exportable files found for the requested papers after section type filtering."
+            if section_types
+            else "No exportable files found for the requested papers."
+        )
+        return JsonResponse({"status": "not_found", "message": msg}, status=404)
 
     buf = _zip_files(entries)
     response = HttpResponse(buf.read(), content_type="application/zip")
@@ -694,7 +724,9 @@ def batch_process_upload_view(request):
 # Phase 4 — Search and ROB sub-endpoints
 # ---------------------------------------------------------------------------
 
-# Source: notebooks/scraper/export_reader.py — search_papers()
+# Backend-specific search using Django Q objects (icontains on title and authors JSONField).
+# Conceptually similar to ExportReader.search_papers() in notebooks/scraper/export_reader.py,
+# but that operates on a pandas DataFrame with a configurable 'field' parameter.
 def search_view(request):
     """
     GET /search/?q=<query>[&source=pmc|arxiv]
@@ -711,7 +743,6 @@ def search_view(request):
 
     papers = ResolvedPaper.objects.all().order_by("-processed_at")
 
-    # Source: notebooks/scraper/export_reader.py — search_papers(): title and authors fields
     if q:
         # authors is a JSONField; __icontains on SQLite searches the serialised text
         papers = papers.filter(Q(title__icontains=q) | Q(authors__icontains=q))

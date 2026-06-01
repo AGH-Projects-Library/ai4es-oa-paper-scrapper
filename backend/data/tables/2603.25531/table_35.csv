@@ -1,6 +1,0 @@
-Work,Core idea,Strength,Limitation vs. SSTL
-"Roehm et al. (Roehm et al . , 2016 )",Reach-set abstraction,Sound/complete for samples,Requires reachability; costly abstractions
-"Bae&Lee (Bae and Lee, 2019a )",Syntactic separation + SMT,Refutational completeness (bounded),Complex SMT over reals; bounded scope
-"Yu et al. (Yu et al . , 2022 )",ϵ \epsilon -strengthening + SMT,Robust model checking,Guarantees up to thresholds only
-"Lercher&Althoff (Lercher and Althoff, 2024 )",Four-valued STL on sets,Incremental verification,Depends on set refinement strategy
-"Belta&Sadraddini (Belta and Sadraddini, 2019 )",DC programming (robustness trees),Convex subproblems,Restrictive dynamics/spec classes

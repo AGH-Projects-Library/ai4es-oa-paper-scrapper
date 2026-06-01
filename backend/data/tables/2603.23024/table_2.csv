@@ -1,5 +1,0 @@
-Variable,N (Control),Mean (Control),N (Treated),Mean (Treated),Diff. (T–C),t-stat,SMD
-Sex (Female = 1),"182,508",0.53,"5,928",0.41,0.12,18.74,0.24 **
-Age (years),"182,508",79.68,"5,928",76.23,3.45,25.77,0.32 **
-Comorbidity Index (MCDS),"182,508",4.03,"5,928",3.94,0.09,4.46,0.06
-Deprivation Index (1–5),"172,008",2.90,"5,733",2.88,0.02,1.44,0.01

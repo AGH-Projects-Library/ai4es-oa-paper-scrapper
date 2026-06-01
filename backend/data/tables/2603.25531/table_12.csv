@@ -1,2 +1,0 @@
-(14),,ϕ \displaystyle\phi,: := ⊤ ∣ P ∣ ¬ ϕ ∣ ϕ 1 ∧ ϕ 2 ∣ ϕ 1 ∨ ϕ 2 ∣ ○ ϕ ∣ ϕ 1 𝒰 ϕ 2 \displaystyle::=\top\mid P\mid\neg\phi\mid\phi_{1}\land\phi_{2}\mid\phi_{1}\lor\phi_{2}\mid\bigcirc\phi\mid\phi_{1}\mathcal{U}\phi_{2},
-(15),,P \displaystyle P,: := a 1 y 1 + a 2 y 2 + … + a n y n ⋈ b \displaystyle::=a_{1}y_{1}+a_{2}y_{2}+\ldots+a_{n}y_{n}\bowtie b,

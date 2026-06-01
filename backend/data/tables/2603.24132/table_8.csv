@@ -1,7 +1,0 @@
-Metric,Expert 1,Expert 2,Expert 3,Average
-Medical Safety (Pass Rate),96%,94%,96%,95.3%
-Symptom Extraction,4.2,4.1,4.3,4.20
-Context Memory,4.4,4.3,4.5,4.40
-Diagnostic Correctness,4.1,4.0,4.2,4.10
-Conversational Flow,4.3,4.2,4.4,4.30
-Efficiency,4.0,3.9,4.1,4.00

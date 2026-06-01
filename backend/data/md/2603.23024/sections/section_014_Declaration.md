@@ -1,3 +1,0 @@
-## Declaration
-
- We confirm that the work described has not been published previously, except in the form of a registered report, in accordance with the journal’s policy on multiple, redundant, or concurrent publication. The article is not under consideration for publication elsewhere. The article’s publication is approved by all authors and, tacitly or explicitly, by the responsible authorities where the work was carried out. If accepted, the article will not be published elsewhere in the same form, in English or in any other language, including electronically, without the written consent of the copyright-holder.

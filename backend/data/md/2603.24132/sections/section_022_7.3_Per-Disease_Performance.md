@@ -1,3 +1,0 @@
-## 7.3 Per-Disease Performance
-
- Table 4 reports per-disease accuracy for MedAidLM . The model achieves perfect accuracy on Rhinitis , Thyroiditis , and Traumatic brain injury , and performs strongly on Dermatitis (95.0%), Enteritis (91.7%), and Conjunctivitis (90.5%). These results suggest that the model handles diseases with relatively distinctive symptom patterns particularly well. However, performance drops on Pneumonia (60.0%), Mastitis (80.0%), and Esophagitis (81.5%). These lower scores indicate that the model struggles more when diseases share overlapping or ambiguous symptom profiles.

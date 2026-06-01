@@ -1,3 +1,0 @@
-## 4. Verification of SSTL properties
-
- To enable automated verification of Synchronous Signal Temporal Logic formulae through model checking, we present a translation of Synchronous Signal Temporal Logic to LTL P and then use the SPIN model checker to verify over state-based and kinematic models. We also show how the LTL P translation is a sound and complete abstraction of Synchronous Signal Temporal Logic.

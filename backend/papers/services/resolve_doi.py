@@ -19,7 +19,8 @@ from papers.models import ResolvedPaper, Section, Table, Image
 DATA_DIR = str(settings.SCRAPER_DATA_DIR)
 
 
-# Source: notebooks/to_json.py / resolve_doi_sections.py — make_section_id()
+# Mirrors make_section_id() from the now-removed resolve_doi_sections.py.
+# This inline copy is the authoritative version.
 def _make_section_id(name: str) -> str:
     return normalize(name).lower().replace(" ", "_")
 

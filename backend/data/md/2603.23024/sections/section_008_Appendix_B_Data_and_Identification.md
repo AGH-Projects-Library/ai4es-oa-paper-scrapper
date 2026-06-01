@@ -1,9 +1,0 @@
-## Appendix B: Data and Identification
-
-|  |  | Controls ( D = 0 D=0 ) | Treated ( D = 1 D=1 ) | Treated − - Control |
-| --- | --- | --- | --- | --- |
-| Panel | Sample definition | N N | Mean (SD) | N N |
-| A | Full eligible sample | 15,097 | 0.0275 (0.0697) | 487 |
-| B | Restrict to GPs with n gp ≥ 10 n_{\text{gp}}\geq 10 | 12,896 | 0.0279 (0.0652) | 420 |
-
- ![Figure B1 : New enrollments into the nurse-led program by district and quarter, 2017–2023. Each panel plots intake_dt, the number of patients who newly enroll in the current quarter (enroll_q = quarter_period). The variable is constructed from the CHF patient–quarter panel and aggregated to the district–quarter level.](png/2603.23024/2603.23024/x5.png) ![Table B1 : GP enrollment propensity (leave-one-out) by NPCP enrollment status]() [[TABLE_0]]  Notes: D D indicates NPCP enrollment (treated = 1 =1 ). The table reports L gp LOO L^{\text{LOO}}_{\text{gp}} , a leave-one-out measure of GP g g ’s NPCP enrollment propensity for patient i i : L gp LOO = ( ∑ j ∈ g D j − D i ) / ( n g − 1 ) L^{\text{LOO}}_{\text{gp}}=\left(\sum_{j\in g}D_{j}-D_{i}\right)/(n_{g}-1) , i.e., the share of other eligible patients assigned to the same GP who enroll (excluding patient i i ). The leave-one-out construction avoids mechanically embedding the patient’s own enrollment status in the GP-level rate. Panel A uses the full eligible sample with observed baseline GP assignment. Panel B restricts to GPs with n gp ≥ 10 n_{\text{gp}}\geq 10 eligible patients to reduce noise from small GP panels. Diff. is the treated-minus-control mean difference in L gp LOO L^{\text{LOO}}_{\text{gp}} (in levels). t t -statistics are from two-sample equality-of-means tests assuming equal variances; corresponding p p -values are < 0.001 <0.001 in both panels. The large differences indicate strong sorting of enrolled patients toward higher-enrollment-propensity GPs, consistent with heterogeneity in GP practice style.

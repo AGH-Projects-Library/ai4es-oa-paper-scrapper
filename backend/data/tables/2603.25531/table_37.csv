@@ -1,4 +1,0 @@
-,"( w , t ) ⊧ ⊤ ⇔ ⊤ is true \displaystyle(w,t)\models\top\iff\top\text{ is true}",
-,"( w , t ) ⊧ x i w ​ ( t ) ≥ 0 ⇔ x i w ​ ( t ) ≥ 0 \displaystyle(w,t)\models x_{i}^{w}(t)\geq 0\iff x_{i}^{w}(t)\geq 0",
-,"( w , t ) ⊧ ¬ φ ⇔ ( w , t ) ⊧̸ φ \displaystyle(w,t)\models\neg\varphi\iff(w,t)\not\models\varphi",
-,"( w , t ) ⊧ φ 1 ∧ φ 2 ⇔ ( w , t ) ⊧ φ 1 ​ and ​ ( w , t ) ⊧ φ 2 \displaystyle(w,t)\models\varphi_{1}\land\varphi_{2}\iff(w,t)\models\varphi_{1}\text{ and }(w,t)\models\varphi_{2}",

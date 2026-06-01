@@ -1,1 +1,0 @@
-,"𝐭 j = 𝐩 j max − 𝐩 j min ‖ 𝐩 j max − 𝐩 j min ‖ 2 , where ​ j min = max ⁡ ( 1 , j − w ) ​ and ​ j max = min ⁡ ( M , j + w ) . \mathbf{t}_{j}=\frac{\mathbf{p}_{j_{\max}}-\mathbf{p}_{j_{\min}}}{\",\mathbf{p}_{j_{\max}}-\mathbf{p}_{j_{\min}}\,"_{2}},\quad\text{where }j_{\min}=\max(1,j-w)\text{ and }j_{\max}=\min(M,j+w).",,(3)

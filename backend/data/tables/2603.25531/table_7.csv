@@ -1,4 +1,0 @@
-,"( w d , [ t ] ) \displaystyle(w_{d},[t])",⊧ ⊤ \displaystyle\models\top,
-,"( w d , [ t ] ) \displaystyle(w_{d},[t])",⊧ [ x i w d ​ ( t ) ≥ 0 ] \displaystyle\models[x_{i}^{w_{d}}(t)\geq 0],⇔ x i w d ​ ( [ t ] ) ≥ 0 \displaystyle\iff x^{w_{d}}_{i}([t])\geq 0
-,"( w d , [ t ] ) \displaystyle(w_{d},[t])",⊧ ¬ [ φ ] \displaystyle\models\neg[\varphi],"⇔ ( w d , [ t ] ) ⊧̸ [ φ ] \displaystyle\iff(w_{d},[t])\not\models[\varphi]"
-,"( w d , [ t ] ) \displaystyle(w_{d},[t])",⊧ [ φ 1 ] ∧ [ φ 2 ] \displaystyle\models[\varphi_{1}]\land[\varphi_{2}],"⇔ ( w d , [ t ] ) ⊧ [ φ 1 ] ∧ ( w d , [ t ] ) ⊧ [ φ 2 ] \displaystyle\iff(w_{d},[t])\models[\varphi_{1}]\land(w_{d},[t])\models[\varphi_{2}]"

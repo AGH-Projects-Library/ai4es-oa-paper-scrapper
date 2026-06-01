@@ -1,2 +1,0 @@
-## Appendix D Prompt Templates
-

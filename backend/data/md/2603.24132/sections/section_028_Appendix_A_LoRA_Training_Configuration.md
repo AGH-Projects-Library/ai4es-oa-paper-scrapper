@@ -1,3 +1,0 @@
-## Appendix A LoRA Training Configuration
-
- We use Low-Rank Adaptation (LoRA) (Hu et al. , 2022 ) for parameter-efficient fine-tuning. Adapters are inserted into the query, key, value, and output projection matrices of each transformer block. The LoRA hyperparameters used in our experiments are: - • Rank r = 16 r=16 Rank r = 16 r=16 - • Scaling factor α = 32 \alpha=32 Scaling factor α = 32 \alpha=32 - • Dropout p = 0.05 p=0.05 Dropout p = 0.05 p=0.05 - • Target modules: attention projection layers Target modules: attention projection layers This configuration keeps the trainable parameter budget below approximately 2 % 2\% of the total model parameters while maintaining strong task adaptation.

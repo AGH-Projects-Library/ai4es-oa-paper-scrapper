@@ -1,3 +1,0 @@
-,"( w d , [ t ] ) ⊧ [ φ 1 ] ​ 𝒰 [ [ a ] , [ b ] ] ​ [ φ 2 ] ⇔ ∃ [ t ′ ] ∈ [ [ t + a ] , [ t + b ] ] : \displaystyle(w_{d},[t])\models[\varphi_{1}]\mathcal{U}_{[[a],[b]]}[\varphi_{2}]\iff\;\exists\;[t^{\prime}]\in[[t+a],[t+b]]\;:~",
-,"( w d , [ t ′ ] ) ⊧ [ φ 2 ] \displaystyle(w_{d},[t^{\prime}])\models[\varphi_{2}]",
-(9),,"and ​ ∀ [ t ′′ ] ∈ [ [ t ] , [ t ′ ] ) : ( w d , [ t ′′ ] ) ⊧ [ φ 1 ] \displaystyle\text{and}~\forall\;[t^{\prime\prime}]\in[[t],[t^{\prime}]):(w_{d},[t^{\prime\prime}])\models[\varphi_{1}]"

@@ -1,5 +1,0 @@
-Model Family,Dataset,Method,Accuracy
-Mistral-7B-Instruct,MedAidDialog (MD+SYN),SFT,88.09%
-LLaMA 3.2 3B (MedAidLM),MedAidDialog (MD+SYN),SFT,90.21%
-Qwen3-4B,MedAidDialog (MD+SYN),SFT,80.00%
-DeepSeek-R1-Distill-Qwen-1.5B,MedAidDialog (MD+SYN),SFT,40.00%

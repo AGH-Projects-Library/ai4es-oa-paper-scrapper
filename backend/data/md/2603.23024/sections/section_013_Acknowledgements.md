@@ -1,3 +1,0 @@
-## Acknowledgements
-
- This research is part of a joint project of the Local Health Authority (LHA) of Romagna and of the Department of Economics of the University of Bologna “Evaluation of alternative organisational solutions for the management of chronic patients in the LHA of Romagna”. The authors thank Roberto Grilli, Head of the Unit “Evaluative Research and Health Services Policy” for his help in the analysis. The authors also thank Simona Rosa and Giulia Guidi for their support in the preparation of the data. The views expressed remain exclusively those of the authors.
