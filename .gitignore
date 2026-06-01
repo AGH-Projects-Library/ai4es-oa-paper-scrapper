@@ -1,5 +1,6 @@
 .vscode
 paper_pipeline_data/*
 notebooks/paper_pipeline_data/*
+notebooks/paper_pipeline_data_old/*
 __pycache__
 *.json

@@ -6,6 +6,7 @@ import tarfile
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
+from typing import List, Dict, Optional, Tuple, Any
 
 def normalize(text):
     return re.sub(r"\s+", " ", text or "").strip()
@@ -296,3 +297,101 @@ def collect_authors_and_emails(files):
             dedup_emails.append(email.strip())
 
     return dedup_authors, dedup_emails
+
+# =========================================================
+# ARXIV BIBLIOGRAPHY / CITATIONS FROM TEX
+# =========================================================
+
+def extract_arxiv_references(files: Dict[str, str]) -> List[Dict[str, Any]]:
+    """
+    Extract bibliographic entries from thebibliography environment in TeX files.
+    """
+    refs = []
+    
+    for filename, tex in files.items():
+        # Look for \begin{thebibliography} blocks
+        bib_matches = re.findall(r"\\begin\{thebibliography\}.*?\\end\{thebibliography\}", tex, re.DOTALL)
+        
+        for bib_block in bib_matches:
+            # Each entry starts with \bibitem
+            entries = re.split(r"\\bibitem(?:\[[^\]]*\])?\{", bib_block)
+            
+            for entry in entries[1:]:  # Skip text before first \bibitem
+                # Split at the first closing brace to get the key
+                parts = entry.split("}", 1)
+                if len(parts) < 2:
+                    continue
+                    
+                ref_id = parts[0].strip()
+                ref_content = parts[1].split("\\bibitem", 1)[0].split("\\end{thebibliography}", 1)[0].strip()
+                
+                # Clean up LaTeX commands from content
+                ref_text = re.sub(r"\\[a-zA-Z*]+(?:\{[^\}]*\})?", "", ref_content)
+                ref_text = re.sub(r"[\{\}\$]", "", ref_text)
+                ref_text = normalize(ref_text)
+                
+                # Try to extract DOI if present
+                doi = None
+                doi_match = re.search(r"10\.\d{4,9}/[-._;()/:a-zA-Z0-9]+", ref_content)
+                if doi_match:
+                    doi = doi_match.group(0)
+                
+                refs.append({
+                    "ref_id": ref_id,
+                    "text": ref_text,
+                    "doi": doi
+                })
+                
+    return refs
+
+def extract_arxiv_citations(files: Dict[str, str], md_sections: List[Dict[str, Any]]) -> List[List[str]]:
+    """
+    Map citations from TeX source to sections.
+    Because section titles in HTML might differ slightly from TeX, we do a best-effort match.
+    """
+    # 1. Extract all \section{...} blocks and their citations from TeX
+    tex_sections = []
+    for filename, tex in files.items():
+        # Find all section commands
+        matches = re.finditer(r"\\(section|subsection)\*?\{", tex)
+        prev_pos = 0
+        prev_heading = "Background" # Fallback if no section yet
+        
+        starts = [m.start() for m in matches]
+        ends = starts[1:] + [len(tex)]
+        
+        for start, end in zip(starts, ends):
+            # Extract heading
+            heading_block = tex[start:end].split("}", 1)[0]
+            heading = heading_block.split("{", 1)[1].strip()
+            
+            # Extract citations in this block
+            block_content = tex[start:end]
+            citations = re.findall(r"\\cite\{([^\}]+)\}", block_content)
+            
+            # Split grouped citations like \cite{ref1,ref2}
+            split_citations = []
+            for c in citations:
+                split_citations.extend([item.strip() for item in c.split(",")])
+                
+            tex_sections.append({
+                "heading": heading,
+                "citations": list(set(split_citations))
+            })
+
+    # 2. Map TeX sections to Markdown sections based on heading similarity
+    section_citations = [[] for _ in md_sections]
+    
+    for i, md_sec in enumerate(md_sections):
+        md_heading = md_sec.get("heading", "").lower()
+        
+        # Look for the best match in TeX sections
+        best_match_citations = []
+        for tex_sec in tex_sections:
+            tex_heading = tex_sec["heading"].lower()
+            if tex_heading in md_heading or md_heading in tex_heading:
+                best_match_citations.extend(tex_sec["citations"])
+        
+        section_citations[i] = list(set(best_match_citations))
+        
+    return section_citations

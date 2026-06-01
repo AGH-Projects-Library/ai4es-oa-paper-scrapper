@@ -28,10 +28,31 @@ class TableInfo:
         }
 
 @dataclass
+class ReferenceInfo:
+    ref_id: str
+    text: str
+    doi: Optional[str] = None
+    pmid: Optional[str] = None
+    title: Optional[str] = None
+    year: Optional[str] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        res = {
+            "ref_id": self.ref_id,
+            "text": self.text,
+        }
+        if self.doi: res["doi"] = self.doi
+        if self.pmid: res["pmid"] = self.pmid
+        if self.title: res["title"] = self.title
+        if self.year: res["year"] = self.year
+        return res
+
+@dataclass
 class SectionInfo:
     heading: str
     tables: List[TableInfo] = field(default_factory=list)
     images: List[ImageInfo] = field(default_factory=list)
+    citations: List[str] = field(default_factory=list)  # List of ref_ids
     md_path: str = ""
     
     def to_dict(self) -> Dict[str, Any]:
@@ -39,6 +60,7 @@ class SectionInfo:
             "heading": self.heading,
             "tables": [t.to_dict() for t in self.tables],
             "images": [i.to_dict() for i in self.images],
+            "citations": self.citations,
             "md_path": self.md_path
         }
 
@@ -59,6 +81,7 @@ class DocumentInfo:
     emails: List[str] = field(default_factory=list)
     
     sections: List[SectionInfo] = field(default_factory=list)
+    references: List[ReferenceInfo] = field(default_factory=list)
     
     def to_dict(self) -> Dict[str, Any]:
         res = {
@@ -81,4 +104,5 @@ class DocumentInfo:
             res["pdf_path"] = self.pdf_path
             
         res["sections"] = [s.to_dict() for s in self.sections]
+        res["references"] = [r.to_dict() for r in self.references]
         return res

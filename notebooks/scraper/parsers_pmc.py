@@ -1,6 +1,7 @@
 import re
 import xml.etree.ElementTree as ET
 from bs4 import BeautifulSoup
+from typing import List, Dict, Optional, Tuple, Any
 
 def normalize(text):
     return re.sub(r"\s+", " ", text or "").strip()
@@ -63,20 +64,21 @@ def parse_pmc_table(table):
     return "\n".join(md)
 
 
-def parse_pmc_article_to_markdown(xml):
+def parse_pmc_article_to_markdown(xml) -> Tuple[Optional[str], List[List[str]]]:
     """
     Build markdown from PMC XML.
-    Figures are inserted as placeholders:
-    ![caption](PMC_FIG_0), ![caption](PMC_FIG_1), ...
-    Later interactive_view maps them to downloaded local files.
+    Returns: (markdown_text, section_citations)
+    where section_citations is a list of lists of ref_ids, 
+    one for each section in the body.
     """
     root = ET.fromstring(xml)
     article = root.find(".//{*}article")
 
     if article is None:
-        return None
+        return None, []
 
     out = []
+    section_citations = []
 
     title = article.find(".//{*}article-title")
     if title is not None:
@@ -84,11 +86,12 @@ def parse_pmc_article_to_markdown(xml):
 
     body = article.find("{*}body")
     if body is None:
-        return "\n".join(out)
+        return "\n".join(out), []
 
     fig_counter = 0
 
     for sec in body.findall(".//{*}sec"):
+        current_section_citations = []
         sec_title = sec.find("{*}title")
         if sec_title is not None:
             out.append(f"\n## {textify(sec_title)}\n")
@@ -98,6 +101,12 @@ def parse_pmc_article_to_markdown(xml):
             txt = textify(p)
             if txt:
                 out.append(txt + "\n")
+            
+            # Extract citations from this paragraph
+            for xref in p.findall(".//{*}xref[@ref-type='bibr']"):
+                rid = xref.attrib.get("rid")
+                if rid:
+                    current_section_citations.append(rid)
 
         # figures under this section
         for fig in sec.findall(".//{*}fig"):
@@ -124,7 +133,9 @@ def parse_pmc_article_to_markdown(xml):
             if md_table:
                 out.append(md_table + "\n")
 
-    return "\n".join(out)
+        section_citations.append(list(set(current_section_citations)))
+
+    return "\n".join(out), section_citations
 
 
 def extract_pmc_authors_emails(xml):
@@ -148,6 +159,58 @@ def extract_pmc_authors_emails(xml):
     emails = list(dict.fromkeys([e for e in emails if e]))
 
     return authors, emails
+
+def extract_pmc_references(xml) -> List[Dict[str, Any]]:
+    """
+    Extract bibliography from PMC XML.
+    """
+    root = ET.fromstring(xml)
+    refs = []
+    
+    for ref_elem in root.findall(".//{*}ref"):
+        ref_id = ref_elem.attrib.get("id")
+        if not ref_id:
+            continue
+            
+        mixed_citation = ref_elem.find(".//{*}mixed-citation")
+        element_citation = ref_elem.find(".//{*}element-citation")
+        citation_elem = element_citation if element_citation is not None else mixed_citation
+        
+        if citation_elem is None:
+            continue
+            
+        ref_text = textify(citation_elem)
+        
+        doi = None
+        doi_elem = citation_elem.find(".//{*}pub-id[@pub-id-type='doi']")
+        if doi_elem is not None:
+            doi = doi_elem.text
+            
+        pmid = None
+        pmid_elem = citation_elem.find(".//{*}pub-id[@pub-id-type='pmid']")
+        if pmid_elem is not None:
+            pmid = pmid_elem.text
+            
+        title = None
+        article_title = citation_elem.find(".//{*}article-title")
+        if article_title is not None:
+            title = textify(article_title)
+            
+        year = None
+        year_elem = citation_elem.find(".//{*}year")
+        if year_elem is not None:
+            year = year_elem.text
+            
+        refs.append({
+            "ref_id": ref_id,
+            "text": ref_text,
+            "doi": doi,
+            "pmid": pmid,
+            "title": title,
+            "year": year
+        })
+        
+    return refs
 
 def extract_pmc_image_urls_from_rendered_html(html):
     """

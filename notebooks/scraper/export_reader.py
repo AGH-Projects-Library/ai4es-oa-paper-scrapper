@@ -121,6 +121,7 @@ class ExportReader:
             - table_index: Index within section
             - global_index: Global index across all sections
             - csv_path: Path to CSV file
+            - citations: List of ref_ids cited in the parent section
         """
         rows = []
         
@@ -129,6 +130,7 @@ class ExportReader:
             
             for sec in doc.get('sections', []):
                 section_heading = sec.get('heading')
+                section_citations = sec.get('citations', [])
                 
                 for table in sec.get('tables', []):
                     row = {
@@ -137,8 +139,113 @@ class ExportReader:
                         'table_index': table.get('table_index'),
                         'global_index': table.get('global_index'),
                         'csv_path': table.get('csv_path'),
+                        'citations': section_citations,
                     }
                     rows.append(row)
+        
+        return pd.DataFrame(rows)
+
+    def get_all_references_dataframe(self) -> pd.DataFrame:
+        """
+        Extract all references from all documents into a single DataFrame.
+        
+        Returns:
+            DataFrame with columns:
+            - paper_id: Document identifier
+            - ref_id: Internal reference ID (e.g., 'B1')
+            - text: Full citation text
+            - doi: DOI if available
+            - pmid: PMID if available
+            - title: Title if available
+            - year: Year if available
+        """
+        rows = []
+        
+        for doc in self.data:
+            paper_id = doc.get('paper_id')
+            for ref in doc.get('references', []):
+                row = {
+                    'paper_id': paper_id,
+                    'ref_id': ref.get('ref_id'),
+                    'text': ref.get('text'),
+                    'doi': ref.get('doi'),
+                    'pmid': ref.get('pmid'),
+                    'title': ref.get('title'),
+                    'year': ref.get('year'),
+                }
+                rows.append(row)
+        
+        return pd.DataFrame(rows)
+
+    def find_rob_tables(self) -> pd.DataFrame:
+        """
+        Smart search for Risk of Bias tables based on citations to known RoB tools.
+        
+        Target tools:
+        - Cochrane RoB (Higgins 2011, DOI: 10.1136/bmj.d5928)
+        - RoB 2 (Sterne 2019, DOI: 10.1136/bmj.l4898)
+        """
+        # 1. Identify RoB references across all papers
+        rob_dois = ['10.1136/bmj.d5928', '10.1136/bmj.l4898', 'd5928', 'l4898']
+        rob_keywords = ['risk of bias', 'cochrane collaboration', 'rob 2', 'rob2', 'bias assessment']
+        
+        df_refs = self.get_all_references_dataframe()
+        if df_refs.empty:
+            return pd.DataFrame()
+            
+        # Match by DOI or snippet
+        is_rob_doi = df_refs['doi'].fillna('').str.lower().apply(
+            lambda x: any(d.lower() in x for d in rob_dois)
+        )
+        
+        # Match by Title/Text keywords
+        is_rob_text = df_refs['text'].fillna('').str.lower().apply(
+            lambda x: any(k in x for k in rob_keywords)
+        ) | df_refs['title'].fillna('').str.lower().apply(
+            lambda x: any(k in x for k in rob_keywords)
+        )
+        
+        rob_refs = df_refs[is_rob_doi | is_rob_text]
+        
+        # Create a set of paper_ids that are RoB related
+        papers_with_rob_refs = set(rob_refs['paper_id'])
+        # Create a set of (paper_id, ref_id) tuples that are RoB related
+        rob_keys = set(zip(rob_refs['paper_id'], rob_refs['ref_id']))
+        
+        # 2. Find sections and tables
+        rows = []
+        for doc in self.data:
+            paper_id = doc.get('paper_id')
+            
+            for sec in doc.get('sections', []):
+                heading = sec.get('heading', '')
+                heading_lower = heading.lower()
+                
+                section_citations = sec.get('citations', [])
+                # Check if this section cites a known RoB tool
+                matched_refs = [rid for rid in section_citations if (paper_id, rid) in rob_keys]
+                
+                # Heuristic: Section heading contains RoB keywords
+                # We are inclusive here: if the paper cites a RoB tool ANYWHERE, 
+                # we are more confident that a "Risk of Bias" section contains the table.
+                is_rob_heading = any(k in heading_lower for k in ['risk of bias', 'rob 2', 'rob2', 'bias assessment', 'quality assessment'])
+                
+                # Decision: Should we include tables from this section?
+                # Option 1: Section directly cites the tool.
+                # Option 2: Paper cites the tool AND this section looks like a RoB section.
+                should_include_section = bool(matched_refs) or (paper_id in papers_with_rob_refs and is_rob_heading)
+                
+                if should_include_section:
+                    for table in sec.get('tables', []):
+                        row = {
+                            'paper_id': paper_id,
+                            'section': heading,
+                            'table_index': table.get('table_index'),
+                            'global_index': table.get('global_index'),
+                            'csv_path': table.get('csv_path'),
+                            'matched_rob_refs': matched_refs if matched_refs else ["Paper cites RoB tools (heading match)"]
+                        }
+                        rows.append(row)
         
         return pd.DataFrame(rows)
     
@@ -488,6 +595,7 @@ class ExportReader:
             - md_path: Path to section markdown file
             - num_tables: Number of tables in section
             - num_images: Number of images in section
+            - citations: List of ref_ids cited in this section
         """
         rows = []
         
@@ -502,6 +610,7 @@ class ExportReader:
                     'md_path': sec.get('md_path', ''),
                     'num_tables': len(sec.get('tables', [])),
                     'num_images': len(sec.get('images', [])),
+                    'citations': sec.get('citations', []),
                 }
                 rows.append(row)
         

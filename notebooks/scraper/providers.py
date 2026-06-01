@@ -4,9 +4,9 @@ import time
 import csv
 import requests
 from urllib.parse import urlparse
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 
-from .models import DocumentInfo, SectionInfo, ImageInfo, TableInfo
+from .models import DocumentInfo, SectionInfo, ImageInfo, TableInfo, ReferenceInfo
 from .fetchers import (
     doi_to_pmcid, 
     doi_to_arxiv_id, 
@@ -23,11 +23,14 @@ from .fetchers import (
 from .parsers_pmc import (
     parse_pmc_article_to_markdown, 
     extract_pmc_authors_emails,
+    extract_pmc_references,
     extract_pmc_image_urls_from_rendered_html
 )
 from .parsers_arxiv import (
     html_to_markdown_arxiv, 
-    collect_authors_and_emails
+    collect_authors_and_emails,
+    extract_arxiv_references,
+    extract_arxiv_citations
 )
 from .parsers_md import (
     parse_markdown, 
@@ -44,7 +47,7 @@ def save_text(text: str, path: str):
         f.write(text)
 
 
-def process_sections_and_tables(doc: DocumentInfo, md_text: str, base_dir: str, local_images: List[str]):
+def process_sections_and_tables(doc: DocumentInfo, md_text: str, base_dir: str, local_images: List[str], section_citations: Optional[List[List[str]]] = None):
     """
     Parses markdown, extracts sections, saves each section to separate markdown file,
     handles tables and images.
@@ -61,6 +64,10 @@ def process_sections_and_tables(doc: DocumentInfo, md_text: str, base_dir: str, 
     for sec_idx, sec in enumerate(sections):
         section_info = SectionInfo(heading=sec.get("heading", ""))
         
+        # Add citations if available
+        if section_citations and sec_idx < len(section_citations):
+            section_info.citations = section_citations[sec_idx]
+
         # Build section markdown content lines
         section_md_lines = [f"## {sec['heading']}", ""]
         
@@ -165,13 +172,22 @@ def process_arxiv(doi: str, base_dir: str) -> Optional[DocumentInfo]:
         
     md_text = clean_markdown(md_text)
 
-    # Extract authors and emails from Tex
+    # Extract authors, emails, and references from Tex
+    section_citations = None
     try:
         tex_bytes = download_arxiv_source(arxiv_id)
         files = unpack_archive(tex_bytes)
         authors, emails = collect_authors_and_emails(files)
         doc.authors = authors
         doc.emails = emails
+        
+        # References and Citations
+        refs_data = extract_arxiv_references(files)
+        doc.references = [ReferenceInfo(**r) for r in refs_data]
+        
+        # Get md sections to map citations
+        _, sections = parse_markdown(md_text)
+        section_citations = extract_arxiv_citations(files, sections)
     except Exception as e:
         print(f"[ARXIV TEX] Failed: {e}")
         
@@ -226,7 +242,7 @@ def process_arxiv(doi: str, base_dir: str) -> Optional[DocumentInfo]:
     save_text(md_text, md_path)
     doc.md_path = os.path.relpath(md_path, base_dir)
 
-    process_sections_and_tables(doc, md_text, base_dir, local_images)
+    process_sections_and_tables(doc, md_text, base_dir, local_images, section_citations=section_citations)
     
     pdf_path = os.path.join(pdf_dir, f"{arxiv_id}.pdf")
     if not os.path.exists(pdf_path):
@@ -269,7 +285,7 @@ def process_pmc(doi: str, base_dir: str) -> Optional[DocumentInfo]:
     if not xml:
         return None
         
-    md_text = parse_pmc_article_to_markdown(xml)
+    md_text, section_citations = parse_pmc_article_to_markdown(xml)
     if not md_text:
         return None
         
@@ -282,6 +298,10 @@ def process_pmc(doi: str, base_dir: str) -> Optional[DocumentInfo]:
     authors, emails = extract_pmc_authors_emails(xml)
     doc.authors = authors
     doc.emails = emails
+    
+    # Extract references
+    refs_data = extract_pmc_references(xml)
+    doc.references = [ReferenceInfo(**r) for r in refs_data]
     
     oa_paths, oa_pdf_path = extract_images_from_oa(pmcid, png_dir, pdf_dir)
     html_path = os.path.join(html_dir, f"{pmcid}.html")
@@ -320,7 +340,7 @@ def process_pmc(doi: str, base_dir: str) -> Optional[DocumentInfo]:
             except Exception as e:
                 print(f"[PMC IMG FAIL] {url} -> {e}")
 
-    process_sections_and_tables(doc, md_text, base_dir, local_images)
+    process_sections_and_tables(doc, md_text, base_dir, local_images, section_citations=section_citations)
     return doc
 
 
