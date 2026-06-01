@@ -23,8 +23,8 @@ All routes are registered under `/api/` (see `config/urls.py`).
 | POST | `/fetch-sections/` | `fetch_sections_view` | `services/resolve_doi.py — fetch_sections_for_doi()` | ✅ Active |
 | GET | `/papers/` | `papers_list_view` | `models.py — ResolvedPaper` | ✅ Active |
 | GET/DELETE | `/papers/<pk>/` | `paper_detail_view` | `models.py — ResolvedPaper, Section, Table, Image` | ✅ Active |
-| GET | `/papers/<pk>/rob/` | `paper_rob_view` | `models.py — ResolvedPaper.rob_artifacts` | ✅ Active |
-| GET | `/papers/<pk>/rob/tables/` | `paper_rob_tables_view` | `services/rob_extraction.py — table artifact structure` | ✅ Active |
+| GET | `/papers/<pk>/rob/` | `paper_rob_view` | — | ⛔ 501 Not Implemented |
+| GET | `/papers/<pk>/rob/tables/` | `paper_rob_tables_view` | — | ⛔ 501 Not Implemented |
 | GET | `/papers/<pk>/tables/` | `paper_tables_view` | `models.py — Table` | ✅ Active |
 | GET | `/papers/<pk>/tables/<global_index>/` | `paper_table_detail_view` | `backend/scraper/parsers_md.py — parse_md_table()` (CSV variant) | ✅ Active |
 | GET | `/papers/<pk>/images/` | `paper_images_view` | `models.py — Image` | ✅ Active |
@@ -33,8 +33,8 @@ All routes are registered under `/api/` (see `config/urls.py`).
 | GET | `/papers/<pk>/export/csv/` | `paper_export_csv_view` | `notebooks/scraper/exporters.py — compress_directory()` (in-memory variant) | ✅ Active |
 | GET | `/papers/<pk>/export/json/` | `paper_export_json_view` | `notebooks/scraper/exporters.py — export_documents()` + `models.py — DocumentInfo.to_dict()` | ✅ Active |
 | POST | `/batch-export/` | `batch_export_view` | `notebooks/scraper/exporters.py — compress_directory()` (in-memory variant) | ✅ Active — supports `section_types` filter (see below) |
-| POST | `/batch-process/` | `batch_process_view` | `notebooks/to_json.ipynb — MAIN section batch processing loop` | ✅ Active |
-| POST | `/batch-process/upload/` | `batch_process_upload_view` | `notebooks/to_json.ipynb — file-reading pattern (one DOI per line)` | ✅ Active |
+| POST | `/batch-process/` | `batch_process_view` | `notebooks/to_json.py — main() batch processing loop` | ✅ Active |
+| POST | `/batch-process/upload/` | `batch_process_upload_view` | `notebooks/to_json.py — main() DOI file reading pattern (one DOI per line)` | ✅ Active |
 | GET | `/search/` | `search_view` | Backend-specific; see note below | ✅ Active |
 
 ---
@@ -86,6 +86,40 @@ Common keywords and what they typically match:
 
 ---
 
+## Notebook Classification
+
+The `notebooks/` directory contains both the **current-state pipeline** and **history notebooks** kept to showcase implementation history.
+
+### Current State (authoritative)
+
+| File | Role |
+|------|------|
+| `notebooks/scraper/` (all modules) | Core scraping library — fetchers, parsers, providers, exporters, models, export_reader |
+| `notebooks/to_json.py` | Batch processing entry point (`python to_json.py dois.txt`) |
+| `notebooks/interactive_dois.py` | Interactive single-DOI entry point |
+| `notebooks/inspect_clean_export.ipynb` | Analysis notebook using `ExportReader` |
+
+### History Notebooks (left for reference only — not authoritative)
+
+| File | Notes |
+|------|-------|
+| `notebooks/to_json.ipynb` | Pre-refactoring monolithic script (~37 k chars, single cell). Superseded by `to_json.py` + `scraper/` modules. |
+| `notebooks/inspect_rob_tables_report.ipynb` | Old ROB inspection report from the `IMPLEMENTATION_GUIDE.md` era. ROB extraction removed from core pipeline per `REFACTOR_DOCUMENTATION.md`. |
+| `notebooks/analyze_rob_experiments.py` | CLI-only cross-paper ROB aggregation; no backend integration. |
+| `notebooks/article_search.ipynb` | Exploratory experiment. |
+| `notebooks/arxiv_pubmed_all.ipynb` | Exploratory experiment. |
+| `notebooks/pubmed_almost_all.ipynb` | Exploratory experiment. |
+| `notebooks/display_all_tables.ipynb` | Old analysis. |
+| `notebooks/from_json.ipynb` | Old analysis. |
+| `notebooks/histogram_sections.ipynb` | Old analysis. |
+| `notebooks/markdown_is_all_we_need.ipynb` | Old experiment. |
+| `notebooks/which_sections.ipynb` | Old analysis. |
+| `notebooks/BATCH_PROCESS_README.md` | Old documentation for the pre-refactor batch script. |
+
+**Important:** `to_json.ipynb` is the pre-refactoring history file. Source comments in the backend that reference batch-processing patterns must cite `notebooks/to_json.py`, not `notebooks/to_json.ipynb`.
+
+---
+
 ## Dead Code Removed
 
 The following items were removed in the backend refactor. They had no active endpoint connections.
@@ -99,6 +133,7 @@ The following items were removed in the backend refactor. They had no active end
 | `services/rob_comparison_example.py` | Service file | Example driver for `rob_comparison.py`. Same bare relative import issue. |
 | `services/ROB_COMPARISON_README.md` | Documentation | Documented the deleted scripts above. |
 | `views.get_section_content_view` | View function | Always returned HTTP 405; had no URL route; explicitly replaced by `POST /fetch-sections/`. |
+| `model.py` (backend root) | Empty file | Leftover with no content; removed. |
 
 ---
 
@@ -127,5 +162,6 @@ Rules:
 |---|---|---|
 | `search_view` | `ExportReader.search_papers()` in `notebooks/scraper/export_reader.py` | Notebook searches by `paper_id` (configurable field) using pandas. Backend uses Django `Q` objects with `icontains` on `title` and `authors`. |
 | `_make_section_id` in `resolve_doi.py` | `make_section_id()` in the now-deleted `resolve_doi_sections.py` | Inline copy; `resolve_doi_sections.py` was an intermediate backend experiment, not a notebook. |
-| `rob_extraction.py` | None | Entirely backend-specific. The final notebooks in `REFACTOR_DOCUMENTATION.md` explicitly remove ROB extraction from the core pipeline. This module exists to populate `rob_artifacts` in API responses. |
+| `rob_extraction.py` | None | Entirely backend-specific. Not called from any active code path. ROB endpoints return 501; `rob_artifacts` is always stored as `[]`. File kept for future re-implementation. |
 | `batch_export_view` section filtering | `inspect_clean_export.ipynb — df['heading'].str.contains(kw, case=False)` | Same logical result; Django ORM (`heading__icontains`) instead of pandas string methods. |
+| `_run_batch` / `batch_process_view` / `batch_process_upload_view` | `notebooks/to_json.py — main()` | Backend wraps `resolve_doi_to_paper()` (which calls `process_document()`) in a loop; the notebook calls `process_document()` directly and writes a timestamped JSON export. File-reading pattern (one DOI per line, skip `#` comments) is identical. |

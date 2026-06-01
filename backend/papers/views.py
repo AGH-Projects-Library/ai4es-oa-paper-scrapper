@@ -259,7 +259,7 @@ def paper_detail_view(request, pk):
         })
 
     if request.method == "DELETE":
-        # Source: new feature — delete on-disk files before removing the DB rows.
+        # Delete on-disk files before removing the DB rows.
         # Collect every file path stored on the paper and its children, then remove each one.
         paths_to_remove = [
             paper.md_path, paper.html_path, paper.pdf_path, paper.export_json_path,
@@ -283,17 +283,11 @@ def paper_detail_view(request, pk):
     return JsonResponse({"error": {"code": "METHOD_NOT_ALLOWED", "message": "Use GET or DELETE."}}, status=405)
 
 
-# Source: backend/papers/models.py — ResolvedPaper
 def paper_rob_view(request, pk):
-    if request.method != "GET":
-        return JsonResponse({"error": {"code": "METHOD_NOT_ALLOWED", "message": "Use GET."}}, status=405)
-
-    try:
-        paper = ResolvedPaper.objects.get(pk=pk)
-    except ResolvedPaper.DoesNotExist:
-        return JsonResponse({"status": "not_found", "message": "Paper not found."}, status=404)
-
-    return JsonResponse({"status": "success", "rob_artifacts": paper.rob_artifacts})
+    return JsonResponse(
+        {"error": {"code": "NOT_IMPLEMENTED", "message": "ROB extraction is not yet implemented."}},
+        status=501,
+    )
 
 
 # Source: backend/papers/models.py — ResolvedPaper
@@ -451,17 +445,30 @@ def _paper_to_document_dict(paper):
             ],
         })
 
-    return {
+    # Mirror DocumentInfo.to_dict(): always include core fields; include optional
+    # fields only when truthy so the output schema matches the scraper's JSON exports.
+    res = {
         "paper_id": paper.paper_id or paper.doi,
         "source": paper.source,
         "authors": paper.authors,
         "emails": paper.emails,
-        "extraction_method": paper.extraction_method,
-        "md_path": paper.md_path,
-        "html_path": paper.html_path,
-        "pdf_path": paper.pdf_path,
-        "sections": sections,
     }
+    # Reconstruct source-specific IDs from paper_id + source (DocumentInfo stores
+    # these separately; the DB collapses them into a single paper_id column).
+    if paper.source == "pmc" and paper.paper_id:
+        res["pmcid"] = paper.paper_id
+    elif paper.source == "arxiv" and paper.paper_id:
+        res["arxiv_id"] = paper.paper_id
+    if paper.extraction_method:
+        res["extraction_method"] = paper.extraction_method
+    if paper.md_path:
+        res["md_path"] = paper.md_path
+    if paper.html_path:
+        res["html_path"] = paper.html_path
+    if paper.pdf_path:
+        res["pdf_path"] = paper.pdf_path
+    res["sections"] = sections
+    return res
 
 
 # ---------------------------------------------------------------------------
@@ -639,7 +646,7 @@ def batch_export_view(request):
 # Batch processing
 # ---------------------------------------------------------------------------
 
-# Source: notebooks/to_json.ipynb — MAIN section batch processing loop
+# Source: notebooks/to_json.py — main() batch processing loop
 def _run_batch(dois):
     """
     Call resolve_doi_to_paper() for each DOI and return a unified results dict.
@@ -677,7 +684,7 @@ def _run_batch(dois):
     })
 
 
-# Source: notebooks/to_json.ipynb — MAIN section batch processing loop
+# Source: notebooks/to_json.py — main() batch processing loop
 @csrf_exempt
 def batch_process_view(request):
     """POST /batch-process/ — {"dois": [...]} → per-DOI results."""
@@ -696,7 +703,7 @@ def batch_process_view(request):
     return _run_batch(dois)
 
 
-# Source: notebooks/to_json.ipynb — file-reading pattern (one DOI per line)
+# Source: notebooks/to_json.py — main() DOI file reading pattern (one DOI per line)
 @csrf_exempt
 def batch_process_upload_view(request):
     """POST /batch-process/upload/ — multipart .txt file (one DOI per line)."""
@@ -712,7 +719,7 @@ def batch_process_upload_view(request):
     except Exception as exc:
         return JsonResponse({"error": {"code": "UNREADABLE_FILE", "message": f"Could not read the uploaded file: {exc}"}}, status=400)
 
-    # Source: notebooks/to_json.ipynb — one DOI per line, skip blanks and comments
+    # Source: notebooks/to_json.py — one DOI per line, skip blanks and comments
     dois = [line.strip() for line in text.splitlines() if line.strip() and not line.strip().startswith("#")]
     if not dois:
         return JsonResponse({"error": {"code": "EMPTY_FILE", "message": "No DOIs found in the uploaded file."}}, status=400)
@@ -769,25 +776,9 @@ def search_view(request):
     })
 
 
-# Source: backend/papers/services/rob_extraction.py — table artifact structure
 def paper_rob_tables_view(request, pk):
-    """
-    GET /papers/<pk>/rob/tables/
-
-    Returns only the table and ocr_table ROB artifacts for this paper
-    (subset of GET /papers/<pk>/rob/).
-    """
-    if request.method != "GET":
-        return JsonResponse({"error": {"code": "METHOD_NOT_ALLOWED", "message": "Use GET."}}, status=405)
-
-    try:
-        paper = ResolvedPaper.objects.get(pk=pk)
-    except ResolvedPaper.DoesNotExist:
-        return JsonResponse({"status": "not_found", "message": "Paper not found."}, status=404)
-
-    table_artifacts = [
-        a for a in (paper.rob_artifacts or [])
-        if a.get("artifact_type") in ("table", "ocr_table")
-    ]
-    return JsonResponse({"status": "success", "rob_table_artifacts": table_artifacts})
+    return JsonResponse(
+        {"error": {"code": "NOT_IMPLEMENTED", "message": "ROB extraction is not yet implemented."}},
+        status=501,
+    )
 
