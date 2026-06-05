@@ -177,15 +177,13 @@ class ExportReader:
         
         return pd.DataFrame(rows)
 
-    def find_rob_tables(self) -> pd.DataFrame:
+    def identify_rob_references(self) -> pd.DataFrame:
         """
-        Smart search for Risk of Bias tables based on citations to known RoB tools.
+        Identify all references across all papers that match RoB tool signatures.
         
-        Target tools:
-        - Cochrane RoB (Higgins 2011, DOI: 10.1136/bmj.d5928)
-        - RoB 2 (Sterne 2019, DOI: 10.1136/bmj.l4898)
+        Returns:
+            DataFrame of references matching RoB criteria.
         """
-        # 1. Identify RoB references across all papers
         rob_dois = ['10.1136/bmj.d5928', '10.1136/bmj.l4898', 'd5928', 'l4898']
         rob_keywords = ['risk of bias', 'cochrane collaboration', 'rob 2', 'rob2', 'bias assessment']
         
@@ -205,17 +203,63 @@ class ExportReader:
             lambda x: any(k in x for k in rob_keywords)
         )
         
-        rob_refs = df_refs[is_rob_doi | is_rob_text]
+        return df_refs[is_rob_doi | is_rob_text]
+
+    def get_papers_with_rob_mentions(self) -> Dict[str, Dict[str, Any]]:
+        """
+        Identify all papers that mention RoB tools via citations or headings.
         
-        # Create a set of paper_ids that are RoB related
-        papers_with_rob_refs = set(rob_refs['paper_id'])
-        # Create a set of (paper_id, ref_id) tuples that are RoB related
-        rob_keys = set(zip(rob_refs['paper_id'], rob_refs['ref_id']))
+        Returns:
+            Dict mapping paper_id to info about RoB mentions (rob_refs, rob_headings).
+        """
+        rob_refs = self.identify_rob_references()
+        papers_with_rob_refs = rob_refs.groupby('paper_id')['ref_id'].apply(list).to_dict()
         
+        rob_keywords = ['risk of bias', 'rob 2', 'rob2', 'bias assessment', 'quality assessment']
+        
+        results = {}
+        
+        # Initialize with citation matches
+        for pid, refs in papers_with_rob_refs.items():
+            results[pid] = {
+                'paper_id': pid,
+                'rob_refs': refs,
+                'rob_headings': []
+            }
+            
+        # Add heading matches
+        for doc in self.data:
+            pid = doc.get('paper_id')
+            for sec in doc.get('sections', []):
+                heading = sec.get('heading', '')
+                if any(k in heading.lower() for k in rob_keywords):
+                    if pid not in results:
+                        results[pid] = {'paper_id': pid, 'rob_refs': [], 'rob_headings': []}
+                    results[pid]['rob_headings'].append(heading)
+                    
+        return results
+
+    def find_rob_tables(self) -> pd.DataFrame:
+        """
+        Smart search for Risk of Bias tables based on citations to known RoB tools.
+        
+        Target tools:
+        - Cochrane RoB (Higgins 2011, DOI: 10.1136/bmj.d5928)
+        - RoB 2 (Sterne 2019, DOI: 10.1136/bmj.l4898)
+        """
+        # 1. Identify RoB references across all papers
+        rob_info = self.get_papers_with_rob_mentions()
+        if not rob_info:
+            return pd.DataFrame()
+            
         # 2. Find sections and tables
         rows = []
-        for doc in self.data:
-            paper_id = doc.get('paper_id')
+        for pid, info in rob_info.items():
+            doc = self.get_document(pid)
+            if not doc:
+                continue
+                
+            rob_keys = set(info['rob_refs'])
             
             for sec in doc.get('sections', []):
                 heading = sec.get('heading', '')
@@ -223,22 +267,18 @@ class ExportReader:
                 
                 section_citations = sec.get('citations', [])
                 # Check if this section cites a known RoB tool
-                matched_refs = [rid for rid in section_citations if (paper_id, rid) in rob_keys]
+                matched_refs = [rid for rid in section_citations if rid in rob_keys]
                 
                 # Heuristic: Section heading contains RoB keywords
-                # We are inclusive here: if the paper cites a RoB tool ANYWHERE, 
-                # we are more confident that a "Risk of Bias" section contains the table.
                 is_rob_heading = any(k in heading_lower for k in ['risk of bias', 'rob 2', 'rob2', 'bias assessment', 'quality assessment'])
                 
                 # Decision: Should we include tables from this section?
-                # Option 1: Section directly cites the tool.
-                # Option 2: Paper cites the tool AND this section looks like a RoB section.
-                should_include_section = bool(matched_refs) or (paper_id in papers_with_rob_refs and is_rob_heading)
+                should_include_section = bool(matched_refs) or is_rob_heading
                 
                 if should_include_section:
                     for table in sec.get('tables', []):
                         row = {
-                            'paper_id': paper_id,
+                            'paper_id': pid,
                             'section': heading,
                             'table_index': table.get('table_index'),
                             'global_index': table.get('global_index'),
