@@ -1,1 +1,0 @@
-,"𝐒 = 𝐐𝐊 ⊤ ∈ ℝ N × N , 𝐏 = softmax ​ ( 𝐒 ) ∈ ℝ N × N , 𝐎 = 𝐏𝐕 ∈ ℝ N × d , formulae-sequence 𝐒 superscript 𝐐𝐊 top superscript ℝ 𝑁 𝑁 𝐏 softmax 𝐒 superscript ℝ 𝑁 𝑁 𝐎 𝐏𝐕 superscript ℝ 𝑁 𝑑 \mathbf{S}=\mathbf{Q}\mathbf{K}^{\top}\in\mathbb{R}^{N\times N},\quad\mathbf{P}=\mathrm{softmax}(\mathbf{S})\in\mathbb{R}^{N\times N},\quad\mathbf{O}=\mathbf{P}\mathbf{V}\in\mathbb{R}^{N\times d},",

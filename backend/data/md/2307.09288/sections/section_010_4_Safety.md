@@ -1,3 +1,0 @@
-## 4 Safety
-
- WARNING: this section contains examples of text that may be considered unsafe, offensive, or upsetting. In this section, we dive deeper into the important topic of safety measurements and mitigations. We first discuss our safety investigations into pretraining data and pretrained models (Section 4.1 ). Next, we describe the process of our safety alignment (Section 4.2 ), explaining how we collected safety-related annotations and utilized SFT and RLHF, and present experimental results. Then, we discuss the red teaming we performed to further understand and improve model safety (Section 4.3 ). Finally, we present quantitative safety evaluations of Llama 2-Chat (Section 4.4 ). We also share a model card in the Appendix, in Table 52 .

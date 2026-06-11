@@ -1,1 +1,0 @@
-,R ( g ∣ p ) = R ~ c ( g ∣ p ) − β D K ​ L ( π θ ( g ∣ p ) ∥ π 0 ( g ∣ p ) ) R(g\mid p)=\tilde{R}_{c}(g\mid p)-\beta D_{KL}(\pi_{\theta}(g\mid p)\parallel\pi_{0}(g\mid p)),,(4)

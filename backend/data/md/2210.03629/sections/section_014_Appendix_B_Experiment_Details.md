@@ -1,2 +1,0 @@
-## Appendix B Experiment Details
-

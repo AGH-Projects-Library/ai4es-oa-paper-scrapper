@@ -1,7 +1,0 @@
-,Type,Definition,\model,CoT
-Success,True positive,Correct reasoning trace and facts,94%,86%
-False positive,Hallucinated reasoning trace or facts,6%,14%,
-Failure,Reasoning error,Wrong reasoning trace (including failing to recover from repetitive steps),47%,16%
-Search result error,Search return empty or does not contain useful information,23%,-,
-Hallucination,Hallucinated reasoning trace or facts,0%,56%,
-Label ambiguity,Right prediction but did not match the label precisely,29%,28%,

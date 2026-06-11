@@ -1,8 +1,0 @@
-Benchmark,GPT-4,GPT-3.5,Contamination,GPT-4 (non-contaminated),Degradation
-MMLU,86.4%,70.0%,~0.6%,-,-
-GSM-8K,92.0%,57.1%,~1%,-,-
-HellaSwag,95.3%,85.5%,- *,-,-
-AI2,96.3%,85.2%,~3.4%,-,-
-WinoGrande,87.5%,81.6%,~0.9%,-,-
-HumanEval,67.0%,48.1%,25%,65.58%,-2.12%
-DROP (F1),80.9,64.1,~21%,82.8 * (subsample),0

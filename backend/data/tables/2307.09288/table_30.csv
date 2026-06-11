@@ -1,8 +1,0 @@
-,,TruthfulQA ↑ ↑ \uparrow,ToxiGen ↓ ↓ \downarrow
-ChatGPT,-,78.46,0.20
-Falcon-instruct,7B,28.03,7.89
-MPT-instruct,7B,29.99,16.33
-Llama 2-Chat,7B,57.04,0.00
-13B,62.18,0.00,
-34B,67.20,0.02,
-70B,64.14,0.01,

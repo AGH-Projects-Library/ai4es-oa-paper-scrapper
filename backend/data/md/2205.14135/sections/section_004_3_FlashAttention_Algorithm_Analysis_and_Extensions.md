@@ -1,3 +1,0 @@
-## 3 FlashAttention : Algorithm, Analysis, and Extensions
-
- We show how to compute exact attention with fewer HBM reads/writes and without storing large intermediate matrices for the backward pass. This yields an attention algorithm that is both memory efficient and faster in wall-clock time. We analyze its IO complexity, showing that our method requires much fewer HBM accesses compared to standard attention. We further show that FlashAttention can serve as a useful primitive by extending it to handle block-sparse attention. We focus here on the forward pass for ease of exposition; Appendix B contains details for the backward.

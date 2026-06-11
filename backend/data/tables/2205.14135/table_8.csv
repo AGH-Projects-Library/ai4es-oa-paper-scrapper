@@ -1,5 +1,0 @@
-Model implementations,Context length,OpenWebText (ppl),Training time (speedup)
-GPT-2 small - Megatron-LM,1k,18.2,4.7 days (1.0 × \times )
-GPT-2 small - FlashAttention,1k,18.2,2.7 days (1.7 × \times )
-GPT-2 small - FlashAttention,2k,17.6,3.0 days (1.6 × \times )
-GPT-2 small - FlashAttention,4k,17.5,3.6 days (1.3 × \times )
