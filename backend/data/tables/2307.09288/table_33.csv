@@ -1,0 +1,4 @@
+Context,Hella- Swag,NQ,TQA,GSM8K,Human- Eval
+Length,(0-shot),(64-shot),(64-shot),(8-shot),(0-shot)
+2k,75.1,25.5,53.7,4.9,7.9
+4k,74.8,25.5,52.2,6.5,7.3

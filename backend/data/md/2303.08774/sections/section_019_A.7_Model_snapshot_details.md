@@ -1,0 +1,3 @@
+## A.7 Model snapshot details
+
+ We ran GPT-4 multiple-choice questions using a model snapshot from March 1, 2023, whereas the free-response questions were run and scored using a non-final model snapshot from February 23, 2023. GPT-3.5’s multiple-choice questions and free-response questions were all run using a standard ChatGPT snapshot. We ran the USABO semifinal exam using an earlier GPT-4 snapshot from December 16, 2022. Our evaluations suggest RLHF does not significantly affect the base GPT-4 model’s capability - see Appendix B for more discussion.

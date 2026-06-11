@@ -1,0 +1,3 @@
+## A.1 Sourcing.
+
+ We sourced either the most recent publicly-available official past exams, or practice exams in published third-party 2022-2023 study material which we purchased. We cross-checked these materials against the model’s training data to determine the extent to which the training data was not contaminated with any exam questions, which we also report in this paper. The Uniform Bar Exam was run by our collaborators at CaseText and Stanford CodeX.

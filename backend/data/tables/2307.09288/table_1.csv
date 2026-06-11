@@ -1,0 +1,6 @@
+,,Time (GPU hours),Power Consumption (W),Carbon Emitted (tCO 2 eq)
+Llama 2,7B,184320,400,31.22
+13B,368640,400,62.44,
+34B,1038336,350,153.90,
+70B,1720320,400,291.42,
+Total,,3311616,,539.00

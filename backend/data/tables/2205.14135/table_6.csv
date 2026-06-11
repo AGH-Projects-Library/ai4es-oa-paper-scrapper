@@ -1,0 +1,7 @@
+Model implementations,OpenWebText (ppl),Training time (speedup)
+GPT-2 small - Huggingface [ 87 ],18.2,9.5 days (1.0 × \times )
+GPT-2 small - Megatron-LM [ 77 ],18.2,4.7 days (2.0 × \times )
+GPT-2 small - FlashAttention,18.2,2.7 days (3.5 × \times )
+GPT-2 medium - Huggingface [ 87 ],14.2,21.0 days (1.0 × \times )
+GPT-2 medium - Megatron-LM [ 77 ],14.3,11.5 days (1.8 × \times )
+GPT-2 medium - FlashAttention,14.3,6.9 days (3.0 × \times )

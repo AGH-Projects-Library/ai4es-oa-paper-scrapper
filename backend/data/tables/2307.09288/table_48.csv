@@ -1,0 +1,6 @@
+Comparison Model,Number of single turn prompts,Number of multi-turn prompts
+ChatGPT,1917,2256
+PaLM-chat,1869,2143
+Falcon,1917,1960
+MPT,1917,1293
+Vicuna,1917,1390

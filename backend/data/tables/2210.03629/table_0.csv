@@ -1,0 +1,10 @@
+"Prompt Method 4 4 4 HotpotQA EM is 27.1, 28.9, 33.8 for Standard , CoT , CoT-SC in Wang et al. ( 2022b ) .",HotpotQA,Fever
+(EM),(Acc),
+Standard,28.7,57.1
+"CoT (Wei et al., 2022 )",29.4,56.3
+"CoT-SC (Wang et al., 2022a )",33.4,60.4
+Act,25.7,58.9
+\model,27.4,60.9
+CoT-SC → → \to \model,34.2,64.6
+\model → → \to CoT-SC,35.1,62.0
+"Supervised SoTA 5 5 5 ( Zhu et al. , 2021 ; Lewis et al. , 2020 )",67.5,89.5

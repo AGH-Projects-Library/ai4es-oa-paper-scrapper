@@ -1,0 +1,9 @@
+,Training Data,Params,Context Length,GQA,Tokens,LR
+Llama 1,See Touvron et al. ( 2023 ),7B,2k,✗,1.0T,3.0 × 10 − 4 3.0 superscript 10 4 3.0\times 10^{-4}
+13B,2k,✗,1.0T,3.0 × 10 − 4 3.0 superscript 10 4 3.0\times 10^{-4},,
+33B,2k,✗,1.4T,1.5 × 10 − 4 1.5 superscript 10 4 1.5\times 10^{-4},,
+65B,2k,✗,1.4T,1.5 × 10 − 4 1.5 superscript 10 4 1.5\times 10^{-4},,
+Llama 2,A new mix of publicly available online data,7B,4k,✗,2.0T,3.0 × 10 − 4 3.0 superscript 10 4 3.0\times 10^{-4}
+13B,4k,✗,2.0T,3.0 × 10 − 4 3.0 superscript 10 4 3.0\times 10^{-4},,
+34B,4k,✓,2.0T,1.5 × 10 − 4 1.5 superscript 10 4 1.5\times 10^{-4},,
+70B,4k,✓,2.0T,1.5 × 10 − 4 1.5 superscript 10 4 1.5\times 10^{-4},,

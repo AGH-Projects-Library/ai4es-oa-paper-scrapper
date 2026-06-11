@@ -1,0 +1,4 @@
+Guardrails,MT Bench
+No system prompt,6.84 ± plus-or-minus \pm 0.07
+Llama 2 system prompt,6.38 ± plus-or-minus \pm 0.07
+Mistral system prompt,6.58 ± plus-or-minus \pm 0.05

@@ -1,0 +1,16 @@
+,GPT-4,GPT-3.5,LM SOTA,SOTA
+,Evaluated few-shot,Evaluated few-shot,Best external LM evaluated few-shot,Best external model (incl. benchmark-specific tuning)
+MMLU [ 49 ],86.4%,70.0%,70.7%,75.2%
+Multiple-choice questions in 57 subjects (professional & academic),5-shot,5-shot,5-shot U-PaLM [ 50 ],5-shot Flan-PaLM [ 51 ]
+HellaSwag [ 52 ],95.3%,85.5%,84.2%,85.6
+Commonsense reasoning around everyday events,10-shot,10-shot,LLaMA (validation set) [ 28 ],ALUM [ 53 ]
+AI2 Reasoning Challenge (ARC) [ 54 ],96.3%,85.2%,85.2%,86.5%
+Grade-school multiple choice science questions. Challenge-set.,25-shot,25-shot,8-shot PaLM [ 55 ],ST-MOE [ 18 ]
+WinoGrande [ 56 ],87.5%,81.6%,85.1%,85.1%
+Commonsense reasoning around pronoun resolution,5-shot,5-shot,5-shot PaLM [ 3 ],5-shot PaLM [ 3 ]
+HumanEval [ 43 ],67.0%,48.1%,26.2%,65.8%
+Python coding tasks,0-shot,0-shot,0-shot PaLM [ 3 ],CodeT + GPT-3.5 [ 57 ]
+DROP [ 58 ] (F1 score),80.9,64.1,70.8,88.4
+Reading comprehension & arithmetic.,3-shot,3-shot,1-shot PaLM [ 3 ],QDGAT [ 59 ]
+GSM-8K [ 60 ],92.0% ∗,57.1%,58.8%,87.3%
+Grade-school mathematics questions,5-shot chain-of-thought,5-shot,8-shot Minerva [ 61 ],"Chinchilla + SFT+ORM-RL, ORM reranking [ 62 ]"

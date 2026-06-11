@@ -1,0 +1,10 @@
+Model,Path-X,Path-256
+Transformer,✗,✗
+Linformer [ 84 ],✗,✗
+Linear Attention [ 50 ],✗,✗
+Performer [ 12 ],✗,✗
+Local Attention [ 80 ],✗,✗
+Reformer [ 51 ],✗,✗
+SMYRF [ 19 ],✗,✗
+FlashAttention,61.4,✗
+Block-sparse FlashAttention,56.0,63.1

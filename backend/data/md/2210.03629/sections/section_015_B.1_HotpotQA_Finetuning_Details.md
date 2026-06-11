@@ -1,0 +1,3 @@
+## B.1 HotpotQA Finetuning Details
+
+ For all finetuning we use a batch size of 64. On PaLM-8B, we finetune \model and Act methods for 4 , 000 4 000 4,000 steps and Standard and CoT methods for 2 , 000 2 000 2,000 steps. On PaLM-62B, we finetune \model and Act methods for 4 , 000 4 000 4,000 steps and Standard and CoT methods for 1 , 000 1 000 1,000 steps. We find \model and Act methods generally benefit from more training steps (and more training data), while Standard and CoT methods degrade soon after finetuning.
